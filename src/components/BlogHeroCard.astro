@@ -17,16 +17,14 @@ const formattedDate = new Date(date).toLocaleDateString("fr-FR", {
 });
 ---
 
-<article class="group rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+<a href={`/blog/${slug}`} class="block group rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow no-underline">
   {coverImage && (
-    <a href={`/blog/${slug}`}>
-      <img
-        src={coverImage}
-        alt={title}
-        class="w-full h-96 object-cover group-hover:opacity-90 transition-opacity"
-        loading="lazy"
-      />
-    </a>
+    <img
+      src={coverImage}
+      alt={title}
+      class="w-full h-96 object-cover group-hover:opacity-90 transition-opacity"
+      loading="lazy"
+    />
   )}
   <div class="p-8">
     <div class="flex items-center gap-3 mb-3">
@@ -40,14 +38,11 @@ const formattedDate = new Date(date).toLocaleDateString("fr-FR", {
       </time>
     </div>
     <h3 class="text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
-      <a href={`/blog/${slug}`}>{title}</a>
+      {title}
     </h3>
     <p class="text-gray-600 text-base leading-relaxed line-clamp-3">{excerpt}</p>
-    <a
-      href={`/blog/${slug}`}
-      class="inline-block mt-4 text-sm font-medium text-primary-600 hover:text-primary-700"
-    >
+    <span class="inline-block mt-4 text-sm font-medium text-primary-600 group-hover:text-primary-700">
       Lire la suite &rarr;
-    </a>
+    </span>
   </div>
-</article>
+</a>
