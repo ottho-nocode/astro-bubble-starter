@@ -208,8 +208,13 @@ function bbcodeToHtml(bbcode: string): string {
   // Clean up any remaining unknown BBCode tags
   html = html.replace(/\[\/?[a-z]+(?:=[^\]]*)?\]/gi, "");
 
-  // Line breaks: convert newlines to <br>
+  // Line breaks: collapse multiple newlines into one <br>, then strip <br>
+  // adjacent to block-level elements to avoid double spacing
+  html = html.replace(/\n{2,}/g, "<br>");
   html = html.replace(/\n/g, "<br>");
+  html = html.replace(/(<br>\s*)+/gi, "<br>");
+  html = html.replace(/<br>\s*(<\/?(?:h[1-6]|div|blockquote|ul|ol|li|pre|p)[\s>])/gi, "$1");
+  html = html.replace(/(<\/(?:h[1-6]|div|blockquote|ul|ol|li|pre|p)>)\s*<br>/gi, "$1");
 
   return html;
 }
