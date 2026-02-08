@@ -28,9 +28,10 @@ export const GET: APIRoute = async ({ request }) => {
       );
     }
 
-    // Bubble expose un Swagger public à /api/1.1/meta/swagger.json
-    // Ne PAS envoyer le Bearer token : ce endpoint est public et
-    // un token invalide pour ce contexte provoque un 401
+    // Bubble expose le Swagger à /api/1.1/meta/swagger.json
+    // C'est un endpoint public : on ne transmet PAS le Bearer token ici
+    // car un token invalide (ex: texte erroné) provoque un 401.
+    // Le token est utilisé uniquement pour les appels data (/obj/...).
     const metaUrl = `${apiUrl}/meta/swagger.json`;
 
     const res = await fetch(metaUrl);
