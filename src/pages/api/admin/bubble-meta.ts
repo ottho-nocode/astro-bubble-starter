@@ -49,20 +49,32 @@ export const GET: APIRoute = async ({ request }) => {
     const swagger = await res.json();
 
     // Le Swagger contient :
-    // - paths: /obj/{typeName}, /obj/{typeName}/{UniqueID}, etc.
-    // - definitions: { typeName: { type: "object", properties: { field: { type: "string" } } } }
-    // On extrait les types depuis "definitions" (exclut les types internes Swagger)
+    // - paths: /obj/{typeName} (GET) pour les types accessibles via l'API
+    // - definitions: { typeName: { type: "object", properties: { ... } } }
+    // On ne retourne que les types qui ont un GET dans paths (= accessibles)
     const types: Array<{
       name: string;
       fields: Array<{ name: string; type: string }>;
     }> = [];
 
+    // Extraire les types accessibles depuis les paths GET
+    const accessibleTypes = new Set<string>();
+    const paths = swagger?.paths || {};
+    for (const path of Object.keys(paths)) {
+      if (paths[path]?.get && path.startsWith("/obj/")) {
+        // /obj/{typeName} ou /obj/{typeName}/{UniqueID}
+        const typeName = path.split("/")[2];
+        if (typeName && !typeName.startsWith("{")) {
+          accessibleTypes.add(typeName);
+        }
+      }
+    }
+
     const definitions = swagger?.definitions || {};
-    // Types internes Swagger à ignorer
-    const skipDefs = new Set(["error", "Error", "error_response", "ErrorResponse"]);
 
     for (const [defName, defSchema] of Object.entries(definitions)) {
-      if (skipDefs.has(defName)) continue;
+      // Ne garder que les types accessibles via GET
+      if (!accessibleTypes.has(defName)) continue;
       const schema = defSchema as any;
       if (schema.type !== "object" || !schema.properties) continue;
 
