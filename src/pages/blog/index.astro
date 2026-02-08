@@ -8,7 +8,8 @@ import { loadSiteConfig } from "../../config";
 
 let posts: Awaited<ReturnType<typeof getPosts>> = [];
 try {
-  posts = await getPosts();
+  const all = await getPosts();
+  posts = all.filter((p) => p.slug);
 } catch {
   // API non configurée
 }
