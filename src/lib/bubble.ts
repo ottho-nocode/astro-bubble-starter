@@ -168,8 +168,14 @@ function bbcodeToHtml(bbcode: string): string {
     '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
   );
 
-  // [img]...[/img]
-  html = html.replace(/\[img\](.*?)\[\/img\]/gi, '<img src="$1" alt="" loading="lazy" />');
+  // [img]...[/img] and [img width=700]...[/img], [img width=700px]...[/img]
+  html = html.replace(
+    /\[img(?:\s+width=["']?(\d+(?:px)?)["']?)?\](.*?)\[\/img\]/gi,
+    (_m, width, src) => {
+      const w = width ? ` style="max-width:${width.endsWith("px") ? width : width + "px"}"` : "";
+      return `<img src="${src}" alt="" loading="lazy"${w} />`;
+    }
+  );
 
   // [color=...]...[/color] (supports rgb(), hex, named colors, quoted values)
   html = html.replace(
