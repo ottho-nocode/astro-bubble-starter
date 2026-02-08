@@ -44,6 +44,24 @@ if (!(await verifySession(token))) {
 
     <div id="statusMessage"></div>
 
+    <!-- Current mapping summary (shown when mapping exists) -->
+    <div id="currentMapping" class="card" style="display:none;">
+      <div class="card-header">
+        <h2>Mapping actuel</h2>
+        <p>Votre contenu Bubble est connecte au blog</p>
+      </div>
+      <div class="card-body">
+        <div id="currentMappingSummary"></div>
+        <button id="editMappingBtn" class="btn btn-outline" style="width:100%; margin-top:1rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Modifier le mapping
+        </button>
+      </div>
+    </div>
+
+    <!-- Wizard (hidden when mapping exists) -->
+    <div id="wizardSection">
+
     <!-- Stepper -->
     <div class="stepper">
       <div class="step active" data-step="1">
@@ -124,6 +142,8 @@ if (!(await verifySession(token))) {
         </div>
       </div>
     </div>
+
+    </div><!-- /wizardSection -->
   </div>
 
   <style is:global>
@@ -301,6 +321,72 @@ if (!(await verifySession(token))) {
       padding: 2rem;
       color: #94a3b8;
     }
+
+    /* ── Current mapping summary ── */
+    .mapping-summary-table {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .mapping-summary-table .summary-icon {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.375rem;
+      background: #f0fdf4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .mapping-summary-table .summary-icon svg {
+      width: 16px;
+      height: 16px;
+      color: #22c55e;
+    }
+    .mapping-summary-table .summary-label {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+    .mapping-summary-table .summary-value {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .mapping-summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+    .mapping-summary-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: #f8fafc;
+      border-radius: 0.375rem;
+      font-size: 0.8125rem;
+    }
+    .mapping-summary-item .field-label {
+      color: #64748b;
+      min-width: 70px;
+    }
+    .mapping-summary-item .field-value {
+      color: #0f172a;
+      font-weight: 500;
+    }
+    .mapping-summary-item .field-empty {
+      color: #cbd5e1;
+      font-style: italic;
+    }
+    .mapping-summary-item .arrow {
+      color: #cbd5e1;
+    }
+    @media (max-width: 640px) {
+      .mapping-summary-grid { grid-template-columns: 1fr; }
+    }
   </style>
 
   <script>
@@ -412,6 +498,54 @@ if (!(await verifySession(token))) {
       return "";
     }
 
+    const FIELD_LABELS: Record<string, string> = {
+      title: "Titre", slug: "Slug", content: "Contenu", excerpt: "Extrait",
+      coverImage: "Image", author: "Auteur", category: "Categorie",
+      date: "Date", published: "Publie",
+    };
+
+    function showCurrentMapping() {
+      const m = existingConfig.bubbleFieldMapping;
+      const table = existingConfig.bubbleContentTable;
+      if (!table || !m) return;
+
+      const summary = document.getElementById("currentMappingSummary")!;
+      let html = `
+        <div class="mapping-summary-table">
+          <div class="summary-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div>
+            <div class="summary-label">Table Bubble</div>
+            <div class="summary-value">${table}</div>
+          </div>
+        </div>
+        <div class="mapping-summary-grid">
+      `;
+
+      for (const [key, label] of Object.entries(FIELD_LABELS)) {
+        const val = (m as any)[key] || "";
+        html += `
+          <div class="mapping-summary-item">
+            <span class="field-label">${label}</span>
+            <span class="arrow">&rarr;</span>
+            ${val ? `<span class="field-value">${val}</span>` : `<span class="field-empty">non mappe</span>`}
+          </div>
+        `;
+      }
+
+      html += "</div>";
+      summary.innerHTML = html;
+
+      document.getElementById("currentMapping")!.style.display = "";
+      document.getElementById("wizardSection")!.style.display = "none";
+    }
+
+    function enterWizardMode() {
+      document.getElementById("currentMapping")!.style.display = "none";
+      document.getElementById("wizardSection")!.style.display = "";
+    }
+
     // Load existing config
     async function loadExistingConfig() {
       try {
@@ -423,6 +557,9 @@ if (!(await verifySession(token))) {
               bubbleContentTable: data.config.bubbleContentTable,
               bubbleFieldMapping: data.config.bubbleFieldMapping,
             };
+            if (existingConfig.bubbleContentTable && existingConfig.bubbleFieldMapping) {
+              showCurrentMapping();
+            }
           }
         }
       } catch { /* ignore */ }
@@ -672,6 +809,7 @@ if (!(await verifySession(token))) {
     }
 
     // Wire up events
+    document.getElementById("editMappingBtn")!.addEventListener("click", enterWizardMode);
     document.getElementById("loadTablesBtn")!.addEventListener("click", loadTables);
 
     document.getElementById("step1Next")!.addEventListener("click", () => {
