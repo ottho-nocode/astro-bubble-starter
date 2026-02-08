@@ -4,7 +4,6 @@ export const prerender = false;
 import Admin from "../../layouts/Admin.astro";
 import { verifySession, getSessionFromRequest } from "../../lib/admin-auth";
 
-// Rediriger si déjà connecté
 const token = getSessionFromRequest(Astro.request);
 if (await verifySession(token)) {
   return Astro.redirect("/admin");
@@ -12,36 +11,62 @@ if (await verifySession(token)) {
 ---
 
 <Admin title="Connexion">
-  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;">
-    <div class="card" style="width:100%;max-width:400px;">
-      <h2 style="text-align:center;">Administration</h2>
-      <div id="error" class="alert alert-error" style="display:none;"></div>
-      <form id="loginForm">
-        <div class="form-group">
-          <label for="password">Mot de passe</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            placeholder="Entrez le mot de passe admin"
-            required
-            autofocus
-          />
+  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;">
+    <div style="width:100%;max-width:400px;">
+      <!-- Logo -->
+      <div style="text-align:center;margin-bottom:2rem;">
+        <div style="width:48px;height:48px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem;">
+          <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+          </svg>
         </div>
-        <button type="submit" class="btn btn-primary" style="width:100%;">
-          Se connecter
-        </button>
-      </form>
+        <h1 style="font-size:1.375rem;font-weight:700;color:#0f172a;letter-spacing:-0.025em;">Administration</h1>
+        <p style="font-size:0.875rem;color:#94a3b8;margin-top:0.375rem;">Connectez-vous pour acceder au panneau</p>
+      </div>
+
+      <!-- Card -->
+      <div class="card">
+        <div class="card-body">
+          <div id="error" class="alert alert-error" style="display:none;"></div>
+          <form id="loginForm">
+            <div class="form-group">
+              <label for="password">Mot de passe</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Entrez le mot de passe"
+                required
+                autofocus
+                style="padding:0.75rem 1rem;font-size:0.9375rem;"
+              />
+            </div>
+            <button type="submit" id="loginBtn" class="btn btn-primary" style="width:100%;padding:0.75rem;font-size:0.9375rem;margin-top:0.5rem;">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+              </svg>
+              Se connecter
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <p style="text-align:center;font-size:0.75rem;color:#cbd5e1;margin-top:1.5rem;">
+        <a href="/" style="color:#94a3b8;text-decoration:none;">Retour au site</a>
+      </p>
     </div>
   </div>
 
   <script>
     const form = document.getElementById("loginForm") as HTMLFormElement;
     const errorEl = document.getElementById("error") as HTMLDivElement;
+    const loginBtn = document.getElementById("loginBtn") as HTMLButtonElement;
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       errorEl.style.display = "none";
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<div class="spinner"></div> Connexion...';
 
       const password = (document.getElementById("password") as HTMLInputElement).value;
 
@@ -57,11 +82,15 @@ if (await verifySession(token)) {
         } else {
           const data = await res.json();
           errorEl.textContent = data.error || "Erreur de connexion";
-          errorEl.style.display = "block";
+          errorEl.style.display = "flex";
+          loginBtn.disabled = false;
+          loginBtn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Se connecter';
         }
       } catch {
-        errorEl.textContent = "Erreur réseau";
-        errorEl.style.display = "block";
+        errorEl.textContent = "Erreur reseau";
+        errorEl.style.display = "flex";
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = 'Se connecter';
       }
     });
   </script>

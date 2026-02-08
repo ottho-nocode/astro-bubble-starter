@@ -4,7 +4,6 @@ export const prerender = false;
 import Admin from "../../layouts/Admin.astro";
 import { verifySession, getSessionFromRequest } from "../../lib/admin-auth";
 
-// Protéger la page
 const token = getSessionFromRequest(Astro.request);
 if (!(await verifySession(token))) {
   return Astro.redirect("/admin/login");
@@ -12,106 +11,182 @@ if (!(await verifySession(token))) {
 ---
 
 <Admin title="Dashboard">
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-dots">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <!-- Header -->
   <header class="admin-header">
-    <h1>Admin Panel</h1>
-    <div style="display:flex;gap:1rem;align-items:center;">
-      <a href="/" target="_blank">Voir le site</a>
-      <button id="logoutBtn" class="btn btn-secondary" style="font-size:0.8rem;padding:0.4rem 0.8rem;">
-        Déconnexion
+    <div class="admin-header-left">
+      <div class="admin-header-logo">
+        <svg width="18" height="18" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <h1>Admin</h1>
+    </div>
+    <div class="admin-header-right">
+      <a href="/" target="_blank" class="header-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Voir le site
+      </a>
+      <button id="logoutBtn" class="header-link" style="border:none;cursor:pointer;font-family:inherit;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Quitter
       </button>
     </div>
   </header>
 
   <div class="admin-content">
+    <!-- Page title -->
+    <h2 class="page-title">Configuration du site</h2>
+    <p class="page-subtitle">Modifiez les textes et parametres, puis publiez en un clic.</p>
+
     <div id="statusMessage"></div>
 
-    <!-- Général -->
+    <!-- General -->
     <div class="card">
-      <h2>Général</h2>
-      <div class="form-group">
-        <label for="cfg-name">Nom du site</label>
-        <input type="text" id="cfg-name" />
+      <div class="card-header">
+        <div class="card-header-icon" style="background:#eff6ff;color:#3b82f6;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008.27 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 003.93 15a1.65 1.65 0 00-1.51-1H2a2 2 0 010-4h.09A1.65 1.65 0 003.6 8.27a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H8a1.65 1.65 0 001-1.51V2a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V8a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </div>
+        <div>
+          <h2>General</h2>
+          <p>Nom, description et URLs du site</p>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="cfg-description">Description (SEO)</label>
-        <textarea id="cfg-description"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="cfg-url">URL du site</label>
-        <input type="url" id="cfg-url" />
-      </div>
-      <div class="form-group">
-        <label for="cfg-bubbleAppUrl">URL de l'app Bubble</label>
-        <input type="url" id="cfg-bubbleAppUrl" />
-      </div>
-      <div class="form-group">
-        <label for="cfg-bubbleApiUrl">URL API Bubble</label>
-        <input type="url" id="cfg-bubbleApiUrl" placeholder="https://app.bubbleapps.io/api/1.1" />
-      </div>
-      <div class="form-group">
-        <label for="cfg-bubbleApiToken">Token API Bubble</label>
-        <input type="text" id="cfg-bubbleApiToken" placeholder="Votre token API" />
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cfg-name">Nom du site</label>
+            <input type="text" id="cfg-name" placeholder="Mon Site" />
+          </div>
+          <div class="form-group">
+            <label for="cfg-url">URL du site</label>
+            <input type="url" id="cfg-url" placeholder="https://example.com" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="cfg-description">Description (SEO)</label>
+          <textarea id="cfg-description" placeholder="Description du site pour les moteurs de recherche"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cfg-bubbleAppUrl">URL de l'app Bubble</label>
+            <input type="url" id="cfg-bubbleAppUrl" placeholder="https://app.bubbleapps.io" />
+          </div>
+          <div class="form-group">
+            <label for="cfg-bubbleApiUrl">URL API Bubble</label>
+            <input type="url" id="cfg-bubbleApiUrl" placeholder="https://app.bubbleapps.io/api/1.1" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="cfg-bubbleApiToken">Token API Bubble</label>
+          <input type="password" id="cfg-bubbleApiToken" placeholder="Votre token API" />
+        </div>
       </div>
     </div>
 
     <!-- Hero -->
     <div class="card">
-      <h2>Hero</h2>
-      <div class="form-group">
-        <label for="cfg-hero-title">Titre</label>
-        <input type="text" id="cfg-hero-title" />
+      <div class="card-header">
+        <div class="card-header-icon" style="background:#faf5ff;color:#8b5cf6;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div>
+          <h2>Section Hero</h2>
+          <p>Titre principal et appel a l'action</p>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="cfg-hero-subtitle">Sous-titre</label>
-        <textarea id="cfg-hero-subtitle"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="cfg-hero-ctaText">Texte du bouton CTA</label>
-        <input type="text" id="cfg-hero-ctaText" />
-      </div>
-      <div class="form-group">
-        <label for="cfg-hero-ctaLink">Lien du bouton CTA</label>
-        <input type="text" id="cfg-hero-ctaLink" />
+      <div class="card-body">
+        <div class="form-group">
+          <label for="cfg-hero-title">Titre</label>
+          <input type="text" id="cfg-hero-title" placeholder="Bienvenue sur notre plateforme" />
+        </div>
+        <div class="form-group">
+          <label for="cfg-hero-subtitle">Sous-titre</label>
+          <textarea id="cfg-hero-subtitle" placeholder="Une description convaincante..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cfg-hero-ctaText">Texte du bouton</label>
+            <input type="text" id="cfg-hero-ctaText" placeholder="Commencer" />
+          </div>
+          <div class="form-group">
+            <label for="cfg-hero-ctaLink">Lien du bouton</label>
+            <input type="text" id="cfg-hero-ctaLink" placeholder="https://..." />
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Features -->
     <div class="card">
-      <h2>Fonctionnalités</h2>
-      <div class="form-group">
-        <label for="cfg-features-title">Titre de la section</label>
-        <input type="text" id="cfg-features-title" />
+      <div class="card-header">
+        <div class="card-header-icon" style="background:#f0fdf4;color:#22c55e;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </div>
+        <div>
+          <h2>Fonctionnalites</h2>
+          <p>Points forts affiches sur la page d'accueil</p>
+        </div>
       </div>
-      <div id="features-list"></div>
-      <button type="button" id="addFeatureBtn" class="btn btn-secondary" style="margin-top:0.75rem;">
-        + Ajouter une fonctionnalité
-      </button>
+      <div class="card-body">
+        <div class="form-group">
+          <label for="cfg-features-title">Titre de la section</label>
+          <input type="text" id="cfg-features-title" placeholder="Pourquoi nous choisir" />
+        </div>
+        <div id="features-list"></div>
+        <button type="button" id="addFeatureBtn" class="btn btn-secondary" style="width:100%;margin-top:0.5rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter une fonctionnalite
+        </button>
+      </div>
     </div>
 
     <!-- CTA -->
     <div class="card">
-      <h2>Section CTA</h2>
-      <div class="form-group">
-        <label for="cfg-cta-title">Titre</label>
-        <input type="text" id="cfg-cta-title" />
+      <div class="card-header">
+        <div class="card-header-icon" style="background:#fff7ed;color:#f97316;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </div>
+        <div>
+          <h2>Section CTA</h2>
+          <p>Appel a l'action en bas de page</p>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="cfg-cta-description">Description</label>
-        <textarea id="cfg-cta-description"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="cfg-cta-ctaText">Texte du bouton</label>
-        <input type="text" id="cfg-cta-ctaText" />
-      </div>
-      <div class="form-group">
-        <label for="cfg-cta-ctaLink">Lien du bouton</label>
-        <input type="text" id="cfg-cta-ctaLink" />
+      <div class="card-body">
+        <div class="form-group">
+          <label for="cfg-cta-title">Titre</label>
+          <input type="text" id="cfg-cta-title" placeholder="Pret a commencer ?" />
+        </div>
+        <div class="form-group">
+          <label for="cfg-cta-description">Description</label>
+          <textarea id="cfg-cta-description" placeholder="Rejoignez des milliers d'utilisateurs..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cfg-cta-ctaText">Texte du bouton</label>
+            <input type="text" id="cfg-cta-ctaText" placeholder="Essayer gratuitement" />
+          </div>
+          <div class="form-group">
+            <label for="cfg-cta-ctaLink">Lien du bouton</label>
+            <input type="text" id="cfg-cta-ctaLink" placeholder="https://..." />
+          </div>
+        </div>
       </div>
     </div>
+  </div>
 
-    <!-- Actions -->
-    <div style="display:flex;gap:1rem;justify-content:flex-end;margin-bottom:3rem;">
+  <!-- Sticky save bar -->
+  <div class="save-bar">
+    <div class="save-bar-inner">
+      <div class="save-bar-status" id="saveStatus">Pret a publier</div>
       <button id="saveBtn" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
         Enregistrer & Publier
       </button>
     </div>
@@ -139,46 +214,51 @@ if (!(await verifySession(token))) {
 
     let currentConfig: SiteConfigData | null = null;
 
-    // --- Helpers ---
     function $(id: string): HTMLInputElement | HTMLTextAreaElement {
       return document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement;
     }
 
     function showMessage(text: string, type: "success" | "error") {
       const el = document.getElementById("statusMessage")!;
-      el.innerHTML = `<div class="alert alert-${type}">${text}</div>`;
+      const icon = type === "success"
+        ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+        : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+      el.innerHTML = `<div class="alert alert-${type}">${icon} ${text}</div>`;
       setTimeout(() => { el.innerHTML = ""; }, 5000);
     }
 
-    // --- Features dynamic list ---
     function renderFeatures(items: FeatureItem[]) {
       const container = document.getElementById("features-list")!;
       container.innerHTML = "";
       items.forEach((item, i) => {
         const div = document.createElement("div");
-        div.style.cssText = "border:1px solid #e5e7eb;border-radius:0.5rem;padding:1rem;margin-bottom:0.75rem;position:relative;";
+        div.className = "feature-item";
         div.innerHTML = `
-          <button type="button" class="remove-feature" data-index="${i}"
-            style="position:absolute;top:0.5rem;right:0.5rem;background:#fee2e2;color:#991b1b;border:none;border-radius:0.25rem;padding:0.25rem 0.5rem;cursor:pointer;font-size:0.75rem;">
-            Supprimer
-          </button>
-          <div class="form-group">
-            <label>Icône</label>
-            <input type="text" class="feature-icon" data-index="${i}" value="${item.icon}" style="width:80px;" />
+          <div class="feature-item-header">
+            <span class="feature-item-number">Fonctionnalite ${i + 1}</span>
+            <button type="button" class="btn btn-danger remove-feature" data-index="${i}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              Supprimer
+            </button>
           </div>
-          <div class="form-group">
-            <label>Titre</label>
-            <input type="text" class="feature-title" data-index="${i}" value="${item.title}" />
+          <div class="form-row" style="margin-bottom:0.75rem;">
+            <div class="form-group" style="flex:0 0 100px;">
+              <label>Icone</label>
+              <input type="text" class="feature-icon" data-index="${i}" value="${item.icon}" />
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label>Titre</label>
+              <input type="text" class="feature-title" data-index="${i}" value="${item.title}" />
+            </div>
           </div>
           <div class="form-group">
             <label>Description</label>
-            <textarea class="feature-desc" data-index="${i}">${item.description}</textarea>
+            <textarea class="feature-desc" data-index="${i}" style="min-height:60px;">${item.description}</textarea>
           </div>
         `;
         container.appendChild(div);
       });
 
-      // Remove buttons
       container.querySelectorAll(".remove-feature").forEach((btn) => {
         btn.addEventListener("click", (e) => {
           const idx = parseInt((e.currentTarget as HTMLElement).dataset.index!);
@@ -189,7 +269,6 @@ if (!(await verifySession(token))) {
         });
       });
 
-      // Sync changes back
       container.querySelectorAll(".feature-icon, .feature-title, .feature-desc").forEach((input) => {
         input.addEventListener("input", (e) => {
           const el = e.target as HTMLInputElement | HTMLTextAreaElement;
@@ -202,7 +281,6 @@ if (!(await verifySession(token))) {
       });
     }
 
-    // --- Load config ---
     async function loadConfig() {
       try {
         const res = await fetch("/api/admin/config");
@@ -210,7 +288,8 @@ if (!(await verifySession(token))) {
         const data = await res.json();
 
         if (!data.config) {
-          showMessage("Aucune configuration trouvée. Vérifiez Supabase.", "error");
+          showMessage("Aucune configuration trouvee. Verifiez Supabase.", "error");
+          document.getElementById("loadingOverlay")!.classList.add("hidden");
           return;
         }
 
@@ -236,12 +315,15 @@ if (!(await verifySession(token))) {
         $("cfg-cta-description").value = c.cta?.description || "";
         $("cfg-cta-ctaText").value = c.cta?.ctaText || "";
         $("cfg-cta-ctaLink").value = c.cta?.ctaLink || "";
+
+        // Hide loading
+        document.getElementById("loadingOverlay")!.classList.add("hidden");
       } catch {
         showMessage("Erreur de chargement de la configuration", "error");
+        document.getElementById("loadingOverlay")!.classList.add("hidden");
       }
     }
 
-    // --- Gather config from form ---
     function gatherConfig(): SiteConfigData {
       return {
         name: $("cfg-name").value,
@@ -270,11 +352,13 @@ if (!(await verifySession(token))) {
       };
     }
 
-    // --- Save & Deploy ---
+    // Save & Deploy
     document.getElementById("saveBtn")!.addEventListener("click", async () => {
       const btn = document.getElementById("saveBtn") as HTMLButtonElement;
+      const status = document.getElementById("saveStatus")!;
       btn.disabled = true;
-      btn.textContent = "Publication en cours...";
+      btn.innerHTML = '<div class="spinner"></div> Publication...';
+      status.textContent = "Sauvegarde en cours...";
 
       try {
         const config = gatherConfig();
@@ -288,37 +372,41 @@ if (!(await verifySession(token))) {
 
         const data = await res.json();
         if (data.success) {
-          showMessage(data.message || "Configuration sauvegardée !", "success");
+          showMessage(data.message || "Configuration sauvegardee !", "success");
+          status.textContent = "Publie avec succes";
           currentConfig = config;
         } else {
           showMessage(data.error || "Erreur lors de la sauvegarde", "error");
+          status.textContent = "Erreur de publication";
         }
       } catch {
-        showMessage("Erreur réseau", "error");
+        showMessage("Erreur reseau", "error");
+        status.textContent = "Erreur reseau";
       } finally {
         btn.disabled = false;
-        btn.textContent = "Enregistrer & Publier";
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Enregistrer & Publier';
+        setTimeout(() => { status.textContent = "Pret a publier"; }, 4000);
       }
     });
 
-    // --- Add feature ---
+    // Add feature
     document.getElementById("addFeatureBtn")!.addEventListener("click", () => {
       if (!currentConfig) return;
       currentConfig.features.items.push({
-        title: "Nouvelle fonctionnalité",
-        description: "Description de la fonctionnalité",
+        title: "Nouvelle fonctionnalite",
+        description: "Description de la fonctionnalite",
         icon: String(currentConfig.features.items.length + 1),
       });
       renderFeatures(currentConfig.features.items);
     });
 
-    // --- Logout ---
+    // Logout
     document.getElementById("logoutBtn")!.addEventListener("click", async () => {
       await fetch("/api/admin/logout", { method: "POST" });
       window.location.href = "/admin/login";
     });
 
-    // --- Init ---
+    // Init
     loadConfig();
   </script>
 </Admin>
