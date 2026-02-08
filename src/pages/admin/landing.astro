@@ -47,7 +47,7 @@ if (!(await verifySession(token))) {
         </div>
 
         <!-- Section 1: General -->
-        <div class="accordion-section custom-only-section" data-section="general">
+        <div class="accordion-section" data-section="general">
           <button class="accordion-trigger" type="button">
             <span class="accordion-title">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1.08-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1.08 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1.08z"/></svg>
@@ -72,7 +72,7 @@ if (!(await verifySession(token))) {
         </div>
 
         <!-- Section 2: Hero -->
-        <div class="accordion-section custom-only-section" data-section="hero">
+        <div class="accordion-section" data-section="hero">
           <button class="accordion-trigger" type="button">
             <span class="accordion-title">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
@@ -101,7 +101,7 @@ if (!(await verifySession(token))) {
         </div>
 
         <!-- Section 3: Features -->
-        <div class="accordion-section custom-only-section" data-section="features">
+        <div class="accordion-section" data-section="features">
           <button class="accordion-trigger" type="button">
             <span class="accordion-title">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
@@ -123,7 +123,7 @@ if (!(await verifySession(token))) {
         </div>
 
         <!-- Section 4: CTA -->
-        <div class="accordion-section custom-only-section" data-section="cta">
+        <div class="accordion-section" data-section="cta">
           <button class="accordion-trigger" type="button">
             <span class="accordion-title">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
@@ -483,9 +483,7 @@ if (!(await verifySession(token))) {
       color: #94a3b8;
       margin-top: 0.125rem;
     }
-    .custom-only-section.sections-hidden {
-      display: none;
-    }
+
 
     /* ── Preview area ── */
     .builder-preview {
@@ -677,20 +675,8 @@ if (!(await verifySession(token))) {
           const radio = card.querySelector("input") as HTMLInputElement;
           radio.checked = true;
           selectedTemplate = radio.value;
-          toggleCustomSections();
           updatePreview();
         });
-      });
-    }
-
-    function toggleCustomSections() {
-      const isCustom = selectedTemplate === "custom";
-      document.querySelectorAll<HTMLElement>(".custom-only-section").forEach(el => {
-        if (isCustom) {
-          el.classList.remove("sections-hidden");
-        } else {
-          el.classList.add("sections-hidden");
-        }
       });
     }
 
@@ -705,6 +691,116 @@ if (!(await verifySession(token))) {
       } catch {
         return `<html><body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#94a3b8;">Erreur de chargement du template</body></html>`;
       }
+    }
+
+    function injectConfigIntoTemplate(html: string, cfg: Record<string, any>): string {
+      const hero = cfg.hero || {};
+      const cta = cfg.cta || {};
+      const features = cfg.features || {};
+      const siteName = cfg.name || "";
+
+      // Build injection script that runs after DOM load
+      const injectionScript = `
+<script>
+(function() {
+  var cfg = ${JSON.stringify({
+    siteName,
+    heroTitle: hero.title || "",
+    heroSubtitle: hero.subtitle || "",
+    heroCtaText: hero.ctaText || "",
+    heroCtaLink: hero.ctaLink || "",
+    ctaTitle: cta.title || "",
+    ctaDescription: cta.description || "",
+    ctaCtaText: cta.ctaText || "",
+    ctaCtaLink: cta.ctaLink || "",
+    featuresTitle: features.title || "",
+    features: (features.items || []).map(function(f) { return { title: f.title, description: f.description, icon: f.icon }; }),
+  })};
+
+  function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  // -- Site name: first nav link with brand text --
+  var navLinks = document.querySelectorAll('nav a');
+  if (cfg.siteName && navLinks.length > 0) {
+    var brand = navLinks[0];
+    // Only replace if it looks like a brand (short text, not a nav item)
+    if (brand.textContent.trim().length < 40 && !brand.querySelector('img')) {
+      brand.textContent = cfg.siteName;
+    }
+  }
+
+  // -- Hero title: first h1 --
+  if (cfg.heroTitle) {
+    var h1 = document.querySelector('h1');
+    if (h1) {
+      // Preserve styling spans but replace text
+      h1.innerHTML = esc(cfg.heroTitle);
+    }
+  }
+
+  // -- Hero subtitle: look for p near the h1 --
+  if (cfg.heroSubtitle) {
+    var heroSection = document.querySelector('h1');
+    if (heroSection) {
+      var parent = heroSection.parentElement;
+      if (parent) {
+        var ps = parent.querySelectorAll('p');
+        // Take the first p that's not tiny (skip badges)
+        for (var i = 0; i < ps.length; i++) {
+          if (ps[i].textContent.trim().length > 10) {
+            ps[i].textContent = cfg.heroSubtitle;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // -- Hero CTA button: first prominent button/a in hero area --
+  if (cfg.heroCtaText) {
+    var heroEl = document.querySelector('h1');
+    if (heroEl) {
+      var section = heroEl.closest('section') || heroEl.parentElement.parentElement;
+      if (section) {
+        var btns = section.querySelectorAll('button, a[class*="bg-"], a[style*="background"]');
+        if (btns.length > 0) {
+          // Find the first CTA-looking button
+          for (var b = 0; b < btns.length; b++) {
+            var btnText = btns[b].textContent.trim();
+            if (btnText.length > 0 && btnText.length < 50) {
+              var innerSpan = btns[b].querySelector('span:last-of-type');
+              if (innerSpan) innerSpan.textContent = cfg.heroCtaText;
+              else btns[b].textContent = cfg.heroCtaText;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  if (cfg.heroCtaLink) {
+    var heroEl2 = document.querySelector('h1');
+    if (heroEl2) {
+      var section2 = heroEl2.closest('section') || heroEl2.parentElement.parentElement;
+      if (section2) {
+        var links = section2.querySelectorAll('a[class*="bg-"], a[style*="background"]');
+        for (var l = 0; l < links.length; l++) {
+          if (links[l].href && links[l].textContent.trim().length < 50) {
+            links[l].href = cfg.heroCtaLink;
+            break;
+          }
+        }
+      }
+    }
+  }
+})();
+<\/script>`;
+
+      // Inject before </body>
+      if (html.includes('</body>')) {
+        return html.replace('</body>', injectionScript + '</body>');
+      }
+      return html + injectionScript;
     }
 
     // ── Gather config from controls ──
@@ -844,12 +940,13 @@ ${ctaSectionHTML(cfg)}
       const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
       if (!iframe) return;
 
+      const cfg = gatherConfig();
+
       if (selectedTemplate === "custom") {
-        const cfg = gatherConfig();
         iframe.srcdoc = generatePreviewHTML(cfg);
       } else {
         const html = await loadTemplateHTML(selectedTemplate);
-        iframe.srcdoc = html;
+        iframe.srcdoc = injectConfigIntoTemplate(html, cfg);
       }
     }
 
@@ -995,7 +1092,6 @@ ${ctaSectionHTML(cfg)}
         // Template
         selectedTemplate = c.landingTemplate || "custom";
         renderTemplates();
-        toggleCustomSections();
 
         setupAccordions();
         setupReactiveInputs();
