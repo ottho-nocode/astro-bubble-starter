@@ -32,7 +32,6 @@ export interface SiteConfig {
   description: string;
   url: string;
   defaultLanguage: string;
-  template: string;
   bubbleAppUrl: string;
   bubbleApiUrl: string;
   bubbleApiToken: string;

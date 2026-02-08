@@ -130,9 +130,7 @@ async function bubbleFetchAll<T>(
 
 export interface BubblePost {
   _id: string;
-  Created_Date: string;
-  Modified_Date: string;
-  Created_By: string;
+  date: string;
   slug: string;
   title: string;
   content: string;
@@ -140,7 +138,6 @@ export interface BubblePost {
   cover_image: string;
   author: string;
   category: string;
-  tags: string[];
   published: boolean;
 }
 
@@ -151,10 +148,10 @@ const DEFAULT_MAPPING: BubbleFieldMapping = {
   content: "content",
   excerpt: "excerpt",
   coverImage: "cover_image",
-  slug: "slug",
+  slug: "Slug",
   author: "author",
   category: "category",
-  date: "Created_Date",
+  date: "Created Date",
   published: "published",
 };
 
@@ -184,17 +181,14 @@ async function getContentConfig(): Promise<{ table: string; mapping: BubbleField
 function mapBubbleRecord(raw: Record<string, any>, mapping: BubbleFieldMapping): BubblePost {
   return {
     _id: raw._id || "",
-    Created_Date: raw.Created_Date || "",
-    Modified_Date: raw.Modified_Date || "",
-    Created_By: raw.Created_By || "",
+    date: (mapping.date ? raw[mapping.date] : raw["Created Date"]) || raw["Created Date"] || "",
     slug: raw[mapping.slug] || raw.Slug || "",
     title: raw[mapping.title] || "",
     content: raw[mapping.content] || "",
     excerpt: raw[mapping.excerpt] || "",
-    cover_image: raw[mapping.coverImage] || "",
-    author: raw[mapping.author] || "",
-    category: raw[mapping.category] || "",
-    tags: Array.isArray(raw.tags) ? raw.tags : [],
+    cover_image: mapping.coverImage ? (raw[mapping.coverImage] || "") : "",
+    author: mapping.author ? (raw[mapping.author] || "") : "",
+    category: mapping.category ? (raw[mapping.category] || "") : "",
     published: mapping.published ? Boolean(raw[mapping.published]) : true,
   };
 }
