@@ -1,0 +1,569 @@
+---
+export const prerender = false;
+
+import Admin from "../../layouts/Admin.astro";
+import { verifySession, getSessionFromRequest } from "../../lib/admin-auth";
+
+const token = getSessionFromRequest(Astro.request);
+if (!(await verifySession(token))) {
+  return Astro.redirect("/admin/login");
+}
+---
+
+<Admin title="Blog" activePage="blog">
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-dots">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <div class="admin-content">
+    <h2 class="page-title">Blog</h2>
+    <p class="page-subtitle">Configurez l'apparence et les fonctionnalites de votre blog.</p>
+
+    <div id="statusMessage"></div>
+
+    <!-- 1. En-tete du blog -->
+    <div class="card">
+      <div class="card-header">
+        <h2>En-tete du blog</h2>
+        <p>Titre, sous-titre et style de fond affiches en haut de la page blog</p>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label for="cfg-heroTitle">Titre</label>
+          <input type="text" id="cfg-heroTitle" placeholder="Blog" />
+        </div>
+        <div class="form-group">
+          <label for="cfg-heroSubtitle">Sous-titre</label>
+          <textarea id="cfg-heroSubtitle" placeholder="Decouvrez nos derniers articles..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Style de fond</label>
+          <div id="heroBgContainer" class="hero-bg-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Mise en page -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Mise en page</h2>
+        <p>Disposition des articles sur la page blog</p>
+      </div>
+      <div class="card-body">
+        <div id="templateContainer" class="template-grid"></div>
+      </div>
+    </div>
+
+    <!-- 3. Style visuel -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Style visuel</h2>
+        <p>Couleurs, arrondis et ombres des cartes</p>
+      </div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cfg-accentColor">Couleur d'accent</label>
+            <div class="color-input-wrap">
+              <input type="color" id="cfg-accentColor" value="#0284c7" />
+              <input type="text" id="cfg-accentColorText" placeholder="#0284c7" class="color-text-input" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="cfg-titleSize">Taille des titres</label>
+            <select id="cfg-titleSize">
+              <option value="sm">Petit</option>
+              <option value="md" selected>Moyen</option>
+              <option value="lg">Grand</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cfg-cardBorderRadius">Arrondi des cartes</label>
+            <select id="cfg-cardBorderRadius">
+              <option value="none">Aucun</option>
+              <option value="sm">Leger</option>
+              <option value="md" selected>Moyen</option>
+              <option value="lg">Large</option>
+              <option value="xl">Tres large</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="cfg-cardShadow">Ombre des cartes</label>
+            <select id="cfg-cardShadow">
+              <option value="none">Aucune</option>
+              <option value="sm" selected>Legere</option>
+              <option value="md">Moyenne</option>
+              <option value="lg">Forte</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Recherche & Filtres -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Recherche & Filtres</h2>
+        <p>Activez la recherche et le filtrage par categorie</p>
+      </div>
+      <div class="card-body">
+        <div class="toggle-row">
+          <div class="toggle-row-info">
+            <span class="toggle-row-label">Barre de recherche</span>
+            <span class="toggle-row-desc">Permet aux visiteurs de rechercher des articles par titre ou extrait</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="cfg-showSearch" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-row-info">
+            <span class="toggle-row-label">Filtres par categorie</span>
+            <span class="toggle-row-desc">Affiche des chips cliquables pour filtrer par categorie</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="cfg-showCategoryFilter" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Contenu des cartes -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Contenu des cartes</h2>
+        <p>Choisissez les elements affiches sur chaque carte d'article</p>
+      </div>
+      <div class="card-body">
+        <div class="toggle-row">
+          <div class="toggle-row-info">
+            <span class="toggle-row-label">Image de couverture</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="cfg-showCoverImage" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-row-info">
+            <span class="toggle-row-label">Badge de categorie</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="cfg-showCategoryBadge" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-row-info">
+            <span class="toggle-row-label">Date de publication</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="cfg-showDate" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-row-info">
+            <span class="toggle-row-label">Auteur</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="cfg-showAuthor" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-row-info">
+            <span class="toggle-row-label">Extrait</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="cfg-showExcerpt" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="form-group" style="margin-top:1rem;">
+          <label for="cfg-readMoreText">Texte "Lire la suite" (vide = masque)</label>
+          <input type="text" id="cfg-readMoreText" placeholder="Lire la suite" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sticky save bar -->
+  <div class="save-bar">
+    <div class="save-bar-inner">
+      <div class="save-bar-status" id="saveStatus">Pret a publier</div>
+      <button id="saveBtn" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        Enregistrer & Publier
+      </button>
+    </div>
+  </div>
+
+  <style is:global>
+    /* ── Hero background options ── */
+    .hero-bg-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+    }
+    @media (max-width: 640px) {
+      .hero-bg-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .hero-bg-option {
+      border: 2px solid #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 1rem 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .hero-bg-option:hover { border-color: #94a3b8; }
+    .hero-bg-option.selected { border-color: #171717; }
+    .hero-bg-option input[type="radio"] { display: none; }
+    .hero-bg-preview {
+      height: 32px;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+    .hero-bg-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #334155;
+    }
+
+    /* ── Template cards ── */
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 640px) {
+      .template-grid { grid-template-columns: 1fr; }
+    }
+    .template-card {
+      border: 2px solid #e2e8f0;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .template-card:hover { border-color: #94a3b8; }
+    .template-card.selected { border-color: #171717; background: #f8fafc; }
+    .template-card input[type="radio"] { display: none; }
+    .template-card-preview {
+      height: 80px;
+      margin-bottom: 0.75rem;
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      align-items: center;
+    }
+    .template-card-preview .block {
+      background: #e2e8f0;
+      border-radius: 3px;
+    }
+    .template-card-name {
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: #0f172a;
+      margin-bottom: 0.25rem;
+    }
+    .template-card-desc {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    /* ── Toggle rows ── */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .toggle-row:last-of-type { border-bottom: none; }
+    .toggle-row-info { flex: 1; }
+    .toggle-row-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #0f172a;
+      display: block;
+    }
+    .toggle-row-desc {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      display: block;
+      margin-top: 0.125rem;
+    }
+
+    /* ── Color input ── */
+    .color-input-wrap {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .color-input-wrap input[type="color"] {
+      width: 2.25rem;
+      height: 2.25rem;
+      padding: 2px;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      background: transparent;
+    }
+    .color-text-input {
+      flex: 1;
+      height: 2.25rem;
+      padding: 0.25rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      font-family: inherit;
+      color: #0f172a;
+      outline: none;
+    }
+    .color-text-input:focus {
+      border-color: #0f172a;
+      box-shadow: 0 0 0 3px rgba(15,23,42,0.08);
+    }
+  </style>
+
+  <script>
+    let currentConfig: Record<string, any> | null = null;
+    let selectedTemplate = "grid";
+    let selectedHeroBg = "white";
+
+    function $(id: string) {
+      return document.getElementById(id) as HTMLInputElement;
+    }
+
+    function showMessage(text: string, type: "success" | "error") {
+      const el = document.getElementById("statusMessage")!;
+      const icon = type === "success"
+        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+      el.innerHTML = `<div class="alert alert-${type}">${icon} ${text}</div>`;
+      setTimeout(() => { el.innerHTML = ""; }, 5000);
+    }
+
+    // ── Hero background selector ──
+    function renderHeroBg() {
+      const container = document.getElementById("heroBgContainer")!;
+      const options = [
+        { value: "white", label: "Blanc", bg: "#ffffff", border: "1px solid #e2e8f0" },
+        { value: "light", label: "Gris clair", bg: "#f8fafc", border: "1px solid #e2e8f0" },
+        { value: "dark", label: "Sombre", bg: "#0f172a", border: "none" },
+        { value: "accent", label: "Accent", bg: ($("cfg-accentColor")?.value || "#0284c7"), border: "none" },
+      ];
+
+      container.innerHTML = options.map((o) => `
+        <label class="hero-bg-option${o.value === selectedHeroBg ? " selected" : ""}">
+          <input type="radio" name="heroBg" value="${o.value}" ${o.value === selectedHeroBg ? "checked" : ""} />
+          <div class="hero-bg-preview" style="background:${o.bg};border:${o.border};"></div>
+          <div class="hero-bg-label">${o.label}</div>
+        </label>
+      `).join("");
+
+      container.querySelectorAll(".hero-bg-option").forEach((opt) => {
+        opt.addEventListener("click", () => {
+          container.querySelectorAll(".hero-bg-option").forEach((o) => o.classList.remove("selected"));
+          opt.classList.add("selected");
+          const radio = opt.querySelector("input") as HTMLInputElement;
+          radio.checked = true;
+          selectedHeroBg = radio.value;
+        });
+      });
+    }
+
+    // ── Template selector ──
+    function renderTemplates() {
+      const container = document.getElementById("templateContainer")!;
+      const templates = [
+        {
+          value: "grid",
+          name: "Grille",
+          desc: "Articles en grille 3 colonnes",
+          preview: '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;width:100%;height:100%;"><div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div></div>',
+        },
+        {
+          value: "list",
+          name: "Liste",
+          desc: "Articles en liste horizontale",
+          preview: '<div style="display:flex;flex-direction:column;gap:3px;width:100%;height:100%;"><div class="block" style="height:33%;display:flex;"><div style="width:30%;background:#cbd5e1;border-radius:3px;"></div><div style="flex:1;margin-left:3px;background:#e2e8f0;border-radius:3px;"></div></div><div class="block" style="height:33%;display:flex;"><div style="width:30%;background:#cbd5e1;border-radius:3px;"></div><div style="flex:1;margin-left:3px;background:#e2e8f0;border-radius:3px;"></div></div><div class="block" style="height:33%;display:flex;"><div style="width:30%;background:#cbd5e1;border-radius:3px;"></div><div style="flex:1;margin-left:3px;background:#e2e8f0;border-radius:3px;"></div></div></div>',
+        },
+        {
+          value: "magazine",
+          name: "Magazine",
+          desc: "Hero + grille pour les autres",
+          preview: '<div style="display:flex;flex-direction:column;gap:3px;width:100%;height:100%;"><div class="block" style="height:55%;"></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;height:45%;"><div class="block"></div><div class="block"></div><div class="block"></div></div></div>',
+        },
+      ];
+
+      container.innerHTML = templates.map((t) => `
+        <label class="template-card${t.value === selectedTemplate ? " selected" : ""}">
+          <input type="radio" name="blogTemplate" value="${t.value}" ${t.value === selectedTemplate ? "checked" : ""} />
+          <div class="template-card-preview">${t.preview}</div>
+          <div class="template-card-name">${t.name}</div>
+          <div class="template-card-desc">${t.desc}</div>
+        </label>
+      `).join("");
+
+      container.querySelectorAll(".template-card").forEach((card) => {
+        card.addEventListener("click", () => {
+          container.querySelectorAll(".template-card").forEach((c) => c.classList.remove("selected"));
+          card.classList.add("selected");
+          const radio = card.querySelector("input") as HTMLInputElement;
+          radio.checked = true;
+          selectedTemplate = radio.value;
+        });
+      });
+    }
+
+    // ── Color sync ──
+    function setupColorSync() {
+      const colorPicker = $("cfg-accentColor");
+      const colorText = $("cfg-accentColorText");
+
+      colorPicker.addEventListener("input", () => {
+        colorText.value = colorPicker.value;
+        renderHeroBg();
+      });
+      colorText.addEventListener("input", () => {
+        if (/^#[0-9a-fA-F]{6}$/.test(colorText.value)) {
+          colorPicker.value = colorText.value;
+          renderHeroBg();
+        }
+      });
+    }
+
+    // ── Load config ──
+    async function loadConfig() {
+      try {
+        const res = await fetch("/api/admin/config");
+        if (res.status === 401) { window.location.href = "/admin/login"; return; }
+        const data = await res.json();
+
+        if (!data.config) {
+          showMessage("Aucune configuration trouvee.", "error");
+          document.getElementById("loadingOverlay")!.classList.add("hidden");
+          return;
+        }
+
+        currentConfig = data.config;
+        const bc = currentConfig!.blogConfig || {};
+
+        // Hero
+        $("cfg-heroTitle").value = bc.heroTitle || "Blog";
+        ($("cfg-heroSubtitle") as HTMLTextAreaElement).value = bc.heroSubtitle || "";
+        selectedHeroBg = bc.heroBackground || "white";
+
+        // Template
+        selectedTemplate = bc.template || currentConfig!.blogTemplate || "grid";
+
+        // Style
+        $("cfg-accentColor").value = bc.accentColor || "#0284c7";
+        $("cfg-accentColorText").value = bc.accentColor || "#0284c7";
+        ($("cfg-titleSize") as HTMLSelectElement).value = bc.titleSize || "md";
+        ($("cfg-cardBorderRadius") as HTMLSelectElement).value = bc.cardBorderRadius || "md";
+        ($("cfg-cardShadow") as HTMLSelectElement).value = bc.cardShadow || "sm";
+
+        // Search & Filters
+        $("cfg-showSearch").checked = bc.showSearch ?? false;
+        $("cfg-showCategoryFilter").checked = bc.showCategoryFilter ?? false;
+
+        // Card content
+        $("cfg-showCoverImage").checked = bc.showCoverImage ?? true;
+        $("cfg-showCategoryBadge").checked = bc.showCategoryBadge ?? true;
+        $("cfg-showDate").checked = bc.showDate ?? true;
+        $("cfg-showAuthor").checked = bc.showAuthor ?? false;
+        $("cfg-showExcerpt").checked = bc.showExcerpt ?? true;
+        $("cfg-readMoreText").value = bc.readMoreText ?? "Lire la suite";
+
+        renderHeroBg();
+        renderTemplates();
+        setupColorSync();
+
+        document.getElementById("loadingOverlay")!.classList.add("hidden");
+      } catch {
+        showMessage("Erreur de chargement", "error");
+        document.getElementById("loadingOverlay")!.classList.add("hidden");
+      }
+    }
+
+    // ── Gather config ──
+    function gatherBlogConfig() {
+      return {
+        accentColor: $("cfg-accentColor").value,
+        cardBorderRadius: ($("cfg-cardBorderRadius") as HTMLSelectElement).value,
+        cardShadow: ($("cfg-cardShadow") as HTMLSelectElement).value,
+        titleSize: ($("cfg-titleSize") as HTMLSelectElement).value,
+        template: selectedTemplate,
+        showSearch: $("cfg-showSearch").checked,
+        showCategoryFilter: $("cfg-showCategoryFilter").checked,
+        heroTitle: $("cfg-heroTitle").value,
+        heroSubtitle: ($("cfg-heroSubtitle") as HTMLTextAreaElement).value,
+        heroBackground: selectedHeroBg,
+        showExcerpt: $("cfg-showExcerpt").checked,
+        showCategoryBadge: $("cfg-showCategoryBadge").checked,
+        showDate: $("cfg-showDate").checked,
+        showAuthor: $("cfg-showAuthor").checked,
+        showCoverImage: $("cfg-showCoverImage").checked,
+        readMoreText: $("cfg-readMoreText").value,
+      };
+    }
+
+    // ── Save & Deploy ──
+    document.getElementById("saveBtn")!.addEventListener("click", async () => {
+      const btn = document.getElementById("saveBtn") as HTMLButtonElement;
+      const status = document.getElementById("saveStatus")!;
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Publication...';
+      status.textContent = "Sauvegarde en cours...";
+
+      try {
+        const blogConfig = gatherBlogConfig();
+        const config = {
+          ...currentConfig,
+          blogConfig,
+          blogTemplate: blogConfig.template,
+        };
+
+        const res = await fetch("/api/admin/deploy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ config }),
+        });
+
+        if (res.status === 401) { window.location.href = "/admin/login"; return; }
+
+        const data = await res.json();
+        if (data.success) {
+          showMessage(data.message || "Configuration sauvegardee !", "success");
+          status.textContent = "Publie avec succes";
+          currentConfig = config;
+        } else {
+          showMessage(data.error || "Erreur lors de la sauvegarde", "error");
+          status.textContent = "Erreur de publication";
+        }
+      } catch {
+        showMessage("Erreur reseau", "error");
+        status.textContent = "Erreur reseau";
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Enregistrer & Publier';
+        setTimeout(() => { status.textContent = "Pret a publier"; }, 4000);
+      }
+    });
+
+    // Init
+    loadConfig();
+  </script>
+</Admin>

@@ -11,80 +11,204 @@ try {
   const all = await getPosts();
   posts = all.filter((p) => p.slug);
 } catch {
-  // API non configurée
+  // API non configuree
 }
 
 const config = await loadSiteConfig();
-const template = config.blogTemplate || "grid";
+const bc = config.blogConfig ?? {};
+const template = bc.template || config.blogTemplate || "grid";
+
+// Blog config values with defaults
+const heroTitle = bc.heroTitle || "Blog";
+const heroSubtitle = bc.heroSubtitle || "Decouvrez nos derniers articles et actualites.";
+const heroBg = bc.heroBackground || "white";
+const accentColor = bc.accentColor || "#0284c7";
+const showSearch = bc.showSearch ?? false;
+const showCategoryFilter = bc.showCategoryFilter ?? false;
+const showCoverImage = bc.showCoverImage ?? true;
+const showCategoryBadge = bc.showCategoryBadge ?? true;
+const showDate = bc.showDate ?? true;
+const showExcerpt = bc.showExcerpt ?? true;
+const readMoreText = bc.readMoreText ?? "Lire la suite";
+const cardBorderRadius = bc.cardBorderRadius || "md";
+const cardShadow = bc.cardShadow || "sm";
+const titleSize = bc.titleSize || "md";
+
+// Extract unique categories
+const categories = [...new Set(posts.map((p) => p.category).filter(Boolean))];
+
+// CSS custom property maps
+const radiusMap: Record<string, string> = { none: "0", sm: "0.375rem", md: "0.75rem", lg: "1rem", xl: "1.5rem" };
+const shadowMap: Record<string, string> = { none: "none", sm: "0 1px 2px rgba(0,0,0,0.05)", md: "0 4px 6px rgba(0,0,0,0.07)", lg: "0 10px 15px rgba(0,0,0,0.1)" };
+const titleSizeMap: Record<string, string> = { sm: "1rem", md: "1.125rem", lg: "1.25rem" };
+
+const cssVarRadius = radiusMap[cardBorderRadius] || radiusMap.md;
+const cssVarShadow = shadowMap[cardShadow] || shadowMap.sm;
+const cssVarTitleSize = titleSizeMap[titleSize] || titleSizeMap.md;
+
+// Hero background styles
+const heroBgStyles: Record<string, { bg: string; text: string; sub: string }> = {
+  white: { bg: "transparent", text: "text-gray-900", sub: "text-gray-600" },
+  light: { bg: "#f8fafc", text: "text-gray-900", sub: "text-gray-600" },
+  dark: { bg: "#0f172a", text: "text-white", sub: "text-gray-300" },
+  accent: { bg: accentColor, text: "text-white", sub: "text-white/80" },
+};
+const heroStyle = heroBgStyles[heroBg] || heroBgStyles.white;
+
+const cardProps = { showCoverImage, showCategoryBadge, showDate, showExcerpt, readMoreText };
 ---
 
-<Base title="Blog" description="Découvrez nos derniers articles et actualités.">
-  <section class="py-16">
-    <div class="mx-auto max-w-6xl px-6">
-      <h1 class="text-4xl font-bold text-gray-900 mb-4">Blog</h1>
-      <p class="text-lg text-gray-600 mb-12">
-        Découvrez nos derniers articles et actualités.
-      </p>
+<Base title={heroTitle} description={heroSubtitle}>
+  <style define:vars={{ cardRadius: cssVarRadius, cardShadow: cssVarShadow, titleSize: cssVarTitleSize, accentColor }}>
+    .blog-card {
+      border-radius: var(--cardRadius) !important;
+      box-shadow: var(--cardShadow) !important;
+    }
+    .blog-card:hover {
+      box-shadow: var(--cardShadow), 0 4px 12px rgba(0,0,0,0.08) !important;
+    }
+    .blog-card-title {
+      font-size: var(--titleSize) !important;
+    }
+    .blog-hero {
+      background: var(--heroBg);
+    }
+    .blog-search-input:focus {
+      border-color: var(--accentColor);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accentColor) 20%, transparent);
+    }
+    .category-chip {
+      display: inline-block;
+      padding: 0.375rem 0.875rem;
+      border-radius: 9999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid #e2e8f0;
+      background: white;
+      color: #334155;
+    }
+    .category-chip:hover {
+      border-color: #94a3b8;
+    }
+    .category-chip.active {
+      background: var(--accentColor);
+      color: white;
+      border-color: var(--accentColor);
+    }
+  </style>
 
+  <!-- Hero -->
+  <section class="blog-hero py-16" style={heroStyle.bg !== "transparent" ? `background:${heroStyle.bg}` : undefined}>
+    <div class="mx-auto max-w-6xl px-6">
+      <h1 class={`text-4xl font-bold mb-4 ${heroStyle.text}`}>{heroTitle}</h1>
+      <p class={`text-lg mb-8 ${heroStyle.sub}`}>{heroSubtitle}</p>
+
+      {(showSearch || showCategoryFilter) && (
+        <div class="flex flex-wrap items-center gap-4">
+          {showSearch && (
+            <div class="relative flex-1 min-w-[200px] max-w-md">
+              <input
+                type="text"
+                id="blogSearch"
+                placeholder="Rechercher un article..."
+                class="blog-search-input w-full h-10 pl-10 pr-4 border border-gray-200 rounded-lg text-sm outline-none bg-white"
+              />
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+          )}
+          {showCategoryFilter && categories.length > 0 && (
+            <div id="categoryFilters" class="flex flex-wrap gap-2">
+              <button class="category-chip active" data-category="">Tous</button>
+              {categories.map((cat) => (
+                <button class="category-chip" data-category={cat}>{cat}</button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- Posts -->
+  <section class="py-12">
+    <div class="mx-auto max-w-6xl px-6">
       {posts.length > 0 ? (
         <>
+          <div id="noResults" class="hidden text-center py-12 text-gray-500">
+            Aucun article ne correspond a votre recherche.
+          </div>
+
           {template === "grid" && (
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div id="postsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {posts.map((post) => (
-                <BlogCard
-                  title={post.title}
-                  excerpt={post.excerpt}
-                  slug={post.slug}
-                  coverImage={post.cover_image}
-                  date={post.date}
-                  category={post.category}
-                />
+                <div class="blog-post-item" data-title={post.title.toLowerCase()} data-excerpt={(post.excerpt || "").toLowerCase()} data-category={post.category || ""}>
+                  <BlogCard
+                    title={post.title}
+                    excerpt={post.excerpt}
+                    slug={post.slug}
+                    coverImage={post.cover_image}
+                    date={post.date}
+                    category={post.category}
+                    {...cardProps}
+                  />
+                </div>
               ))}
             </div>
           )}
 
           {template === "list" && (
-            <div class="flex flex-col gap-6 max-w-4xl mx-auto">
+            <div id="postsContainer" class="flex flex-col gap-6 max-w-4xl mx-auto">
               {posts.map((post) => (
-                <BlogCardList
-                  title={post.title}
-                  excerpt={post.excerpt}
-                  slug={post.slug}
-                  coverImage={post.cover_image}
-                  date={post.date}
-                  category={post.category}
-                />
+                <div class="blog-post-item" data-title={post.title.toLowerCase()} data-excerpt={(post.excerpt || "").toLowerCase()} data-category={post.category || ""}>
+                  <BlogCardList
+                    title={post.title}
+                    excerpt={post.excerpt}
+                    slug={post.slug}
+                    coverImage={post.cover_image}
+                    date={post.date}
+                    category={post.category}
+                    {...cardProps}
+                  />
+                </div>
               ))}
             </div>
           )}
 
           {template === "magazine" && (
-            <>
+            <div id="postsContainer">
               {posts[0] && (
-                <BlogHeroCard
-                  title={posts[0].title}
-                  excerpt={posts[0].excerpt}
-                  slug={posts[0].slug}
-                  coverImage={posts[0].cover_image}
-                  date={posts[0].date}
-                  category={posts[0].category}
-                />
+                <div class="blog-post-item" data-title={posts[0].title.toLowerCase()} data-excerpt={(posts[0].excerpt || "").toLowerCase()} data-category={posts[0].category || ""}>
+                  <BlogHeroCard
+                    title={posts[0].title}
+                    excerpt={posts[0].excerpt}
+                    slug={posts[0].slug}
+                    coverImage={posts[0].cover_image}
+                    date={posts[0].date}
+                    category={posts[0].category}
+                    {...cardProps}
+                  />
+                </div>
               )}
               {posts.length > 1 && (
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
                   {posts.slice(1).map((post) => (
-                    <BlogCard
-                      title={post.title}
-                      excerpt={post.excerpt}
-                      slug={post.slug}
-                      coverImage={post.cover_image}
-                      date={post.date}
-                      category={post.category}
-                    />
+                    <div class="blog-post-item" data-title={post.title.toLowerCase()} data-excerpt={(post.excerpt || "").toLowerCase()} data-category={post.category || ""}>
+                      <BlogCard
+                        title={post.title}
+                        excerpt={post.excerpt}
+                        slug={post.slug}
+                        coverImage={post.cover_image}
+                        date={post.date}
+                        category={post.category}
+                        {...cardProps}
+                      />
+                    </div>
                   ))}
                 </div>
               )}
-            </>
+            </div>
           )}
         </>
       ) : (
@@ -94,4 +218,52 @@ const template = config.blogTemplate || "grid";
       )}
     </div>
   </section>
+
+  <script>
+    // Client-side search & category filtering
+    const searchInput = document.getElementById("blogSearch") as HTMLInputElement | null;
+    const categoryBtns = document.querySelectorAll<HTMLButtonElement>(".category-chip");
+    const postItems = document.querySelectorAll<HTMLElement>(".blog-post-item");
+    const noResults = document.getElementById("noResults");
+
+    let activeCategory = "";
+    let searchQuery = "";
+
+    function filterPosts() {
+      let visibleCount = 0;
+      postItems.forEach((item) => {
+        const title = item.dataset.title || "";
+        const excerpt = item.dataset.excerpt || "";
+        const category = item.dataset.category || "";
+
+        const matchesSearch = !searchQuery || title.includes(searchQuery) || excerpt.includes(searchQuery);
+        const matchesCategory = !activeCategory || category === activeCategory;
+
+        if (matchesSearch && matchesCategory) {
+          item.style.display = "";
+          visibleCount++;
+        } else {
+          item.style.display = "none";
+        }
+      });
+
+      if (noResults) {
+        noResults.classList.toggle("hidden", visibleCount > 0 || postItems.length === 0);
+      }
+    }
+
+    searchInput?.addEventListener("input", () => {
+      searchQuery = searchInput.value.toLowerCase().trim();
+      filterPosts();
+    });
+
+    categoryBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        categoryBtns.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeCategory = btn.dataset.category || "";
+        filterPosts();
+      });
+    });
+  </script>
 </Base>

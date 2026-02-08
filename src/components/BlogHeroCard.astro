@@ -6,9 +6,26 @@ interface Props {
   coverImage?: string;
   date: string;
   category?: string;
+  showCoverImage?: boolean;
+  showCategoryBadge?: boolean;
+  showDate?: boolean;
+  showExcerpt?: boolean;
+  readMoreText?: string;
 }
 
-const { title, excerpt, slug, coverImage, date, category } = Astro.props;
+const {
+  title,
+  excerpt,
+  slug,
+  coverImage,
+  date,
+  category,
+  showCoverImage = true,
+  showCategoryBadge = true,
+  showDate = true,
+  showExcerpt = true,
+  readMoreText = "Lire la suite",
+} = Astro.props;
 
 const formattedDate = new Date(date).toLocaleDateString("fr-FR", {
   year: "numeric",
@@ -17,8 +34,8 @@ const formattedDate = new Date(date).toLocaleDateString("fr-FR", {
 });
 ---
 
-<a href={`/blog/${slug}`} class="block group rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow no-underline">
-  {coverImage && (
+<a href={`/blog/${slug}`} class="blog-card block group rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow no-underline">
+  {showCoverImage && coverImage && (
     <img
       src={coverImage}
       alt={title}
@@ -28,21 +45,27 @@ const formattedDate = new Date(date).toLocaleDateString("fr-FR", {
   )}
   <div class="p-8">
     <div class="flex items-center gap-3 mb-3">
-      {category && (
+      {showCategoryBadge && category && (
         <span class="text-xs font-medium text-primary-700 bg-primary-50 px-2 py-1 rounded">
           {category}
         </span>
       )}
-      <time class="text-xs text-gray-400" datetime={date}>
-        {formattedDate}
-      </time>
+      {showDate && (
+        <time class="text-xs text-gray-400" datetime={date}>
+          {formattedDate}
+        </time>
+      )}
     </div>
-    <h3 class="text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
+    <h3 class="blog-card-title text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
       {title}
     </h3>
-    <p class="text-gray-600 text-base leading-relaxed line-clamp-3">{excerpt}</p>
-    <span class="inline-block mt-4 text-sm font-medium text-primary-600 group-hover:text-primary-700">
-      Lire la suite &rarr;
-    </span>
+    {showExcerpt && (
+      <p class="text-gray-600 text-base leading-relaxed line-clamp-3">{excerpt}</p>
+    )}
+    {readMoreText && (
+      <span class="inline-block mt-4 text-sm font-medium text-primary-600 group-hover:text-primary-700">
+        {readMoreText} &rarr;
+      </span>
+    )}
   </div>
 </a>

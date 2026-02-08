@@ -3,11 +3,11 @@ export const prerender = false;
 
 interface Props {
   title: string;
-  activePage?: "articles" | "landing" | "settings" | "onboarding";
+  activePage?: "articles" | "blog" | "landing" | "settings" | "onboarding";
 }
 
 const { title, activePage } = Astro.props;
-const showSidebar = activePage === "articles" || activePage === "landing" || activePage === "settings";
+const showSidebar = activePage === "articles" || activePage === "blog" || activePage === "landing" || activePage === "settings";
 ---
 
 <!doctype html>
@@ -581,6 +581,10 @@ const showSidebar = activePage === "articles" || activePage === "landing" || act
             <a href="/admin/articles" class={`nav-item ${activePage === "articles" ? "active" : ""}`}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
               Articles
+            </a>
+            <a href="/admin/blog" class={`nav-item ${activePage === "blog" ? "active" : ""}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+              Blog
             </a>
             <a href="/admin/landing" class={`nav-item ${activePage === "landing" ? "active" : ""}`}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>

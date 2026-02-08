@@ -27,6 +27,25 @@ export interface BubbleFieldMapping {
   published?: string;
 }
 
+export interface BlogConfig {
+  accentColor: string;
+  cardBorderRadius: "none" | "sm" | "md" | "lg" | "xl";
+  cardShadow: "none" | "sm" | "md" | "lg";
+  titleSize: "sm" | "md" | "lg";
+  template: "grid" | "list" | "magazine";
+  showSearch: boolean;
+  showCategoryFilter: boolean;
+  heroTitle: string;
+  heroSubtitle: string;
+  heroBackground: "white" | "light" | "dark" | "accent";
+  showExcerpt: boolean;
+  showCategoryBadge: boolean;
+  showDate: boolean;
+  showAuthor: boolean;
+  showCoverImage: boolean;
+  readMoreText: string;
+}
+
 export interface SiteConfig {
   name: string;
   description: string;
@@ -38,6 +57,7 @@ export interface SiteConfig {
   bubbleContentTable?: string;
   bubbleFieldMapping?: BubbleFieldMapping;
   blogTemplate?: "grid" | "list" | "magazine";
+  blogConfig?: BlogConfig;
   hero: {
     title: string;
     subtitle: string;

@@ -95,14 +95,17 @@ if (!(await verifySession(token))) {
       </div>
     </div>
 
-    <!-- Blog Template -->
+    <!-- Blog -->
     <div class="card">
       <div class="card-header">
-        <h2>Template du blog</h2>
-        <p>Mise en page de la liste des articles</p>
+        <h2>Apparence du blog</h2>
+        <p>Template, style visuel, recherche, filtres et contenu des cartes</p>
       </div>
       <div class="card-body">
-        <div id="templateContainer" class="template-grid"></div>
+        <a href="/admin/blog" class="btn btn-outline" style="width:100%;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+          Configurer le blog
+        </a>
       </div>
     </div>
   </div>
@@ -199,49 +202,6 @@ if (!(await verifySession(token))) {
     .type-badge.address { background: #ecfdf5; color: #047857; }
     .type-badge.other { background: #f1f5f9; color: #475569; }
 
-    /* ── Template cards ── */
-    .template-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-    }
-    @media (max-width: 640px) {
-      .template-grid { grid-template-columns: 1fr; }
-    }
-    .template-card {
-      border: 2px solid #e2e8f0;
-      border-radius: 0.75rem;
-      padding: 1.25rem;
-      cursor: pointer;
-      transition: all 0.15s;
-      text-align: center;
-    }
-    .template-card:hover { border-color: #94a3b8; }
-    .template-card.selected { border-color: #171717; background: #f8fafc; }
-    .template-card input[type="radio"] { display: none; }
-    .template-card-preview {
-      height: 80px;
-      margin-bottom: 0.75rem;
-      display: flex;
-      gap: 4px;
-      justify-content: center;
-      align-items: center;
-    }
-    .template-card-preview .block {
-      background: #e2e8f0;
-      border-radius: 3px;
-    }
-    .template-card-name {
-      font-weight: 600;
-      font-size: 0.875rem;
-      color: #0f172a;
-      margin-bottom: 0.25rem;
-    }
-    .template-card-desc {
-      font-size: 0.75rem;
-      color: #94a3b8;
-    }
-
     /* ── Mapping summary ── */
     .mapping-summary-grid {
       display: grid;
@@ -326,8 +286,6 @@ if (!(await verifySession(token))) {
     let selectedTable = "";
     let selectedFields: BubbleField[] = [];
     let mapping: Partial<FieldMapping> = {};
-    let selectedTemplate: string = "grid";
-
     function $(id: string) {
       return document.getElementById(id) as HTMLInputElement;
     }
@@ -416,53 +374,6 @@ if (!(await verifySession(token))) {
 
       html += "</div>";
       summary.innerHTML = html;
-    }
-
-    // Render templates
-    function renderTemplates() {
-      const container = document.getElementById("templateContainer")!;
-      const currentTemplate = currentConfig?.blogTemplate || "grid";
-      selectedTemplate = currentTemplate;
-
-      const templates = [
-        {
-          value: "grid",
-          name: "Grille",
-          desc: "Articles en grille 3 colonnes",
-          preview: '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;width:100%;height:100%;"><div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div></div>',
-        },
-        {
-          value: "list",
-          name: "Liste",
-          desc: "Articles en liste horizontale",
-          preview: '<div style="display:flex;flex-direction:column;gap:3px;width:100%;height:100%;"><div class="block" style="height:33%;display:flex;"><div style="width:30%;background:#cbd5e1;border-radius:3px;"></div><div style="flex:1;margin-left:3px;background:#e2e8f0;border-radius:3px;"></div></div><div class="block" style="height:33%;display:flex;"><div style="width:30%;background:#cbd5e1;border-radius:3px;"></div><div style="flex:1;margin-left:3px;background:#e2e8f0;border-radius:3px;"></div></div><div class="block" style="height:33%;display:flex;"><div style="width:30%;background:#cbd5e1;border-radius:3px;"></div><div style="flex:1;margin-left:3px;background:#e2e8f0;border-radius:3px;"></div></div></div>',
-        },
-        {
-          value: "magazine",
-          name: "Magazine",
-          desc: "Hero + grille pour les autres",
-          preview: '<div style="display:flex;flex-direction:column;gap:3px;width:100%;height:100%;"><div class="block" style="height:55%;"></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;height:45%;"><div class="block"></div><div class="block"></div><div class="block"></div></div></div>',
-        },
-      ];
-
-      container.innerHTML = templates.map((t) => `
-        <label class="template-card${t.value === currentTemplate ? " selected" : ""}">
-          <input type="radio" name="blogTemplate" value="${t.value}" ${t.value === currentTemplate ? "checked" : ""} />
-          <div class="template-card-preview">${t.preview}</div>
-          <div class="template-card-name">${t.name}</div>
-          <div class="template-card-desc">${t.desc}</div>
-        </label>
-      `).join("");
-
-      container.querySelectorAll(".template-card").forEach((card) => {
-        card.addEventListener("click", () => {
-          container.querySelectorAll(".template-card").forEach((c) => c.classList.remove("selected"));
-          card.classList.add("selected");
-          const radio = card.querySelector("input") as HTMLInputElement;
-          radio.checked = true;
-          selectedTemplate = radio.value;
-        });
-      });
     }
 
     // Test connection
@@ -684,7 +595,6 @@ if (!(await verifySession(token))) {
         $("cfg-bubbleApiToken").value = currentConfig!.bubbleApiToken || "";
 
         showMappingSummary();
-        renderTemplates();
 
         document.getElementById("loadingOverlay")!.classList.add("hidden");
       } catch {
@@ -706,7 +616,6 @@ if (!(await verifySession(token))) {
           ...currentConfig,
           bubbleApiUrl: $("cfg-bubbleApiUrl").value.trim(),
           bubbleApiToken: $("cfg-bubbleApiToken").value.trim(),
-          blogTemplate: selectedTemplate,
         };
 
         const res = await fetch("/api/admin/deploy", {
