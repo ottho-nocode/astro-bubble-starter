@@ -161,6 +161,9 @@ if (!(await verifySession(token))) {
       </footer>
     </aside>
 
+    <!-- Resize handle -->
+    <div class="resize-handle" id="resizeHandle"><div class="resize-handle-line"></div></div>
+
     <!-- Zone preview (droite) -->
     <div class="builder-preview">
       <div class="builder-toolbar">
@@ -208,7 +211,8 @@ if (!(await verifySession(token))) {
     /* ── Controls panel ── */
     .builder-controls {
       width: 320px;
-      min-width: 320px;
+      min-width: 240px;
+      max-width: 50vw;
       background: white;
       border-right: 1px solid #e2e8f0;
       display: flex;
@@ -484,6 +488,44 @@ if (!(await verifySession(token))) {
       margin-top: 0.125rem;
     }
 
+
+    /* ── Resize handle ── */
+    .resize-handle {
+      width: 6px;
+      cursor: col-resize;
+      background: transparent;
+      position: relative;
+      flex-shrink: 0;
+      z-index: 5;
+      transition: background 0.15s;
+    }
+    .resize-handle:hover,
+    .resize-handle.dragging {
+      background: #e2e8f0;
+    }
+    .resize-handle-line {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 2px;
+      height: 32px;
+      border-radius: 1px;
+      background: #cbd5e1;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .resize-handle:hover .resize-handle-line,
+    .resize-handle.dragging .resize-handle-line {
+      opacity: 1;
+    }
+    body.resizing {
+      cursor: col-resize !important;
+      user-select: none !important;
+    }
+    body.resizing iframe {
+      pointer-events: none !important;
+    }
 
     /* ── Preview area ── */
     .builder-preview {
@@ -1045,6 +1087,39 @@ ${ctaSectionHTML(cfg)}
       });
     }
 
+    // ── Resize handle ──
+    function setupResizeHandle() {
+      const handle = document.getElementById("resizeHandle")!;
+      const controls = document.getElementById("builderControls")!;
+      let startX = 0;
+      let startWidth = 0;
+
+      function onMouseDown(e: MouseEvent) {
+        e.preventDefault();
+        startX = e.clientX;
+        startWidth = controls.offsetWidth;
+        handle.classList.add("dragging");
+        document.body.classList.add("resizing");
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+      }
+
+      function onMouseMove(e: MouseEvent) {
+        const delta = e.clientX - startX;
+        const newWidth = Math.min(Math.max(startWidth + delta, 240), window.innerWidth * 0.5);
+        controls.style.width = newWidth + "px";
+      }
+
+      function onMouseUp() {
+        handle.classList.remove("dragging");
+        document.body.classList.remove("resizing");
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+      }
+
+      handle.addEventListener("mousedown", onMouseDown);
+    }
+
     // ── Mobile controls toggle ──
     function setupMobileControls() {
       const controls = document.getElementById("builderControls")!;
@@ -1097,6 +1172,7 @@ ${ctaSectionHTML(cfg)}
         setupReactiveInputs();
         setupDeviceToggle();
         setupMobileControls();
+        setupResizeHandle();
 
         updatePreview();
 
