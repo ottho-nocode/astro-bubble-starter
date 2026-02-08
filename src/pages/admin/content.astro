@@ -1,0 +1,687 @@
+---
+export const prerender = false;
+
+import Admin from "../../layouts/Admin.astro";
+import { verifySession, getSessionFromRequest } from "../../lib/admin-auth";
+
+const token = getSessionFromRequest(Astro.request);
+if (!(await verifySession(token))) {
+  return Astro.redirect("/admin/login");
+}
+---
+
+<Admin title="Contenu">
+  <!-- Loading overlay -->
+  <div class="loading-overlay hidden" id="loadingOverlay">
+    <div class="loading-dots">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <div class="admin-header-left">
+        <h1>Contenu</h1>
+        <p>Connexion des donnees Bubble au blog</p>
+      </div>
+      <div class="admin-header-right">
+        <a href="/admin" class="btn btn-ghost">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Configuration
+        </a>
+        <a href="/" target="_blank" class="btn btn-ghost">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Voir le site
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-content">
+    <h2 class="page-title">Mapping du contenu Bubble</h2>
+    <p class="page-subtitle">Connectez une table Bubble a votre blog en 3 etapes.</p>
+
+    <div id="statusMessage"></div>
+
+    <!-- Stepper -->
+    <div class="stepper">
+      <div class="step active" data-step="1">
+        <div class="step-number">1</div>
+        <div class="step-label">Table</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" data-step="2">
+        <div class="step-number">2</div>
+        <div class="step-label">Mapping</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" data-step="3">
+        <div class="step-number">3</div>
+        <div class="step-label">Apercu</div>
+      </div>
+    </div>
+
+    <!-- Step 1: Table selection -->
+    <div id="step1" class="card">
+      <div class="card-header">
+        <h2>Selection de la table</h2>
+        <p>Choisissez la table Bubble contenant vos articles</p>
+      </div>
+      <div class="card-body">
+        <button id="loadTablesBtn" class="btn btn-primary" style="width:100%;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          Charger les tables depuis Bubble
+        </button>
+        <div id="tablesContainer" class="tables-list" style="display:none;"></div>
+        <div id="step1Actions" style="display:none; margin-top:1rem; text-align:right;">
+          <button id="step1Next" class="btn btn-primary">
+            Suivant
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Field mapping -->
+    <div id="step2" class="card" style="display:none;">
+      <div class="card-header">
+        <h2>Mapping des champs</h2>
+        <p>Associez les champs de votre table aux champs du blog</p>
+      </div>
+      <div class="card-body">
+        <div id="mappingContainer"></div>
+        <div style="display:flex; gap:0.5rem; margin-top:1rem; justify-content:space-between;">
+          <button id="step2Back" class="btn btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Retour
+          </button>
+          <button id="step2Next" class="btn btn-primary">
+            Apercu
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Preview -->
+    <div id="step3" class="card" style="display:none;">
+      <div class="card-header">
+        <h2>Apercu des articles</h2>
+        <p>Verifiez que le mapping produit le resultat attendu</p>
+      </div>
+      <div class="card-body">
+        <div id="previewContainer"></div>
+        <div style="display:flex; gap:0.5rem; margin-top:1rem; justify-content:space-between;">
+          <button id="step3Back" class="btn btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Retour
+          </button>
+          <button id="saveBtn" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            Enregistrer & Publier
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style is:global>
+    /* ── Stepper ── */
+    .stepper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 2rem;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.375rem;
+    }
+    .step-number {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      border: 2px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #94a3b8;
+      transition: all 0.2s;
+    }
+    .step-label {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .step.active .step-number {
+      border-color: #171717;
+      background: #171717;
+      color: white;
+    }
+    .step.active .step-label { color: #0f172a; }
+    .step.done .step-number {
+      border-color: #22c55e;
+      background: #22c55e;
+      color: white;
+    }
+    .step.done .step-label { color: #22c55e; }
+    .step-line {
+      width: 3rem;
+      height: 2px;
+      background: #e2e8f0;
+      margin: 0 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* ── Tables list ── */
+    .tables-list {
+      margin-top: 1rem;
+    }
+    .table-option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .table-option:hover { border-color: #94a3b8; background: #fafafa; }
+    .table-option.selected { border-color: #171717; background: #f8fafc; }
+    .table-option input[type="radio"] { accent-color: #171717; }
+    .table-option-info { flex: 1; }
+    .table-option-name { font-weight: 600; font-size: 0.875rem; color: #0f172a; }
+    .table-option-meta { font-size: 0.75rem; color: #94a3b8; margin-top: 0.125rem; }
+
+    /* ── Mapping ── */
+    .mapping-row {
+      display: grid;
+      grid-template-columns: 140px 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .mapping-row:last-child { border-bottom: none; }
+    .mapping-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #0f172a;
+    }
+    .mapping-label .required { color: #ef4444; }
+    .mapping-label .field-hint {
+      font-size: 0.6875rem;
+      color: #94a3b8;
+      font-weight: 400;
+      display: block;
+    }
+    .mapping-row select {
+      width: 100%;
+      height: 2.25rem;
+      padding: 0.25rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      font-family: inherit;
+      color: #0f172a;
+      background: white;
+      outline: none;
+      cursor: pointer;
+    }
+    .mapping-row select:focus {
+      border-color: #0f172a;
+      box-shadow: 0 0 0 3px rgba(15,23,42,0.08);
+    }
+
+    /* ── Type badges ── */
+    .type-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .type-badge.text { background: #dbeafe; color: #1e40af; }
+    .type-badge.image { background: #fce7f3; color: #9d174d; }
+    .type-badge.date { background: #d1fae5; color: #065f46; }
+    .type-badge.boolean { background: #fef3c7; color: #92400e; }
+    .type-badge.number { background: #ede9fe; color: #5b21b6; }
+    .type-badge.other { background: #f1f5f9; color: #475569; }
+
+    /* ── Preview table ── */
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+    }
+    .preview-table th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      font-weight: 600;
+      color: #64748b;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .preview-table td {
+      padding: 0.625rem 0.75rem;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .preview-table tr:hover td { background: #f8fafc; }
+    .preview-img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 0.375rem;
+      border: 1px solid #e2e8f0;
+    }
+    .preview-empty {
+      text-align: center;
+      padding: 2rem;
+      color: #94a3b8;
+    }
+  </style>
+
+  <script>
+    interface BubbleField {
+      name: string;
+      type: string;
+    }
+    interface BubbleType {
+      name: string;
+      fields: BubbleField[];
+    }
+    interface FieldMapping {
+      title: string;
+      content: string;
+      excerpt: string;
+      coverImage: string;
+      slug: string;
+      author: string;
+      category: string;
+      date: string;
+      published?: string;
+    }
+
+    const BLOG_FIELDS: Array<{
+      key: keyof FieldMapping;
+      label: string;
+      hint: string;
+      required: boolean;
+      preferredTypes: string[];
+      nameHints: string[];
+    }> = [
+      { key: "title", label: "Titre", hint: "Titre de l'article", required: true, preferredTypes: ["text"], nameHints: ["title", "titre", "name", "nom"] },
+      { key: "slug", label: "Slug", hint: "URL de l'article", required: true, preferredTypes: ["text"], nameHints: ["slug", "url", "permalink"] },
+      { key: "content", label: "Contenu", hint: "Corps de l'article (HTML)", required: true, preferredTypes: ["text"], nameHints: ["content", "contenu", "body", "corps", "text", "texte", "html"] },
+      { key: "excerpt", label: "Extrait", hint: "Resume court", required: false, preferredTypes: ["text"], nameHints: ["excerpt", "extrait", "summary", "resume", "description", "intro"] },
+      { key: "coverImage", label: "Image", hint: "Image de couverture", required: false, preferredTypes: ["image", "file"], nameHints: ["cover", "image", "photo", "thumbnail", "img", "picture", "banner"] },
+      { key: "author", label: "Auteur", hint: "Nom de l'auteur", required: false, preferredTypes: ["text"], nameHints: ["author", "auteur", "writer", "by"] },
+      { key: "category", label: "Categorie", hint: "Categorie de l'article", required: false, preferredTypes: ["text"], nameHints: ["category", "categorie", "tag", "type", "rubrique"] },
+      { key: "date", label: "Date", hint: "Date de publication", required: false, preferredTypes: ["date"], nameHints: ["date", "published_at", "created", "Created_Date", "publication"] },
+      { key: "published", label: "Publie", hint: "Champ oui/non (optionnel)", required: false, preferredTypes: ["boolean", "yes_no"], nameHints: ["published", "publie", "active", "actif", "visible", "live", "online"] },
+    ];
+
+    let allTypes: BubbleType[] = [];
+    let selectedTable: string = "";
+    let selectedFields: BubbleField[] = [];
+    let mapping: Partial<FieldMapping> = {};
+    let currentStep = 1;
+    let existingConfig: { bubbleContentTable?: string; bubbleFieldMapping?: FieldMapping } = {};
+
+    function showMessage(text: string, type: "success" | "error") {
+      const el = document.getElementById("statusMessage")!;
+      const icon = type === "success"
+        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+      el.innerHTML = `<div class="alert alert-${type}">${icon} ${text}</div>`;
+      setTimeout(() => { el.innerHTML = ""; }, 5000);
+    }
+
+    function setStep(n: number) {
+      currentStep = n;
+      document.querySelectorAll(".step").forEach((s) => {
+        const stepN = parseInt((s as HTMLElement).dataset.step!);
+        s.classList.toggle("active", stepN === n);
+        s.classList.toggle("done", stepN < n);
+      });
+      (document.getElementById("step1") as HTMLElement).style.display = n === 1 ? "" : "none";
+      (document.getElementById("step2") as HTMLElement).style.display = n === 2 ? "" : "none";
+      (document.getElementById("step3") as HTMLElement).style.display = n === 3 ? "" : "none";
+    }
+
+    function typeBadge(type: string): string {
+      const t = type.toLowerCase();
+      let cls = "other";
+      if (t === "text" || t === "string") cls = "text";
+      else if (t === "image" || t === "file") cls = "image";
+      else if (t === "date" || t === "date_range") cls = "date";
+      else if (t === "boolean" || t === "yes_no") cls = "boolean";
+      else if (t === "number" || t === "integer" || t === "float") cls = "number";
+      const labels: Record<string, string> = { text: "Texte", image: "Image", date: "Date", boolean: "Oui/Non", number: "Nombre", other: type };
+      return `<span class="type-badge ${cls}">${labels[cls]}</span>`;
+    }
+
+    function autoDetect(fieldDef: typeof BLOG_FIELDS[number], available: BubbleField[]): string {
+      // Try exact name match first
+      for (const hint of fieldDef.nameHints) {
+        const match = available.find((f) => f.name.toLowerCase() === hint.toLowerCase());
+        if (match) return match.name;
+      }
+      // Try partial name match
+      for (const hint of fieldDef.nameHints) {
+        const match = available.find((f) => f.name.toLowerCase().includes(hint.toLowerCase()));
+        if (match) return match.name;
+      }
+      // Try type match for image/date/boolean
+      if (fieldDef.preferredTypes[0] !== "text") {
+        const match = available.find((f) =>
+          fieldDef.preferredTypes.includes(f.type.toLowerCase())
+        );
+        if (match) return match.name;
+      }
+      return "";
+    }
+
+    // Load existing config
+    async function loadExistingConfig() {
+      try {
+        const res = await fetch("/api/admin/config");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.config) {
+            existingConfig = {
+              bubbleContentTable: data.config.bubbleContentTable,
+              bubbleFieldMapping: data.config.bubbleFieldMapping,
+            };
+          }
+        }
+      } catch { /* ignore */ }
+    }
+
+    // Step 1: Load tables
+    async function loadTables() {
+      const btn = document.getElementById("loadTablesBtn") as HTMLButtonElement;
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner" style="border-color:rgba(255,255,255,0.3);border-top-color:white;"></div> Chargement...';
+
+      try {
+        const res = await fetch("/api/admin/bubble-meta");
+        if (res.status === 401) { window.location.href = "/admin/login"; return; }
+        const data = await res.json();
+
+        if (data.error) {
+          showMessage(data.error, "error");
+          btn.disabled = false;
+          btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> Charger les tables depuis Bubble';
+          return;
+        }
+
+        allTypes = data.types || [];
+        renderTables();
+        btn.style.display = "none";
+      } catch {
+        showMessage("Erreur reseau", "error");
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> Charger les tables depuis Bubble';
+      }
+    }
+
+    function renderTables() {
+      const container = document.getElementById("tablesContainer")!;
+      container.style.display = "";
+      container.innerHTML = "";
+
+      if (allTypes.length === 0) {
+        container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding:1rem;">Aucune table trouvee. Verifiez que votre API Bubble est bien configuree.</p>';
+        return;
+      }
+
+      allTypes.forEach((t) => {
+        const preselected = existingConfig.bubbleContentTable === t.name;
+        if (preselected) selectedTable = t.name;
+
+        const div = document.createElement("div");
+        div.className = `table-option${preselected ? " selected" : ""}`;
+        div.innerHTML = `
+          <input type="radio" name="tableSelect" value="${t.name}" ${preselected ? "checked" : ""} />
+          <div class="table-option-info">
+            <div class="table-option-name">${t.name}</div>
+            <div class="table-option-meta">${t.fields.length} champs</div>
+          </div>
+          <div>${t.fields.slice(0, 3).map((f) => typeBadge(f.type)).join(" ")}</div>
+        `;
+        div.addEventListener("click", () => {
+          container.querySelectorAll(".table-option").forEach((o) => o.classList.remove("selected"));
+          div.classList.add("selected");
+          (div.querySelector("input") as HTMLInputElement).checked = true;
+          selectedTable = t.name;
+          selectedFields = t.fields;
+        });
+        container.appendChild(div);
+      });
+
+      if (selectedTable) {
+        selectedFields = allTypes.find((t) => t.name === selectedTable)?.fields || [];
+      }
+
+      document.getElementById("step1Actions")!.style.display = "";
+    }
+
+    // Step 2: Mapping
+    function renderMapping() {
+      const container = document.getElementById("mappingContainer")!;
+      container.innerHTML = "";
+
+      const existingMapping = existingConfig.bubbleFieldMapping;
+
+      BLOG_FIELDS.forEach((fieldDef) => {
+        const row = document.createElement("div");
+        row.className = "mapping-row";
+
+        // Auto-detect or use existing
+        let defaultVal = "";
+        if (existingMapping && existingConfig.bubbleContentTable === selectedTable) {
+          defaultVal = (existingMapping as any)[fieldDef.key] || "";
+        }
+        if (!defaultVal) {
+          defaultVal = autoDetect(fieldDef, selectedFields);
+        }
+        mapping[fieldDef.key] = defaultVal;
+
+        const options = selectedFields.map((f) => {
+          const selected = f.name === defaultVal ? "selected" : "";
+          return `<option value="${f.name}" ${selected}>${f.name} ${typeBadge(f.type)}</option>`;
+        }).join("");
+
+        row.innerHTML = `
+          <div class="mapping-label">
+            ${fieldDef.label} ${fieldDef.required ? '<span class="required">*</span>' : ''}
+            <span class="field-hint">${fieldDef.hint}</span>
+          </div>
+          <select data-key="${fieldDef.key}">
+            <option value="">-- Non mappe --</option>
+            ${options}
+          </select>
+        `;
+
+        const select = row.querySelector("select")!;
+        // Strip HTML from options display (badges only shown in rendering context)
+        select.querySelectorAll("option").forEach((opt) => {
+          if (opt.value) {
+            const field = selectedFields.find((f) => f.name === opt.value);
+            opt.textContent = field ? `${field.name} (${field.type})` : opt.value;
+          }
+        });
+
+        select.addEventListener("change", () => {
+          (mapping as any)[fieldDef.key] = select.value;
+        });
+
+        container.appendChild(row);
+      });
+    }
+
+    function validateMapping(): boolean {
+      const required = BLOG_FIELDS.filter((f) => f.required);
+      for (const f of required) {
+        if (!(mapping as any)[f.key]) {
+          showMessage(`Le champ "${f.label}" est obligatoire.`, "error");
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // Step 3: Preview
+    async function loadPreview() {
+      const container = document.getElementById("previewContainer")!;
+      container.innerHTML = '<div style="text-align:center;padding:2rem;"><div class="spinner" style="border-color:rgba(0,0,0,0.1);border-top-color:#171717;width:20px;height:20px;margin:0 auto;"></div><p style="color:#94a3b8;margin-top:0.5rem;font-size:0.8125rem;">Chargement de l\'apercu...</p></div>';
+
+      try {
+        const res = await fetch("/api/admin/bubble-preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tableName: selectedTable, limit: 5 }),
+        });
+
+        if (res.status === 401) { window.location.href = "/admin/login"; return; }
+        const data = await res.json();
+
+        if (data.error) {
+          container.innerHTML = `<div class="preview-empty">${data.error}</div>`;
+          return;
+        }
+
+        const results = data.results || [];
+        if (results.length === 0) {
+          container.innerHTML = '<div class="preview-empty">Aucun enregistrement trouve dans cette table.</div>';
+          return;
+        }
+
+        // Build preview table with mapped fields
+        let html = '<div style="overflow-x:auto;"><table class="preview-table"><thead><tr>';
+        html += '<th>Titre</th><th>Slug</th><th>Extrait</th><th>Date</th><th>Image</th>';
+        html += '</tr></thead><tbody>';
+
+        results.forEach((item: Record<string, any>) => {
+          const title = mapping.title ? (item[mapping.title] || "") : "";
+          const slug = mapping.slug ? (item[mapping.slug] || "") : "";
+          const excerpt = mapping.excerpt ? (item[mapping.excerpt] || "") : "";
+          const date = mapping.date ? (item[mapping.date] || "") : "";
+          const img = mapping.coverImage ? (item[mapping.coverImage] || "") : "";
+
+          const truncExcerpt = typeof excerpt === "string" && excerpt.length > 80
+            ? excerpt.replace(/<[^>]*>/g, "").substring(0, 80) + "..."
+            : (typeof excerpt === "string" ? excerpt.replace(/<[^>]*>/g, "") : "");
+
+          const fmtDate = date ? new Date(date).toLocaleDateString("fr-FR") : "";
+
+          const imgHtml = img
+            ? `<img src="${img}" class="preview-img" alt="" onerror="this.style.display='none'" />`
+            : '<span style="color:#cbd5e1;">--</span>';
+
+          html += `<tr>
+            <td>${title || '<span style="color:#cbd5e1;">--</span>'}</td>
+            <td><code style="font-size:0.75rem;background:#f1f5f9;padding:0.125rem 0.375rem;border-radius:0.25rem;">${slug || "--"}</code></td>
+            <td>${truncExcerpt || '<span style="color:#cbd5e1;">--</span>'}</td>
+            <td>${fmtDate || '<span style="color:#cbd5e1;">--</span>'}</td>
+            <td>${imgHtml}</td>
+          </tr>`;
+        });
+
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+      } catch {
+        container.innerHTML = '<div class="preview-empty">Erreur lors du chargement de l\'apercu.</div>';
+      }
+    }
+
+    // Save
+    async function saveMapping() {
+      const btn = document.getElementById("saveBtn") as HTMLButtonElement;
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner" style="border-color:rgba(255,255,255,0.3);border-top-color:white;"></div> Publication...';
+
+      try {
+        // Load current full config
+        const configRes = await fetch("/api/admin/config");
+        if (configRes.status === 401) { window.location.href = "/admin/login"; return; }
+        const configData = await configRes.json();
+
+        if (!configData.config) {
+          showMessage("Impossible de lire la config actuelle", "error");
+          return;
+        }
+
+        // Merge content mapping into existing config
+        const updatedConfig = {
+          ...configData.config,
+          bubbleContentTable: selectedTable,
+          bubbleFieldMapping: mapping,
+        };
+
+        // Save + deploy
+        const res = await fetch("/api/admin/deploy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ config: updatedConfig }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showMessage(data.message || "Configuration sauvegardee !", "success");
+        } else {
+          showMessage(data.error || "Erreur lors de la sauvegarde", "error");
+        }
+      } catch {
+        showMessage("Erreur reseau", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Enregistrer & Publier';
+      }
+    }
+
+    // Wire up events
+    document.getElementById("loadTablesBtn")!.addEventListener("click", loadTables);
+
+    document.getElementById("step1Next")!.addEventListener("click", () => {
+      if (!selectedTable) { showMessage("Selectionnez une table", "error"); return; }
+      selectedFields = allTypes.find((t) => t.name === selectedTable)?.fields || [];
+      renderMapping();
+      setStep(2);
+    });
+
+    document.getElementById("step2Back")!.addEventListener("click", () => setStep(1));
+
+    document.getElementById("step2Next")!.addEventListener("click", () => {
+      if (!validateMapping()) return;
+      loadPreview();
+      setStep(3);
+    });
+
+    document.getElementById("step3Back")!.addEventListener("click", () => setStep(2));
+
+    document.getElementById("saveBtn")!.addEventListener("click", saveMapping);
+
+    // Init
+    loadExistingConfig();
+  </script>
+</Admin>

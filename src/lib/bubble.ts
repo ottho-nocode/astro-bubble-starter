@@ -1,4 +1,4 @@
-import { getSiteConfig } from "./supabase";
+import { getSiteConfig, type BubbleFieldMapping } from "./supabase";
 
 // Credentials dynamiques : Supabase > env vars > fallback
 let _bubbleApiUrl: string | undefined;
@@ -23,9 +23,6 @@ async function getBubbleCredentials() {
   return { url: _bubbleApiUrl, token: _bubbleApiToken };
 }
 
-// Legacy compat
-const BUBBLE_API_URL = import.meta.env.BUBBLE_API_URL;
-const BUBBLE_API_TOKEN = import.meta.env.BUBBLE_API_TOKEN;
 
 interface BubbleResponse<T> {
   response: {
@@ -128,7 +125,7 @@ async function bubbleFetchAll<T>(
 }
 
 // ============================================================
-// ADAPTER ICI : définir les types selon la BDD Bubble du client
+// Type article normalisé (après mapping)
 // ============================================================
 
 export interface BubblePost {
@@ -138,36 +135,108 @@ export interface BubblePost {
   Created_By: string;
   slug: string;
   title: string;
-  content: string;       // HTML ou texte riche
-  excerpt: string;        // Résumé court
-  cover_image: string;    // URL de l'image
+  content: string;
+  excerpt: string;
+  cover_image: string;
   author: string;
   category: string;
   tags: string[];
   published: boolean;
 }
 
+// Mapping par défaut (backward compatible)
+const DEFAULT_TABLE = "post";
+const DEFAULT_MAPPING: BubbleFieldMapping = {
+  title: "title",
+  content: "content",
+  excerpt: "excerpt",
+  coverImage: "cover_image",
+  slug: "slug",
+  author: "author",
+  category: "category",
+  date: "Created_Date",
+  published: "published",
+};
+
+// Cache de la config contenu
+let _contentTable: string | undefined;
+let _fieldMapping: BubbleFieldMapping | undefined;
+
+async function getContentConfig(): Promise<{ table: string; mapping: BubbleFieldMapping }> {
+  if (_contentTable && _fieldMapping) return { table: _contentTable, mapping: _fieldMapping };
+
+  try {
+    const config = await getSiteConfig();
+    if (config?.bubbleContentTable && config?.bubbleFieldMapping) {
+      _contentTable = config.bubbleContentTable;
+      _fieldMapping = config.bubbleFieldMapping;
+      return { table: _contentTable, mapping: _fieldMapping };
+    }
+  } catch {
+    // Fallback sur defaults
+  }
+
+  _contentTable = DEFAULT_TABLE;
+  _fieldMapping = DEFAULT_MAPPING;
+  return { table: _contentTable, mapping: _fieldMapping };
+}
+
+function mapBubbleRecord(raw: Record<string, any>, mapping: BubbleFieldMapping): BubblePost {
+  return {
+    _id: raw._id || "",
+    Created_Date: raw.Created_Date || "",
+    Modified_Date: raw.Modified_Date || "",
+    Created_By: raw.Created_By || "",
+    slug: raw[mapping.slug] || raw.Slug || "",
+    title: raw[mapping.title] || "",
+    content: raw[mapping.content] || "",
+    excerpt: raw[mapping.excerpt] || "",
+    cover_image: raw[mapping.coverImage] || "",
+    author: raw[mapping.author] || "",
+    category: raw[mapping.category] || "",
+    tags: Array.isArray(raw.tags) ? raw.tags : [],
+    published: mapping.published ? Boolean(raw[mapping.published]) : true,
+  };
+}
+
 export async function getPosts(): Promise<BubblePost[]> {
-  return bubbleFetchAll<BubblePost>("post", {
-    constraints: [
-      { key: "published", constraint_type: "equals", value: true },
-    ],
-    sort_field: "Created_Date",
+  const { table, mapping } = await getContentConfig();
+
+  const constraints: FetchOptions["constraints"] = [];
+  if (mapping.published) {
+    constraints.push({ key: mapping.published, constraint_type: "equals", value: true });
+  }
+
+  const sortField = mapping.date || "Created_Date";
+
+  const rawResults = await bubbleFetchAll<Record<string, any>>(table, {
+    constraints: constraints.length > 0 ? constraints : undefined,
+    sort_field: sortField,
     descending: true,
   });
+
+  return rawResults.map((raw) => mapBubbleRecord(raw, mapping));
 }
 
 export async function getPostBySlug(
   slug: string
 ): Promise<BubblePost | undefined> {
-  const results = await bubbleFetch<BubblePost>("post", {
-    constraints: [
-      { key: "slug", constraint_type: "equals", value: slug },
-      { key: "published", constraint_type: "equals", value: true },
-    ],
+  const { table, mapping } = await getContentConfig();
+
+  const constraints: FetchOptions["constraints"] = [
+    { key: mapping.slug, constraint_type: "equals", value: slug },
+  ];
+  if (mapping.published) {
+    constraints.push({ key: mapping.published, constraint_type: "equals", value: true });
+  }
+
+  const rawResults = await bubbleFetch<Record<string, any>>(table, {
+    constraints,
     limit: 1,
   });
-  return results[0];
+
+  if (!rawResults[0]) return undefined;
+  return mapBubbleRecord(rawResults[0], mapping);
 }
 
 export { bubbleFetch, bubbleFetchAll };

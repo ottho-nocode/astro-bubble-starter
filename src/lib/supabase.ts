@@ -15,6 +15,18 @@ export const supabase =
     ? createClient(supabaseUrl, supabaseKey)
     : null;
 
+export interface BubbleFieldMapping {
+  title: string;
+  content: string;
+  excerpt: string;
+  coverImage: string;
+  slug: string;
+  author: string;
+  category: string;
+  date: string;
+  published?: string;
+}
+
 export interface SiteConfig {
   name: string;
   description: string;
@@ -23,6 +35,8 @@ export interface SiteConfig {
   bubbleAppUrl: string;
   bubbleApiUrl: string;
   bubbleApiToken: string;
+  bubbleContentTable?: string;
+  bubbleFieldMapping?: BubbleFieldMapping;
   hero: {
     title: string;
     subtitle: string;

@@ -10,6 +10,18 @@ export const siteConfig = {
   bubbleAppUrl: "https://VOTRE-APP.bubbleapps.io",
   bubbleApiUrl: "",
   bubbleApiToken: "",
+  bubbleContentTable: "post",
+  bubbleFieldMapping: {
+    title: "title",
+    content: "content",
+    excerpt: "excerpt",
+    coverImage: "cover_image",
+    slug: "slug",
+    author: "author",
+    category: "category",
+    date: "Created_Date",
+    published: "published",
+  },
   hero: {
     title: "Votre titre principal ici",
     subtitle:
