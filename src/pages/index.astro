@@ -1,4 +1,6 @@
 ---
+import fs from "node:fs";
+import path from "node:path";
 import Base from "../layouts/Base.astro";
 import Hero from "../components/Hero.astro";
 import Features from "../components/Features.astro";
@@ -8,6 +10,112 @@ import { getPosts } from "../lib/bubble";
 import { loadSiteConfig } from "../config";
 
 const config = await loadSiteConfig();
+
+// Si un template pré-construit est sélectionné, servir le HTML du template
+const landingTemplate = (config as any).landingTemplate;
+if (landingTemplate && landingTemplate !== "custom") {
+  const templatePath = path.join(process.cwd(), "public", "templates", `${landingTemplate}.html`);
+  try {
+    let html = fs.readFileSync(templatePath, "utf-8");
+
+    // Injecter les valeurs config dans le template via un script DOM
+    const hero = config.hero || {};
+    const cta = config.cta || {};
+    const features = config.features || {};
+    const cfgJson = JSON.stringify({
+      siteName: config.name || "",
+      heroTitle: hero.title || "",
+      heroSubtitle: hero.subtitle || "",
+      heroCtaText: hero.ctaText || "",
+      heroCtaLink: hero.ctaLink || "",
+      ctaTitle: cta.title || "",
+      ctaDescription: cta.description || "",
+      ctaCtaText: cta.ctaText || "",
+      ctaCtaLink: cta.ctaLink || "",
+      featuresTitle: features.title || "",
+      features: (features.items || []).map((f: any) => ({ title: f.title, description: f.description, icon: f.icon })),
+    });
+
+    const injectionScript = `<script>
+(function() {
+  var cfg = ${cfgJson};
+  function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  var navLinks = document.querySelectorAll('nav a');
+  if (cfg.siteName && navLinks.length > 0) {
+    var brand = navLinks[0];
+    if (brand.textContent.trim().length < 40 && !brand.querySelector('img')) {
+      brand.textContent = cfg.siteName;
+    }
+  }
+  if (cfg.heroTitle) {
+    var h1 = document.querySelector('h1');
+    if (h1) h1.innerHTML = esc(cfg.heroTitle);
+  }
+  if (cfg.heroSubtitle) {
+    var heroEl = document.querySelector('h1');
+    if (heroEl) {
+      var parent = heroEl.parentElement;
+      if (parent) {
+        var ps = parent.querySelectorAll('p');
+        for (var i = 0; i < ps.length; i++) {
+          if (ps[i].textContent.trim().length > 10) {
+            ps[i].textContent = cfg.heroSubtitle;
+            break;
+          }
+        }
+      }
+    }
+  }
+  if (cfg.heroCtaText) {
+    var heroSection = document.querySelector('h1');
+    if (heroSection) {
+      var section = heroSection.closest('section') || heroSection.parentElement.parentElement;
+      if (section) {
+        var btns = section.querySelectorAll('button, a[class*="bg-"], a[style*="background"]');
+        for (var b = 0; b < btns.length; b++) {
+          var btnText = btns[b].textContent.trim();
+          if (btnText.length > 0 && btnText.length < 50) {
+            var innerSpan = btns[b].querySelector('span:last-of-type');
+            if (innerSpan) innerSpan.textContent = cfg.heroCtaText;
+            else btns[b].textContent = cfg.heroCtaText;
+            break;
+          }
+        }
+      }
+    }
+  }
+  if (cfg.heroCtaLink) {
+    var heroEl2 = document.querySelector('h1');
+    if (heroEl2) {
+      var section2 = heroEl2.closest('section') || heroEl2.parentElement.parentElement;
+      if (section2) {
+        var links = section2.querySelectorAll('a[class*="bg-"], a[style*="background"]');
+        for (var l = 0; l < links.length; l++) {
+          if (links[l].href && links[l].textContent.trim().length < 50) {
+            links[l].href = cfg.heroCtaLink;
+            break;
+          }
+        }
+      }
+    }
+  }
+})();
+</script>`;
+
+    if (html.includes("</body>")) {
+      html = html.replace("</body>", injectionScript + "</body>");
+    } else {
+      html += injectionScript;
+    }
+
+    return new Response(html, {
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
+  } catch {
+    // Template non trouvé, fallback sur le rendu classique
+  }
+}
 
 // Récupère les 3 derniers articles depuis Bubble
 let latestPosts: Awaited<ReturnType<typeof getPosts>> = [];

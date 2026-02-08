@@ -78,6 +78,7 @@ export interface SiteConfig {
     ctaText: string;
     ctaLink: string;
   };
+  landingTemplate?: string;
 }
 
 export async function getSiteConfig(): Promise<SiteConfig | null> {
