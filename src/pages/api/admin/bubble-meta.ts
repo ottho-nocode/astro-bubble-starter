@@ -70,18 +70,41 @@ export const GET: APIRoute = async ({ request }) => {
 
       for (const [fieldName, fieldDef] of Object.entries(schema.properties)) {
         const fd = fieldDef as any;
-        // Mapper les types Swagger vers des types lisibles
         let fieldType = fd.type || "unknown";
-        if (fd.format === "date-time" || fd.format === "date") fieldType = "date";
-        else if (fieldType === "boolean") fieldType = "boolean";
-        else if (fieldType === "number" || fieldType === "integer") fieldType = "number";
-        else if (fieldType === "string") fieldType = "text";
-        else if (fieldType === "array") fieldType = "list";
-        // Bubble stocke les images comme des strings (URLs)
-        // On détecte par le nom du champ
-        const nameLower = fieldName.toLowerCase();
-        if (fieldType === "text" && (nameLower.includes("image") || nameLower.includes("photo") || nameLower.includes("picture") || nameLower.includes("avatar") || nameLower.includes("cover") || nameLower.includes("thumbnail") || nameLower.includes("logo"))) {
-          fieldType = "image";
+
+        // Bubble types spéciaux
+        if (fieldType === "option set") {
+          fieldType = "option_set";
+        } else if (fd.$ref) {
+          // Référence à un autre type (ex: GeographicAddress)
+          const refName = fd.$ref.replace("#/definitions/", "");
+          fieldType = refName === "GeographicAddress" ? "address" : "ref";
+        } else if (fd.format === "date-time" || fd.format === "date") {
+          fieldType = "date";
+        } else if (fieldType === "boolean") {
+          fieldType = "boolean";
+        } else if (fieldType === "number" || fieldType === "integer") {
+          fieldType = "number";
+        } else if (fieldType === "array") {
+          const itemType = fd.items?.type || "";
+          if (itemType === "option set") fieldType = "list_option_set";
+          else fieldType = "list";
+        } else if (fieldType === "string") {
+          fieldType = "text";
+        }
+
+        // Bubble stocke les images comme "string" (URLs S3/imgix)
+        // Détection par nom du champ (FR + EN)
+        if (fieldType === "text") {
+          const nameLower = fieldName.toLowerCase();
+          const imageKeywords = [
+            "image", "photo", "picture", "avatar", "cover", "couv",
+            "thumbnail", "logo", "vignette", "banner", "banniere",
+            "bannière", "panorama", "illustration", "img", "pic",
+          ];
+          if (imageKeywords.some((kw) => nameLower.includes(kw))) {
+            fieldType = "image";
+          }
         }
 
         fields.push({ name: fieldName, type: fieldType });

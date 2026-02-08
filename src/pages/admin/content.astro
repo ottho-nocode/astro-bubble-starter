@@ -257,6 +257,10 @@ if (!(await verifySession(token))) {
     .type-badge.date { background: #d1fae5; color: #065f46; }
     .type-badge.boolean { background: #fef3c7; color: #92400e; }
     .type-badge.number { background: #ede9fe; color: #5b21b6; }
+    .type-badge.list { background: #e0f2fe; color: #0369a1; }
+    .type-badge.option_set { background: #fdf4ff; color: #86198f; }
+    .type-badge.ref { background: #fff7ed; color: #c2410c; }
+    .type-badge.address { background: #ecfdf5; color: #047857; }
     .type-badge.other { background: #f1f5f9; color: #475569; }
 
     /* ── Preview table ── */
@@ -329,14 +333,14 @@ if (!(await verifySession(token))) {
       nameHints: string[];
     }> = [
       { key: "title", label: "Titre", hint: "Titre de l'article", required: true, preferredTypes: ["text"], nameHints: ["title", "titre", "name", "nom"] },
-      { key: "slug", label: "Slug", hint: "URL de l'article", required: true, preferredTypes: ["text"], nameHints: ["slug", "url", "permalink"] },
-      { key: "content", label: "Contenu", hint: "Corps de l'article (HTML)", required: true, preferredTypes: ["text"], nameHints: ["content", "contenu", "body", "corps", "text", "texte", "html"] },
-      { key: "excerpt", label: "Extrait", hint: "Resume court", required: false, preferredTypes: ["text"], nameHints: ["excerpt", "extrait", "summary", "resume", "description", "intro"] },
-      { key: "coverImage", label: "Image", hint: "Image de couverture", required: false, preferredTypes: ["image", "file"], nameHints: ["cover", "image", "photo", "thumbnail", "img", "picture", "banner"] },
-      { key: "author", label: "Auteur", hint: "Nom de l'auteur", required: false, preferredTypes: ["text"], nameHints: ["author", "auteur", "writer", "by"] },
-      { key: "category", label: "Categorie", hint: "Categorie de l'article", required: false, preferredTypes: ["text"], nameHints: ["category", "categorie", "tag", "type", "rubrique"] },
-      { key: "date", label: "Date", hint: "Date de publication", required: false, preferredTypes: ["date"], nameHints: ["date", "published_at", "created", "Created_Date", "publication"] },
-      { key: "published", label: "Publie", hint: "Champ oui/non (optionnel)", required: false, preferredTypes: ["boolean", "yes_no"], nameHints: ["published", "publie", "active", "actif", "visible", "live", "online"] },
+      { key: "slug", label: "Slug", hint: "URL de l'article", required: true, preferredTypes: ["text"], nameHints: ["slug", "Slug", "url", "permalink"] },
+      { key: "content", label: "Contenu", hint: "Corps de l'article (HTML)", required: true, preferredTypes: ["text"], nameHints: ["content", "contenu", "body", "corps", "texte", "html", "article"] },
+      { key: "excerpt", label: "Extrait", hint: "Resume court", required: false, preferredTypes: ["text"], nameHints: ["excerpt", "extrait", "summary", "resume", "résumé", "description", "Description", "description SEO", "intro", "headline"] },
+      { key: "coverImage", label: "Image", hint: "Image de couverture", required: false, preferredTypes: ["image"], nameHints: ["cover", "couv", "image couv", "Image couv", "image", "photo", "thumbnail", "vignette", "image vignette", "img", "picture", "banner", "banniere", "bannière", "panorama", "illustration", "logo"] },
+      { key: "author", label: "Auteur", hint: "Nom de l'auteur", required: false, preferredTypes: ["text", "ref"], nameHints: ["author", "auteur", "writer", "by", "redacteur", "rédacteur"] },
+      { key: "category", label: "Categorie", hint: "Categorie de l'article", required: false, preferredTypes: ["text", "ref", "option_set"], nameHints: ["category", "categorie", "catégorie", "rubrique", "tag", "type article", "type"] },
+      { key: "date", label: "Date", hint: "Date de publication", required: false, preferredTypes: ["date"], nameHints: ["date", "date_generation", "published_at", "created", "Created Date", "publication", "date publication"] },
+      { key: "published", label: "Publie", hint: "Champ oui/non (optionnel)", required: false, preferredTypes: ["boolean"], nameHints: ["published", "publie", "publié", "active", "actif", "visible", "live", "online", "en ligne"] },
     ];
 
     let allTypes: BubbleType[] = [];
@@ -375,7 +379,15 @@ if (!(await verifySession(token))) {
       else if (t === "date" || t === "date_range") cls = "date";
       else if (t === "boolean" || t === "yes_no") cls = "boolean";
       else if (t === "number" || t === "integer" || t === "float") cls = "number";
-      const labels: Record<string, string> = { text: "Texte", image: "Image", date: "Date", boolean: "Oui/Non", number: "Nombre", other: type };
+      else if (t === "list" || t === "list_option_set") cls = "list";
+      else if (t === "option_set") cls = "option_set";
+      else if (t === "ref") cls = "ref";
+      else if (t === "address") cls = "address";
+      const labels: Record<string, string> = {
+        text: "Texte", image: "Image", date: "Date", boolean: "Oui/Non",
+        number: "Nombre", list: "Liste", option_set: "Option Set", ref: "Ref",
+        address: "Adresse", other: type,
+      };
       return `<span class="type-badge ${cls}">${labels[cls]}</span>`;
     }
 
