@@ -18,87 +18,63 @@ if (landingTemplate && landingTemplate !== "custom") {
   try {
     let html = fs.readFileSync(templatePath, "utf-8");
 
-    // Injecter les valeurs config dans le template via un script DOM
-    const hero = config.hero || {};
-    const cta = config.cta || {};
-    const features = config.features || {};
-    const cfgJson = JSON.stringify({
-      siteName: config.name || "",
-      heroTitle: hero.title || "",
-      heroSubtitle: hero.subtitle || "",
-      heroCtaText: hero.ctaText || "",
-      heroCtaLink: hero.ctaLink || "",
-      ctaTitle: cta.title || "",
-      ctaDescription: cta.description || "",
-      ctaCtaText: cta.ctaText || "",
-      ctaCtaLink: cta.ctaLink || "",
-      featuresTitle: features.title || "",
-      features: (features.items || []).map((f: any) => ({ title: f.title, description: f.description, icon: f.icon })),
-    });
+    // Récupérer les overrides stockés pour ce template
+    const allOverrides = (config as any).templateOverrides || {};
+    const overrides = allOverrides[landingTemplate] || { texts: {}, images: {}, hrefs: {}, hiddenSections: [] };
+    const overridesJson = JSON.stringify(overrides);
 
+    // Script qui scanne le DOM (même algorithme que l'admin) et applique les overrides
     const injectionScript = `<script>
 (function() {
-  var cfg = ${cfgJson};
-  function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-  var navLinks = document.querySelectorAll('nav a');
-  if (cfg.siteName && navLinks.length > 0) {
-    var brand = navLinks[0];
-    if (brand.textContent.trim().length < 40 && !brand.querySelector('img')) {
-      brand.textContent = cfg.siteName;
-    }
-  }
-  if (cfg.heroTitle) {
-    var h1 = document.querySelector('h1');
-    if (h1) h1.innerHTML = esc(cfg.heroTitle);
-  }
-  if (cfg.heroSubtitle) {
-    var heroEl = document.querySelector('h1');
-    if (heroEl) {
-      var parent = heroEl.parentElement;
-      if (parent) {
-        var ps = parent.querySelectorAll('p');
-        for (var i = 0; i < ps.length; i++) {
-          if (ps[i].textContent.trim().length > 10) {
-            ps[i].textContent = cfg.heroSubtitle;
-            break;
-          }
-        }
-      }
-    }
-  }
-  if (cfg.heroCtaText) {
-    var heroSection = document.querySelector('h1');
-    if (heroSection) {
-      var section = heroSection.closest('section') || heroSection.parentElement.parentElement;
-      if (section) {
-        var btns = section.querySelectorAll('button, a[class*="bg-"], a[style*="background"]');
-        for (var b = 0; b < btns.length; b++) {
-          var btnText = btns[b].textContent.trim();
-          if (btnText.length > 0 && btnText.length < 50) {
-            var innerSpan = btns[b].querySelector('span:last-of-type');
-            if (innerSpan) innerSpan.textContent = cfg.heroCtaText;
-            else btns[b].textContent = cfg.heroCtaText;
-            break;
-          }
-        }
-      }
-    }
-  }
-  if (cfg.heroCtaLink) {
-    var heroEl2 = document.querySelector('h1');
-    if (heroEl2) {
-      var section2 = heroEl2.closest('section') || heroEl2.parentElement.parentElement;
-      if (section2) {
-        var links = section2.querySelectorAll('a[class*="bg-"], a[style*="background"]');
-        for (var l = 0; l < links.length; l++) {
-          if (links[l].href && links[l].textContent.trim().length < 50) {
-            links[l].href = cfg.heroCtaLink;
-            break;
-          }
-        }
-      }
-    }
-  }
+  var overrides = ${overridesJson};
+  var TAGS = "h1,h2,h3,h4,h5,h6,p,a,button,span,li";
+  var sectionEls = document.querySelectorAll("section, header, footer, nav");
+  var elements = sectionEls.length > 0
+    ? Array.from(sectionEls)
+    : Array.from(document.body.children).filter(function(el) {
+        return ["SCRIPT","STYLE","LINK","META","BR","HR"].indexOf(el.tagName) === -1;
+      });
+  var idx = 0;
+  elements.forEach(function(sec) {
+    if (["SCRIPT","STYLE","LINK","META"].indexOf(sec.tagName) !== -1) return;
+    var sectionId = "section-" + idx;
+    sec.setAttribute("data-section-id", sectionId);
+    var textIdx = 0;
+    sec.querySelectorAll(TAGS).forEach(function(el) {
+      var text = (el.textContent || "").trim();
+      if (text.length < 2) return;
+      var children = el.querySelectorAll(TAGS);
+      var skip = false;
+      children.forEach(function(c) { if ((c.textContent || "").trim().length > 2) skip = true; });
+      if (skip) return;
+      el.setAttribute("data-edit-id", sectionId + "-text-" + textIdx);
+      textIdx++;
+    });
+    sec.querySelectorAll("img").forEach(function(img, m) {
+      img.setAttribute("data-edit-id", sectionId + "-img-" + m);
+    });
+    idx++;
+  });
+  // Apply text overrides
+  Object.keys(overrides.texts || {}).forEach(function(key) {
+    var el = document.querySelector('[data-edit-id="' + key + '"]');
+    if (el) el.textContent = overrides.texts[key];
+  });
+  // Apply image overrides
+  Object.keys(overrides.images || {}).forEach(function(key) {
+    var el = document.querySelector('[data-edit-id="' + key + '"]');
+    if (el) el.src = overrides.images[key];
+  });
+  // Apply href overrides
+  Object.keys(overrides.hrefs || {}).forEach(function(key) {
+    var el = document.querySelector('[data-edit-id="' + key + '"]');
+    if (el) el.href = overrides.hrefs[key];
+  });
+  // Hide sections
+  (overrides.hiddenSections || []).forEach(function(sectionId) {
+    var el = document.querySelector('[data-section-id="' + sectionId + '"]');
+    if (el) el.style.display = "none";
+  });
 })();
 </script>`;
 

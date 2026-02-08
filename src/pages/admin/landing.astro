@@ -71,6 +71,7 @@ if (!(await verifySession(token))) {
           </div>
         </div>
 
+        <div id="customSections">
         <!-- Section 2: Hero -->
         <div class="accordion-section" data-section="hero">
           <button class="accordion-trigger" type="button">
@@ -150,6 +151,8 @@ if (!(await verifySession(token))) {
             </div>
           </div>
         </div>
+        </div>
+        <div id="templateSections"></div>
       </div>
 
       <footer class="builder-controls-footer">
@@ -489,6 +492,68 @@ if (!(await verifySession(token))) {
     }
 
 
+    /* ── Template editing ── */
+    .edit-tag {
+      display: inline-block;
+      font-size: 0.5625rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #64748b;
+      background: #f1f5f9;
+      padding: 0.0625rem 0.3125rem;
+      border-radius: 0.1875rem;
+      margin-right: 0.25rem;
+      vertical-align: middle;
+    }
+    .section-vis-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 0.625rem;
+      margin-bottom: 0.625rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .section-vis-label {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+    }
+    .toggle-switch input { display: none; }
+    .toggle-track {
+      display: block;
+      width: 2rem;
+      height: 1.125rem;
+      background: #cbd5e1;
+      border-radius: 999px;
+      transition: background 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-track { background: #171717; }
+    .toggle-thumb {
+      position: absolute;
+      top: 0.125rem;
+      left: 0.125rem;
+      width: 0.875rem;
+      height: 0.875rem;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-track .toggle-thumb {
+      transform: translateX(0.875rem);
+    }
+    .img-thumb {
+      display: block;
+      max-height: 3rem;
+      border-radius: 0.25rem;
+      margin-top: 0.25rem;
+      object-fit: cover;
+    }
+    #templateSections:empty { display: none; }
+
     /* ── Resize handle ── */
     .resize-handle {
       width: 6px;
@@ -665,6 +730,8 @@ if (!(await verifySession(token))) {
     let featuresItems: FeatureItem[] = [];
     let selectedTemplate = "custom";
     let templateCache: Record<string, string> = {};
+    let templateSchema: any[] = [];
+    let templateOverrides: Record<string, any> = {};
 
     const templates = [
       { id: "custom", name: "Personnalise", desc: "Vos sections", color: "linear-gradient(135deg,#f0f9ff,#fff)", icon: "✎" },
@@ -717,6 +784,7 @@ if (!(await verifySession(token))) {
           const radio = card.querySelector("input") as HTMLInputElement;
           radio.checked = true;
           selectedTemplate = radio.value;
+          toggleSectionsMode(selectedTemplate !== "custom");
           updatePreview();
         });
       });
@@ -735,114 +803,199 @@ if (!(await verifySession(token))) {
       }
     }
 
-    function injectConfigIntoTemplate(html: string, cfg: Record<string, any>): string {
-      const hero = cfg.hero || {};
-      const cta = cfg.cta || {};
-      const features = cfg.features || {};
-      const siteName = cfg.name || "";
-
-      // Build injection script that runs after DOM load
-      const injectionScript = `
-<script>
-(function() {
-  var cfg = ${JSON.stringify({
-    siteName,
-    heroTitle: hero.title || "",
-    heroSubtitle: hero.subtitle || "",
-    heroCtaText: hero.ctaText || "",
-    heroCtaLink: hero.ctaLink || "",
-    ctaTitle: cta.title || "",
-    ctaDescription: cta.description || "",
-    ctaCtaText: cta.ctaText || "",
-    ctaCtaLink: cta.ctaLink || "",
-    featuresTitle: features.title || "",
-    features: (features.items || []).map(function(f) { return { title: f.title, description: f.description, icon: f.icon }; }),
-  })};
-
-  function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-
-  // -- Site name: first nav link with brand text --
-  var navLinks = document.querySelectorAll('nav a');
-  if (cfg.siteName && navLinks.length > 0) {
-    var brand = navLinks[0];
-    // Only replace if it looks like a brand (short text, not a nav item)
-    if (brand.textContent.trim().length < 40 && !brand.querySelector('img')) {
-      brand.textContent = cfg.siteName;
+    // ── Template DOM introspection & editing ──
+    function getCurrentOverrides(): any {
+      if (!templateOverrides[selectedTemplate]) {
+        templateOverrides[selectedTemplate] = { texts: {}, images: {}, hrefs: {}, hiddenSections: [] };
+      }
+      return templateOverrides[selectedTemplate];
     }
-  }
 
-  // -- Hero title: first h1 --
-  if (cfg.heroTitle) {
-    var h1 = document.querySelector('h1');
-    if (h1) {
-      // Preserve styling spans but replace text
-      h1.innerHTML = esc(cfg.heroTitle);
+    function scanTemplateDOM(doc: Document): any[] {
+      const TAGS = "h1,h2,h3,h4,h5,h6,p,a,button,span,li";
+      let sectionEls: Element[] = Array.from(doc.querySelectorAll("section, header, footer, nav"));
+      if (sectionEls.length === 0) {
+        sectionEls = Array.from(doc.body.children).filter((el: Element) =>
+          !["SCRIPT","STYLE","LINK","META","BR","HR"].includes(el.tagName)
+        );
+      }
+      const sections: any[] = [];
+      let idx = 0;
+      sectionEls.forEach((sec: Element) => {
+        if (["SCRIPT","STYLE","LINK","META"].includes(sec.tagName)) return;
+        const sectionId = "section-" + idx;
+        sec.setAttribute("data-section-id", sectionId);
+        const heading = sec.querySelector("h1,h2,h3");
+        const label = heading
+          ? heading.textContent!.trim().substring(0, 50)
+          : sec.tagName.toLowerCase() + " " + (idx + 1);
+        const texts: any[] = [];
+        const images: any[] = [];
+        let textIdx = 0;
+        sec.querySelectorAll(TAGS).forEach((el: Element) => {
+          const text = el.textContent?.trim() || "";
+          if (text.length < 2) return;
+          const children = el.querySelectorAll(TAGS);
+          let skip = false;
+          children.forEach((c: Element) => { if ((c.textContent?.trim() || "").length > 2) skip = true; });
+          if (skip) return;
+          const key = sectionId + "-text-" + textIdx;
+          el.setAttribute("data-edit-id", key);
+          texts.push({
+            key, tag: el.tagName.toLowerCase(), text: text.substring(0, 500),
+            href: el.tagName === "A" ? el.getAttribute("href") : undefined,
+          });
+          textIdx++;
+        });
+        sec.querySelectorAll("img").forEach((img: Element, m: number) => {
+          const key = sectionId + "-img-" + m;
+          img.setAttribute("data-edit-id", key);
+          images.push({ key, src: img.getAttribute("src") || "", alt: img.getAttribute("alt") || "" });
+        });
+        if (texts.length > 0 || images.length > 0) {
+          sections.push({ id: sectionId, tag: sec.tagName.toLowerCase(), label, texts, images });
+        }
+        idx++;
+      });
+      return sections;
     }
-  }
 
-  // -- Hero subtitle: look for p near the h1 --
-  if (cfg.heroSubtitle) {
-    var heroSection = document.querySelector('h1');
-    if (heroSection) {
-      var parent = heroSection.parentElement;
-      if (parent) {
-        var ps = parent.querySelectorAll('p');
-        // Take the first p that's not tiny (skip badges)
-        for (var i = 0; i < ps.length; i++) {
-          if (ps[i].textContent.trim().length > 10) {
-            ps[i].textContent = cfg.heroSubtitle;
-            break;
+    function buildTemplateSections(schema: any[]) {
+      const container = document.getElementById("templateSections")!;
+      const overrides = getCurrentOverrides();
+      let html = "";
+      schema.forEach((section: any) => {
+        const isHidden = (overrides.hiddenSections || []).includes(section.id);
+        html += `<div class="accordion-section" data-template-section="${section.id}">
+          <button class="accordion-trigger" type="button">
+            <span class="accordion-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+              ${esc(section.label)}
+            </span>
+            <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-content">
+            <div class="section-vis-row">
+              <span class="section-vis-label">Afficher cette section</span>
+              <label class="toggle-switch"><input type="checkbox" ${isHidden ? "" : "checked"} data-section-vis="${section.id}" /><span class="toggle-track"><span class="toggle-thumb"></span></span></label>
+            </div>`;
+        section.texts.forEach((t: any) => {
+          const val = overrides.texts?.[t.key] || t.text;
+          const escaped = esc(val);
+          const tag = t.tag;
+          const lbl = esc(t.text.substring(0, 40)) + (t.text.length > 40 ? "..." : "");
+          if (t.text.length > 80 || tag === "p") {
+            html += `<div class="ctrl-group"><label><span class="edit-tag">${tag}</span> ${lbl}</label>
+              <textarea data-tpl-edit="${t.key}" data-tpl-type="text" rows="2">${escaped}</textarea></div>`;
+          } else {
+            html += `<div class="ctrl-group"><label><span class="edit-tag">${tag}</span> ${lbl}</label>
+              <input type="text" data-tpl-edit="${t.key}" data-tpl-type="text" value="${escaped}" /></div>`;
           }
+          if (t.href !== undefined) {
+            const hrefVal = overrides.hrefs?.[t.key] || t.href || "";
+            html += `<div class="ctrl-group"><label><span class="edit-tag">url</span> Lien</label>
+              <input type="url" data-tpl-edit="${t.key}" data-tpl-type="href" value="${esc(hrefVal)}" placeholder="https://..." /></div>`;
+          }
+        });
+        section.images.forEach((img: any) => {
+          const src = overrides.images?.[img.key] || img.src;
+          html += `<div class="ctrl-group"><label><span class="edit-tag">img</span> ${esc(img.alt || "Image")}</label>
+            <input type="url" data-tpl-edit="${img.key}" data-tpl-type="image" value="${esc(src)}" placeholder="URL de l'image" />
+            <img class="img-thumb" src="${esc(src)}" onerror="this.style.display='none'" onload="this.style.display='block'" /></div>`;
+        });
+        html += `</div></div>`;
+      });
+      container.innerHTML = html;
+      setupTemplateSectionListeners();
+    }
+
+    function setupTemplateSectionListeners() {
+      const container = document.getElementById("templateSections")!;
+      container.querySelectorAll<HTMLElement>(".accordion-trigger").forEach(btn => {
+        btn.addEventListener("click", () => { btn.closest(".accordion-section")!.classList.toggle("collapsed"); });
+      });
+      container.querySelectorAll<HTMLInputElement>("[data-section-vis]").forEach(cb => {
+        cb.addEventListener("change", () => {
+          const sectionId = cb.dataset.sectionVis!;
+          toggleSectionVisibility(sectionId, cb.checked);
+        });
+      });
+      container.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("[data-tpl-edit]").forEach(input => {
+        input.addEventListener("input", () => {
+          const key = input.dataset.tplEdit!;
+          const type = input.dataset.tplType!;
+          updateTemplateElement(key, input.value, type);
+          const ov = getCurrentOverrides();
+          if (type === "text") ov.texts[key] = input.value;
+          else if (type === "image") {
+            ov.images[key] = input.value;
+            const thumb = input.nextElementSibling as HTMLImageElement | null;
+            if (thumb?.classList.contains("img-thumb")) thumb.src = input.value;
+          }
+          else if (type === "href") {
+            if (!ov.hrefs) ov.hrefs = {};
+            ov.hrefs[key] = input.value;
+          }
+        });
+      });
+    }
+
+    function updateTemplateElement(key: string, value: string, type: string) {
+      const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
+      try {
+        const doc = iframe.contentDocument;
+        if (!doc) return;
+        const el = doc.querySelector(`[data-edit-id="${key}"]`);
+        if (!el) return;
+        if (type === "text") el.textContent = value;
+        else if (type === "image") (el as HTMLImageElement).src = value;
+        else if (type === "href") (el as HTMLAnchorElement).href = value;
+      } catch { /* cross-origin fallback */ }
+    }
+
+    function toggleSectionVisibility(sectionId: string, visible: boolean) {
+      const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
+      try {
+        const doc = iframe.contentDocument;
+        if (!doc) return;
+        const el = doc.querySelector(`[data-section-id="${sectionId}"]`) as HTMLElement | null;
+        if (el) el.style.display = visible ? "" : "none";
+      } catch {}
+      const ov = getCurrentOverrides();
+      if (visible) {
+        ov.hiddenSections = (ov.hiddenSections || []).filter((s: string) => s !== sectionId);
+      } else {
+        if (!(ov.hiddenSections || []).includes(sectionId)) {
+          if (!ov.hiddenSections) ov.hiddenSections = [];
+          ov.hiddenSections.push(sectionId);
         }
       }
     }
-  }
 
-  // -- Hero CTA button: first prominent button/a in hero area --
-  if (cfg.heroCtaText) {
-    var heroEl = document.querySelector('h1');
-    if (heroEl) {
-      var section = heroEl.closest('section') || heroEl.parentElement.parentElement;
-      if (section) {
-        var btns = section.querySelectorAll('button, a[class*="bg-"], a[style*="background"]');
-        if (btns.length > 0) {
-          // Find the first CTA-looking button
-          for (var b = 0; b < btns.length; b++) {
-            var btnText = btns[b].textContent.trim();
-            if (btnText.length > 0 && btnText.length < 50) {
-              var innerSpan = btns[b].querySelector('span:last-of-type');
-              if (innerSpan) innerSpan.textContent = cfg.heroCtaText;
-              else btns[b].textContent = cfg.heroCtaText;
-              break;
-            }
-          }
-        }
-      }
+    function applyOverridesToDOM(doc: Document, overrides: any) {
+      Object.entries(overrides.texts || {}).forEach(([key, value]) => {
+        const el = doc.querySelector(`[data-edit-id="${key}"]`);
+        if (el) el.textContent = value as string;
+      });
+      Object.entries(overrides.images || {}).forEach(([key, value]) => {
+        const el = doc.querySelector(`[data-edit-id="${key}"]`);
+        if (el) (el as HTMLImageElement).src = value as string;
+      });
+      Object.entries(overrides.hrefs || {}).forEach(([key, value]) => {
+        const el = doc.querySelector(`[data-edit-id="${key}"]`);
+        if (el) (el as HTMLAnchorElement).href = value as string;
+      });
+      (overrides.hiddenSections || []).forEach((sectionId: string) => {
+        const el = doc.querySelector(`[data-section-id="${sectionId}"]`) as HTMLElement | null;
+        if (el) el.style.display = "none";
+      });
     }
-  }
-  if (cfg.heroCtaLink) {
-    var heroEl2 = document.querySelector('h1');
-    if (heroEl2) {
-      var section2 = heroEl2.closest('section') || heroEl2.parentElement.parentElement;
-      if (section2) {
-        var links = section2.querySelectorAll('a[class*="bg-"], a[style*="background"]');
-        for (var l = 0; l < links.length; l++) {
-          if (links[l].href && links[l].textContent.trim().length < 50) {
-            links[l].href = cfg.heroCtaLink;
-            break;
-          }
-        }
-      }
-    }
-  }
-})();
-<\/script>`;
 
-      // Inject before </body>
-      if (html.includes('</body>')) {
-        return html.replace('</body>', injectionScript + '</body>');
-      }
-      return html + injectionScript;
+    function toggleSectionsMode(isTemplate: boolean) {
+      const custom = document.getElementById("customSections");
+      const template = document.getElementById("templateSections");
+      if (custom) custom.style.display = isTemplate ? "none" : "";
+      if (template) template.style.display = isTemplate ? "" : "none";
     }
 
     // ── Gather config from controls ──
@@ -854,6 +1007,7 @@ if (!(await verifySession(token))) {
         url: $("cfg-url").value,
         defaultLanguage: currentConfig?.defaultLanguage || "fr",
         landingTemplate: selectedTemplate,
+        templateOverrides: templateOverrides,
         hero: {
           title: $("cfg-hero-title").value,
           subtitle: $("cfg-hero-subtitle").value,
@@ -982,13 +1136,25 @@ ${ctaSectionHTML(cfg)}
       const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
       if (!iframe) return;
 
-      const cfg = gatherConfig();
-
       if (selectedTemplate === "custom") {
+        const cfg = gatherConfig();
         iframe.srcdoc = generatePreviewHTML(cfg);
       } else {
         const html = await loadTemplateHTML(selectedTemplate);
-        iframe.srcdoc = injectConfigIntoTemplate(html, cfg);
+        iframe.onload = null;
+        iframe.onload = () => {
+          setTimeout(() => {
+            try {
+              const doc = iframe.contentDocument;
+              if (!doc) return;
+              templateSchema = scanTemplateDOM(doc);
+              buildTemplateSections(templateSchema);
+              const ov = getCurrentOverrides();
+              applyOverridesToDOM(doc, ov);
+            } catch { /* cross-origin fallback */ }
+          }, 300);
+        };
+        iframe.srcdoc = html;
       }
     }
 
@@ -1166,7 +1332,9 @@ ${ctaSectionHTML(cfg)}
 
         // Template
         selectedTemplate = c.landingTemplate || "custom";
+        templateOverrides = c.templateOverrides || {};
         renderTemplates();
+        toggleSectionsMode(selectedTemplate !== "custom");
 
         setupAccordions();
         setupReactiveInputs();

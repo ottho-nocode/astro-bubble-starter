@@ -79,6 +79,12 @@ export interface SiteConfig {
     ctaLink: string;
   };
   landingTemplate?: string;
+  templateOverrides?: Record<string, {
+    texts?: Record<string, string>;
+    images?: Record<string, string>;
+    hrefs?: Record<string, string>;
+    hiddenSections?: string[];
+  }>;
 }
 
 export async function getSiteConfig(): Promise<SiteConfig | null> {
