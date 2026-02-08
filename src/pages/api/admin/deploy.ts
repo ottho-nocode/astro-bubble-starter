@@ -33,7 +33,9 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 2. Déclencher le rebuild Vercel via Deploy Hook
-    const deployHookUrl = import.meta.env.VERCEL_DEPLOY_HOOK_URL;
+    const deployHookUrl =
+      (typeof process !== "undefined" && process.env?.VERCEL_DEPLOY_HOOK_URL) ||
+      import.meta.env.VERCEL_DEPLOY_HOOK_URL;
 
     if (!deployHookUrl) {
       return new Response(

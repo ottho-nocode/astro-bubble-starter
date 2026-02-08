@@ -1,7 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.SUPABASE_URL || "";
-const supabaseKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || "";
+function getEnv(key: string, fallback: string): string {
+  if (typeof process !== "undefined" && process.env?.[key]) return process.env[key]!;
+  const vite = (import.meta as any).env?.[key];
+  if (vite) return vite;
+  return fallback;
+}
+
+const supabaseUrl = getEnv("SUPABASE_URL", "");
+const supabaseKey = getEnv("SUPABASE_SERVICE_ROLE_KEY", "");
 
 export const supabase =
   supabaseUrl && supabaseKey

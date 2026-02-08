@@ -1,5 +1,13 @@
-const ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD || "admin";
-const SESSION_SECRET = import.meta.env.ADMIN_SESSION_SECRET || "change-me-in-production";
+function getEnv(key: string, fallback: string): string {
+  // Runtime env (Vercel serverless) > Vite build-time env > fallback
+  if (typeof process !== "undefined" && process.env?.[key]) return process.env[key]!;
+  const vite = (import.meta as any).env?.[key];
+  if (vite) return vite;
+  return fallback;
+}
+
+const ADMIN_PASSWORD = getEnv("ADMIN_PASSWORD", "admin");
+const SESSION_SECRET = getEnv("ADMIN_SESSION_SECRET", "change-me-in-production");
 const COOKIE_NAME = "admin_session";
 const SESSION_MAX_AGE = 60 * 60 * 24; // 24 hours
 
