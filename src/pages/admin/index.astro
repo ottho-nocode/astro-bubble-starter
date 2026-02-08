@@ -48,6 +48,59 @@ if (!(await verifySession(token))) {
 
     <div id="statusMessage"></div>
 
+    <!-- Template -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Template</h2>
+        <p>Choisissez le design de votre site</p>
+      </div>
+      <div class="card-body">
+        <div class="template-grid" id="templateGrid">
+          <div class="template-card" data-template="template-1">
+            <div class="template-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="template-preview template-preview-1">
+              <div class="preview-nav"><span></span><span></span><span></span></div>
+              <div class="preview-title">Premium Dark</div>
+              <div class="preview-subtitle">Branding & agence</div>
+              <div class="preview-btn"></div>
+              <div class="preview-cards">
+                <div class="preview-card"></div>
+                <div class="preview-card"></div>
+                <div class="preview-card"></div>
+              </div>
+            </div>
+            <div class="template-info">
+              <h3>Premium</h3>
+              <p>Design sombre et elegant, ideal pour les agences et marques premium</p>
+            </div>
+          </div>
+
+          <div class="template-card" data-template="template-3">
+            <div class="template-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="template-preview template-preview-3">
+              <div class="preview-nav"><span></span><span></span><span></span></div>
+              <div class="preview-title">Clean Learning</div>
+              <div class="preview-subtitle">E-learning & formation</div>
+              <div class="preview-btn"></div>
+              <div class="preview-cards">
+                <div class="preview-card"></div>
+                <div class="preview-card"></div>
+                <div class="preview-card"></div>
+              </div>
+            </div>
+            <div class="template-info">
+              <h3>Learning</h3>
+              <p>Design clair et moderne, ideal pour les plateformes de formation et SaaS</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- General -->
     <div class="card">
       <div class="card-header">
@@ -185,6 +238,7 @@ if (!(await verifySession(token))) {
       description: string;
       url: string;
       defaultLanguage: string;
+      template: string;
       bubbleAppUrl: string;
       bubbleApiUrl: string;
       bubbleApiToken: string;
@@ -194,6 +248,14 @@ if (!(await verifySession(token))) {
     }
 
     let currentConfig: SiteConfigData | null = null;
+    let selectedTemplate = "template-1";
+
+    function selectTemplate(templateId: string) {
+      selectedTemplate = templateId;
+      document.querySelectorAll(".template-card").forEach((card) => {
+        card.classList.toggle("selected", (card as HTMLElement).dataset.template === templateId);
+      });
+    }
 
     function $(id: string): HTMLInputElement | HTMLTextAreaElement {
       return document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement;
@@ -277,6 +339,8 @@ if (!(await verifySession(token))) {
         currentConfig = data.config;
         const c = currentConfig!;
 
+        selectTemplate(c.template || "template-1");
+
         $("cfg-name").value = c.name || "";
         $("cfg-description").value = c.description || "";
         $("cfg-url").value = c.url || "";
@@ -310,6 +374,7 @@ if (!(await verifySession(token))) {
         description: $("cfg-description").value,
         url: $("cfg-url").value,
         defaultLanguage: "fr",
+        template: selectedTemplate,
         bubbleAppUrl: $("cfg-bubbleAppUrl").value,
         bubbleApiUrl: $("cfg-bubbleApiUrl").value,
         bubbleApiToken: $("cfg-bubbleApiToken").value,
@@ -384,6 +449,13 @@ if (!(await verifySession(token))) {
     document.getElementById("logoutBtn")!.addEventListener("click", async () => {
       await fetch("/api/admin/logout", { method: "POST" });
       window.location.href = "/admin/login";
+    });
+
+    // Template selection
+    document.querySelectorAll(".template-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        selectTemplate((card as HTMLElement).dataset.template!);
+      });
     });
 
     // Init

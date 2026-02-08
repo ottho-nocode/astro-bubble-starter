@@ -7,6 +7,7 @@ export const siteConfig = {
     import.meta.env.SITE_DESCRIPTION || "Description du site pour le SEO",
   url: import.meta.env.SITE_URL || "https://example.com",
   defaultLanguage: "fr",
+  template: "template-1",
   bubbleAppUrl: "https://VOTRE-APP.bubbleapps.io",
   bubbleApiUrl: "",
   bubbleApiToken: "",
