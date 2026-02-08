@@ -1,0 +1,56 @@
+---
+interface Feature {
+  title: string;
+  description: string;
+  icon: string;
+}
+
+interface Props {
+  title?: string;
+  features?: Feature[];
+}
+
+const {
+  title = "Pourquoi nous choisir",
+  features = [
+    {
+      title: "Fonctionnalité 1",
+      description: "Description courte de cette fonctionnalité et de sa valeur ajoutée.",
+      icon: "1",
+    },
+    {
+      title: "Fonctionnalité 2",
+      description: "Description courte de cette fonctionnalité et de sa valeur ajoutée.",
+      icon: "2",
+    },
+    {
+      title: "Fonctionnalité 3",
+      description: "Description courte de cette fonctionnalité et de sa valeur ajoutée.",
+      icon: "3",
+    },
+  ],
+} = Astro.props;
+---
+
+<section class="py-20">
+  <div class="mx-auto max-w-6xl px-6">
+    <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">
+      {title}
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {features.map((feature) => (
+        <div class="rounded-xl border border-gray-100 bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-100 text-primary-700 font-bold text-lg mb-4">
+            {feature.icon}
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+            {feature.title}
+          </h3>
+          <p class="text-gray-600 leading-relaxed">
+            {feature.description}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

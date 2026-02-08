@@ -1,0 +1,56 @@
+---
+import Base from "./Base.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  coverImage?: string;
+  date: string;
+  author?: string;
+  category?: string;
+}
+
+const { title, description, coverImage, date, author, category } = Astro.props;
+
+const formattedDate = new Date(date).toLocaleDateString("fr-FR", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+---
+
+<Base title={title} description={description} image={coverImage} type="article" publishedDate={date}>
+  <article class="mx-auto max-w-3xl px-6 py-16">
+    <header class="mb-10">
+      <div class="flex items-center gap-3 mb-4">
+        {category && (
+          <span class="text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1 rounded">
+            {category}
+          </span>
+        )}
+        <time class="text-sm text-gray-400" datetime={date}>
+          {formattedDate}
+        </time>
+        {author && <span class="text-sm text-gray-400">par {author}</span>}
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
+        {title}
+      </h1>
+      {description && (
+        <p class="mt-4 text-lg text-gray-600">{description}</p>
+      )}
+    </header>
+
+    {coverImage && (
+      <img
+        src={coverImage}
+        alt={title}
+        class="w-full rounded-xl mb-10 shadow-sm"
+      />
+    )}
+
+    <div class="prose prose-lg prose-gray max-w-none">
+      <slot />
+    </div>
+  </article>
+</Base>

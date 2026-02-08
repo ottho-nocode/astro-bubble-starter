@@ -1,0 +1,42 @@
+---
+import { siteConfig } from "../config";
+
+interface Props {
+  title?: string;
+  subtitle?: string;
+  ctaText?: string;
+  ctaLink?: string;
+}
+
+const {
+  title = "Votre titre principal ici",
+  subtitle = "Une description convaincante de votre produit ou service qui donne envie d'en savoir plus.",
+  ctaText = "Commencer",
+  ctaLink = siteConfig.bubbleAppUrl,
+} = Astro.props;
+---
+
+<section class="relative overflow-hidden bg-gradient-to-b from-primary-50 to-white">
+  <div class="mx-auto max-w-6xl px-6 py-24 sm:py-32 text-center">
+    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 leading-tight">
+      {title}
+    </h1>
+    <p class="mt-6 text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+      {subtitle}
+    </p>
+    <div class="mt-10 flex justify-center gap-4">
+      <a
+        href={ctaLink}
+        class="rounded-lg bg-primary-600 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-primary-700 transition-colors"
+      >
+        {ctaText}
+      </a>
+      <a
+        href="/blog"
+        class="rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+      >
+        Lire le blog
+      </a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,32 @@
+---
+import { siteConfig } from "../config";
+
+const navLinks = [
+  { label: "Accueil", href: "/" },
+  { label: "Blog", href: "/blog" },
+];
+---
+
+<header class="bg-white border-b border-gray-100">
+  <nav class="mx-auto max-w-6xl flex items-center justify-between px-6 py-4">
+    <a href="/" class="text-xl font-bold text-gray-900">
+      {siteConfig.name}
+    </a>
+    <div class="flex items-center gap-8">
+      {navLinks.map((link) => (
+        <a
+          href={link.href}
+          class="text-gray-600 hover:text-primary-600 transition-colors text-sm font-medium"
+        >
+          {link.label}
+        </a>
+      ))}
+      <a
+        href={siteConfig.bubbleAppUrl}
+        class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
+      >
+        Accéder à l'app
+      </a>
+    </div>
+  </nav>
+</header>

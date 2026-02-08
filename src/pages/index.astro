@@ -1,0 +1,58 @@
+---
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+import Features from "../components/Features.astro";
+import CTA from "../components/CTA.astro";
+import BlogCard from "../components/BlogCard.astro";
+import { getPosts } from "../lib/bubble";
+import { siteConfig } from "../config";
+
+// Récupère les 3 derniers articles depuis Bubble
+let latestPosts: Awaited<ReturnType<typeof getPosts>> = [];
+try {
+  const allPosts = await getPosts();
+  latestPosts = allPosts.slice(0, 3);
+} catch {
+  // En mode dev sans API Bubble configurée, on continue sans articles
+}
+---
+
+<Base
+  title="Accueil"
+  description={siteConfig.description}
+>
+  <Hero />
+  <Features />
+
+  {latestPosts.length > 0 && (
+    <section class="py-20 bg-gray-50">
+      <div class="mx-auto max-w-6xl px-6">
+        <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">
+          Derniers articles
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {latestPosts.map((post) => (
+            <BlogCard
+              title={post.title}
+              excerpt={post.excerpt}
+              slug={post.slug}
+              coverImage={post.cover_image}
+              date={post.Created_Date}
+              category={post.category}
+            />
+          ))}
+        </div>
+        <div class="text-center mt-10">
+          <a
+            href="/blog"
+            class="text-primary-600 hover:text-primary-700 font-medium"
+          >
+            Voir tous les articles &rarr;
+          </a>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <CTA />
+</Base>

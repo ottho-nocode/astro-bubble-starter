@@ -1,0 +1,42 @@
+---
+import Base from "../../layouts/Base.astro";
+import BlogCard from "../../components/BlogCard.astro";
+import { getPosts } from "../../lib/bubble";
+
+let posts: Awaited<ReturnType<typeof getPosts>> = [];
+try {
+  posts = await getPosts();
+} catch {
+  // API non configurée
+}
+---
+
+<Base title="Blog" description="Découvrez nos derniers articles et actualités.">
+  <section class="py-16">
+    <div class="mx-auto max-w-6xl px-6">
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">Blog</h1>
+      <p class="text-lg text-gray-600 mb-12">
+        Découvrez nos derniers articles et actualités.
+      </p>
+
+      {posts.length > 0 ? (
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {posts.map((post) => (
+            <BlogCard
+              title={post.title}
+              excerpt={post.excerpt}
+              slug={post.slug}
+              coverImage={post.cover_image}
+              date={post.Created_Date}
+              category={post.category}
+            />
+          ))}
+        </div>
+      ) : (
+        <p class="text-gray-500 text-center py-20">
+          Aucun article pour le moment. Configurez votre API Bubble pour commencer.
+        </p>
+      )}
+    </div>
+  </section>
+</Base>
