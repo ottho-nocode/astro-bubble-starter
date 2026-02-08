@@ -133,6 +133,10 @@ function bbcodeToHtml(bbcode: string): string {
 
   let html = bbcode;
 
+  // Strip [font=...] tags — typography is handled by CSS
+  html = html.replace(/\[font=["']?.*?["']?\]/gi, "");
+  html = html.replace(/\[\/font\]/gi, "");
+
   // Simple tags
   const simpleTags: [string, string, string][] = [
     ["b", "<strong>", "</strong>"],
@@ -145,6 +149,7 @@ function bbcodeToHtml(bbcode: string): string {
     ["h2", "<h2>", "</h2>"],
     ["h3", "<h3>", "</h3>"],
     ["h4", "<h4>", "</h4>"],
+    ["center", '<div style="text-align:center">', "</div>"],
   ];
 
   for (const [tag, open, close] of simpleTags) {
@@ -152,9 +157,9 @@ function bbcodeToHtml(bbcode: string): string {
     html = html.replace(re, `${open}$1${close}`);
   }
 
-  // [url=...]...[/url]
+  // [url=...]...[/url] (supports quoted and unquoted values)
   html = html.replace(
-    /\[url=(.*?)\](.*?)\[\/url\]/gi,
+    /\[url=["']?(.*?)["']?\](.*?)\[\/url\]/gi,
     '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>'
   );
   // [url]...[/url]
@@ -166,16 +171,22 @@ function bbcodeToHtml(bbcode: string): string {
   // [img]...[/img]
   html = html.replace(/\[img\](.*?)\[\/img\]/gi, '<img src="$1" alt="" loading="lazy" />');
 
-  // [color=...]...[/color]
+  // [color=...]...[/color] (supports rgb(), hex, named colors, quoted values)
   html = html.replace(
-    /\[color=(.*?)\](.*?)\[\/color\]/gis,
+    /\[color=["']?(.*?)["']?\](.*?)\[\/color\]/gis,
     '<span style="color:$1">$2</span>'
   );
 
   // [size=...]...[/size]
   html = html.replace(
-    /\[size=(.*?)\](.*?)\[\/size\]/gis,
+    /\[size=["']?(.*?)["']?\](.*?)\[\/size\]/gis,
     '<span style="font-size:$1">$2</span>'
+  );
+
+  // [align=...]...[/align]
+  html = html.replace(
+    /\[align=["']?(.*?)["']?\](.*?)\[\/align\]/gis,
+    '<div style="text-align:$1">$2</div>'
   );
 
   // Lists: [list] with [*] items
@@ -188,7 +199,10 @@ function bbcodeToHtml(bbcode: string): string {
     return "<ul>" + items.map((item: string) => `<li>${item.trim()}</li>`).join("") + "</ul>";
   });
 
-  // Line breaks: convert newlines to <br> (but not inside <pre>)
+  // Clean up any remaining unknown BBCode tags
+  html = html.replace(/\[\/?[a-z]+(?:=[^\]]*)?\]/gi, "");
+
+  // Line breaks: convert newlines to <br>
   html = html.replace(/\n/g, "<br>");
 
   return html;
