@@ -28,15 +28,12 @@ export const GET: APIRoute = async ({ request }) => {
       );
     }
 
-    // Bubble expose un Swagger à /api/1.1/meta/swagger.json
-    // apiUrl est typiquement "https://app.bubbleapps.io/api/1.1"
+    // Bubble expose un Swagger public à /api/1.1/meta/swagger.json
+    // Ne PAS envoyer le Bearer token : ce endpoint est public et
+    // un token invalide pour ce contexte provoque un 401
     const metaUrl = `${apiUrl}/meta/swagger.json`;
-    const headers: Record<string, string> = {};
-    if (apiToken) {
-      headers["Authorization"] = `Bearer ${apiToken}`;
-    }
 
-    const res = await fetch(metaUrl, { headers });
+    const res = await fetch(metaUrl);
 
     if (!res.ok) {
       const text = await res.text();
