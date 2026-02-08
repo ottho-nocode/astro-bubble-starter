@@ -125,6 +125,76 @@ async function bubbleFetchAll<T>(
 }
 
 // ============================================================
+// BBCode → HTML conversion
+// ============================================================
+
+function bbcodeToHtml(bbcode: string): string {
+  if (!bbcode) return "";
+
+  let html = bbcode;
+
+  // Simple tags
+  const simpleTags: [string, string, string][] = [
+    ["b", "<strong>", "</strong>"],
+    ["i", "<em>", "</em>"],
+    ["u", "<u>", "</u>"],
+    ["s", "<s>", "</s>"],
+    ["quote", "<blockquote>", "</blockquote>"],
+    ["code", "<pre><code>", "</code></pre>"],
+    ["h1", "<h1>", "</h1>"],
+    ["h2", "<h2>", "</h2>"],
+    ["h3", "<h3>", "</h3>"],
+    ["h4", "<h4>", "</h4>"],
+  ];
+
+  for (const [tag, open, close] of simpleTags) {
+    const re = new RegExp(`\\[${tag}\\](.*?)\\[/${tag}\\]`, "gis");
+    html = html.replace(re, `${open}$1${close}`);
+  }
+
+  // [url=...]...[/url]
+  html = html.replace(
+    /\[url=(.*?)\](.*?)\[\/url\]/gi,
+    '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>'
+  );
+  // [url]...[/url]
+  html = html.replace(
+    /\[url\](.*?)\[\/url\]/gi,
+    '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+  );
+
+  // [img]...[/img]
+  html = html.replace(/\[img\](.*?)\[\/img\]/gi, '<img src="$1" alt="" loading="lazy" />');
+
+  // [color=...]...[/color]
+  html = html.replace(
+    /\[color=(.*?)\](.*?)\[\/color\]/gis,
+    '<span style="color:$1">$2</span>'
+  );
+
+  // [size=...]...[/size]
+  html = html.replace(
+    /\[size=(.*?)\](.*?)\[\/size\]/gis,
+    '<span style="font-size:$1">$2</span>'
+  );
+
+  // Lists: [list] with [*] items
+  html = html.replace(/\[list=1\](.*?)\[\/list\]/gis, (_match, inner) => {
+    const items = inner.split(/\[\*\]/).filter((s: string) => s.trim());
+    return "<ol>" + items.map((item: string) => `<li>${item.trim()}</li>`).join("") + "</ol>";
+  });
+  html = html.replace(/\[list\](.*?)\[\/list\]/gis, (_match, inner) => {
+    const items = inner.split(/\[\*\]/).filter((s: string) => s.trim());
+    return "<ul>" + items.map((item: string) => `<li>${item.trim()}</li>`).join("") + "</ul>";
+  });
+
+  // Line breaks: convert newlines to <br> (but not inside <pre>)
+  html = html.replace(/\n/g, "<br>");
+
+  return html;
+}
+
+// ============================================================
 // Type article normalisé (après mapping)
 // ============================================================
 
@@ -184,7 +254,7 @@ function mapBubbleRecord(raw: Record<string, any>, mapping: BubbleFieldMapping):
     date: (mapping.date ? raw[mapping.date] : raw["Created Date"]) || raw["Created Date"] || "",
     slug: raw[mapping.slug] || raw.Slug || "",
     title: raw[mapping.title] || "",
-    content: raw[mapping.content] || "",
+    content: bbcodeToHtml(raw[mapping.content] || ""),
     excerpt: raw[mapping.excerpt] || "",
     cover_image: mapping.coverImage ? (raw[mapping.coverImage] || "") : "",
     author: mapping.author ? (raw[mapping.author] || "") : "",
