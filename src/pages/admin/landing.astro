@@ -189,6 +189,15 @@ if (!(await verifySession(token))) {
       <div class="builder-preview-frame" id="previewFrame">
         <iframe id="lpPreview" title="Apercu de la landing page"></iframe>
       </div>
+      <div class="ai-prompt-bar" id="aiPromptBar" style="display:none;">
+        <div class="ai-prompt-wrap">
+          <svg class="ai-prompt-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3V6a4 4 0 0 1 4-4z"/><path d="M8 15v1a4 4 0 0 0 8 0v-1"/><line x1="8" y1="9" x2="8" y2="9"/><line x1="16" y1="9" x2="16" y2="9"/></svg>
+          <textarea id="aiPromptInput" placeholder="Decrivez votre site ou les modifications souhaitees..." rows="1"></textarea>
+          <button id="aiPromptSend" class="ai-prompt-send" title="Envoyer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -553,6 +562,65 @@ if (!(await verifySession(token))) {
       object-fit: cover;
     }
     #templateSections:empty { display: none; }
+
+    /* ── AI Prompt bar ── */
+    .ai-prompt-bar {
+      padding: 0.75rem 1.5rem;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      flex-shrink: 0;
+    }
+    .ai-prompt-wrap {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.5rem;
+      max-width: 640px;
+      margin: 0 auto;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.75rem;
+      padding: 0.375rem 0.5rem;
+      transition: border-color 0.15s;
+    }
+    .ai-prompt-wrap:focus-within {
+      border-color: #94a3b8;
+    }
+    .ai-prompt-icon {
+      color: #94a3b8;
+      flex-shrink: 0;
+      margin-bottom: 0.25rem;
+    }
+    .ai-prompt-wrap textarea {
+      flex: 1;
+      border: none;
+      background: none;
+      resize: none;
+      font-family: inherit;
+      font-size: 0.8125rem;
+      color: #0f172a;
+      outline: none;
+      min-height: 1.375rem;
+      max-height: 5rem;
+      line-height: 1.375rem;
+      padding: 0;
+    }
+    .ai-prompt-wrap textarea::placeholder { color: #94a3b8; }
+    .ai-prompt-send {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 0.375rem;
+      border: none;
+      background: #171717;
+      color: white;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: opacity 0.15s;
+    }
+    .ai-prompt-send:hover { opacity: 0.8; }
+    .ai-prompt-send:disabled { opacity: 0.3; cursor: not-allowed; }
 
     /* ── Resize handle ── */
     .resize-handle {
@@ -994,8 +1062,110 @@ if (!(await verifySession(token))) {
     function toggleSectionsMode(isTemplate: boolean) {
       const custom = document.getElementById("customSections");
       const template = document.getElementById("templateSections");
+      const aiBar = document.getElementById("aiPromptBar");
       if (custom) custom.style.display = isTemplate ? "none" : "";
       if (template) template.style.display = isTemplate ? "" : "none";
+      if (aiBar) aiBar.style.display = isTemplate ? "" : "none";
+    }
+
+    // ── AI Prompt ──
+    function setupAiPrompt() {
+      const input = document.getElementById("aiPromptInput") as HTMLTextAreaElement;
+      const sendBtn = document.getElementById("aiPromptSend") as HTMLButtonElement;
+
+      input.addEventListener("input", () => {
+        input.style.height = "auto";
+        input.style.height = Math.min(input.scrollHeight, 80) + "px";
+      });
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendAiPrompt();
+        }
+      });
+
+      sendBtn.addEventListener("click", sendAiPrompt);
+    }
+
+    async function sendAiPrompt() {
+      const input = document.getElementById("aiPromptInput") as HTMLTextAreaElement;
+      const sendBtn = document.getElementById("aiPromptSend") as HTMLButtonElement;
+      const prompt = input.value.trim();
+      if (!prompt || selectedTemplate === "custom" || templateSchema.length === 0) return;
+
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '<div class="spinner" style="width:12px;height:12px;border-width:2px;"></div>';
+
+      try {
+        const res = await fetch("/api/admin/ai-edit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt,
+            schema: templateSchema,
+            currentOverrides: getCurrentOverrides(),
+          }),
+        });
+
+        if (res.status === 401) { window.location.href = "/admin/login"; return; }
+
+        const data = await res.json();
+        if (data.success && data.changes) {
+          applyAiChanges(data.changes);
+          input.value = "";
+          input.style.height = "auto";
+          showMessage("Modifications appliquees par l'IA", "success");
+        } else {
+          showMessage(data.error || "Erreur IA", "error");
+        }
+      } catch {
+        showMessage("Erreur reseau", "error");
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>';
+      }
+    }
+
+    function applyAiChanges(changes: any) {
+      const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
+      const ov = getCurrentOverrides();
+
+      if (changes.texts) {
+        Object.entries(changes.texts).forEach(([key, value]) => {
+          ov.texts[key] = value as string;
+          updateTemplateElement(key, value as string, "text");
+        });
+      }
+      if (changes.images) {
+        if (!ov.images) ov.images = {};
+        Object.entries(changes.images).forEach(([key, value]) => {
+          ov.images[key] = value as string;
+          updateTemplateElement(key, value as string, "image");
+        });
+      }
+      if (changes.hrefs) {
+        if (!ov.hrefs) ov.hrefs = {};
+        Object.entries(changes.hrefs).forEach(([key, value]) => {
+          ov.hrefs[key] = value as string;
+          updateTemplateElement(key, value as string, "href");
+        });
+      }
+      if (changes.hiddenSections) {
+        changes.hiddenSections.forEach((id: string) => toggleSectionVisibility(id, false));
+      }
+      if (changes.visibleSections) {
+        changes.visibleSections.forEach((id: string) => toggleSectionVisibility(id, true));
+      }
+
+      // Rebuild controls to reflect AI changes
+      try {
+        const doc = iframe.contentDocument;
+        if (doc) {
+          templateSchema = scanTemplateDOM(doc);
+          buildTemplateSections(templateSchema);
+        }
+      } catch {}
     }
 
     // ── Gather config from controls ──
@@ -1341,6 +1511,7 @@ ${ctaSectionHTML(cfg)}
         setupDeviceToggle();
         setupMobileControls();
         setupResizeHandle();
+        setupAiPrompt();
 
         updatePreview();
 
