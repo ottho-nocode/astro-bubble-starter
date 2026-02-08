@@ -1,4 +1,8 @@
 ---
+import { loadSiteConfig } from "../config";
+
+const config = await loadSiteConfig();
+
 interface Feature {
   title: string;
   description: string;
@@ -11,8 +15,8 @@ interface Props {
 }
 
 const {
-  title = "Pourquoi nous choisir",
-  features = [
+  title = config.features?.title || "Pourquoi nous choisir",
+  features = config.features?.items || [
     {
       title: "Fonctionnalité 1",
       description: "Description courte de cette fonctionnalité et de sa valeur ajoutée.",

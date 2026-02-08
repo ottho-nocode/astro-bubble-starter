@@ -1,0 +1,68 @@
+---
+export const prerender = false;
+
+import Admin from "../../layouts/Admin.astro";
+import { verifySession, getSessionFromRequest } from "../../lib/admin-auth";
+
+// Rediriger si déjà connecté
+const token = getSessionFromRequest(Astro.request);
+if (await verifySession(token)) {
+  return Astro.redirect("/admin");
+}
+---
+
+<Admin title="Connexion">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;">
+    <div class="card" style="width:100%;max-width:400px;">
+      <h2 style="text-align:center;">Administration</h2>
+      <div id="error" class="alert alert-error" style="display:none;"></div>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Entrez le mot de passe admin"
+            required
+            autofocus
+          />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">
+          Se connecter
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("loginForm") as HTMLFormElement;
+    const errorEl = document.getElementById("error") as HTMLDivElement;
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorEl.style.display = "none";
+
+      const password = (document.getElementById("password") as HTMLInputElement).value;
+
+      try {
+        const res = await fetch("/api/admin/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password }),
+        });
+
+        if (res.ok) {
+          window.location.href = "/admin";
+        } else {
+          const data = await res.json();
+          errorEl.textContent = data.error || "Erreur de connexion";
+          errorEl.style.display = "block";
+        }
+      } catch {
+        errorEl.textContent = "Erreur réseau";
+        errorEl.style.display = "block";
+      }
+    });
+  </script>
+</Admin>

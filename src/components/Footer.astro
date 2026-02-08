@@ -1,16 +1,18 @@
 ---
-import { siteConfig } from "../config";
+import { loadSiteConfig } from "../config";
+
+const config = await loadSiteConfig();
 ---
 
 <footer class="bg-gray-50 border-t border-gray-100 mt-20">
   <div class="mx-auto max-w-6xl px-6 py-12">
     <div class="flex flex-col md:flex-row justify-between items-center gap-4">
       <p class="text-sm text-gray-500">
-        &copy; {new Date().getFullYear()} {siteConfig.name}. Tous droits réservés.
+        &copy; {new Date().getFullYear()} {config.name}. Tous droits réservés.
       </p>
       <div class="flex gap-6">
         <a href="/blog" class="text-sm text-gray-500 hover:text-gray-700">Blog</a>
-        <a href={siteConfig.bubbleAppUrl} class="text-sm text-gray-500 hover:text-gray-700">Application</a>
+        <a href={config.bubbleAppUrl} class="text-sm text-gray-500 hover:text-gray-700">Application</a>
       </div>
     </div>
   </div>

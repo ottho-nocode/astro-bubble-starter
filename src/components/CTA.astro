@@ -1,5 +1,7 @@
 ---
-import { siteConfig } from "../config";
+import { loadSiteConfig } from "../config";
+
+const config = await loadSiteConfig();
 
 interface Props {
   title?: string;
@@ -9,10 +11,10 @@ interface Props {
 }
 
 const {
-  title = "Prêt à commencer ?",
-  description = "Rejoignez-nous et découvrez comment notre solution peut vous aider.",
-  ctaText = "Essayer gratuitement",
-  ctaLink = siteConfig.bubbleAppUrl,
+  title = config.cta?.title || "Prêt à commencer ?",
+  description = config.cta?.description || "Rejoignez-nous et découvrez comment notre solution peut vous aider.",
+  ctaText = config.cta?.ctaText || "Essayer gratuitement",
+  ctaLink = config.cta?.ctaLink || config.bubbleAppUrl,
 } = Astro.props;
 ---
 

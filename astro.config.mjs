@@ -7,7 +7,7 @@ import vercel from "@astrojs/vercel";
 
 export default defineConfig({
   site: "https://example.com", // REMPLACER par le domaine du client
-  output: "hybrid",
+  output: "static",
   adapter: vercel(),
   integrations: [tailwind(), sitemap(), mdx()],
 });

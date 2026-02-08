@@ -5,7 +5,9 @@ import Features from "../components/Features.astro";
 import CTA from "../components/CTA.astro";
 import BlogCard from "../components/BlogCard.astro";
 import { getPosts } from "../lib/bubble";
-import { siteConfig } from "../config";
+import { loadSiteConfig } from "../config";
+
+const config = await loadSiteConfig();
 
 // Récupère les 3 derniers articles depuis Bubble
 let latestPosts: Awaited<ReturnType<typeof getPosts>> = [];
@@ -19,7 +21,7 @@ try {
 
 <Base
   title="Accueil"
-  description={siteConfig.description}
+  description={config.description}
 >
   <Hero />
   <Features />

@@ -1,3 +1,29 @@
+import { getSiteConfig } from "./supabase";
+
+// Credentials dynamiques : Supabase > env vars > fallback
+let _bubbleApiUrl: string | undefined;
+let _bubbleApiToken: string | undefined;
+
+async function getBubbleCredentials() {
+  if (_bubbleApiUrl && _bubbleApiToken) return { url: _bubbleApiUrl, token: _bubbleApiToken };
+
+  try {
+    const config = await getSiteConfig();
+    if (config?.bubbleApiUrl && config?.bubbleApiToken) {
+      _bubbleApiUrl = config.bubbleApiUrl;
+      _bubbleApiToken = config.bubbleApiToken;
+      return { url: _bubbleApiUrl, token: _bubbleApiToken };
+    }
+  } catch {
+    // Fallback sur env vars
+  }
+
+  _bubbleApiUrl = import.meta.env.BUBBLE_API_URL || "";
+  _bubbleApiToken = import.meta.env.BUBBLE_API_TOKEN || "";
+  return { url: _bubbleApiUrl, token: _bubbleApiToken };
+}
+
+// Legacy compat
 const BUBBLE_API_URL = import.meta.env.BUBBLE_API_URL;
 const BUBBLE_API_TOKEN = import.meta.env.BUBBLE_API_TOKEN;
 
@@ -26,6 +52,7 @@ async function bubbleFetch<T>(
   typeName: string,
   options: FetchOptions = {}
 ): Promise<T[]> {
+  const creds = await getBubbleCredentials();
   const params = new URLSearchParams();
 
   if (options.constraints) {
@@ -42,10 +69,10 @@ async function bubbleFetch<T>(
     params.set("descending", String(options.descending ?? true));
   }
 
-  const url = `${BUBBLE_API_URL}/obj/${typeName}?${params}`;
+  const url = `${creds.url}/obj/${typeName}?${params}`;
   const res = await fetch(url, {
     headers: {
-      Authorization: `Bearer ${BUBBLE_API_TOKEN}`,
+      Authorization: `Bearer ${creds.token}`,
     },
   });
 
@@ -61,6 +88,7 @@ async function bubbleFetchAll<T>(
   typeName: string,
   options: FetchOptions = {}
 ): Promise<T[]> {
+  const creds = await getBubbleCredentials();
   const limit = options.limit ?? 100;
   let cursor = 0;
   let all: T[] = [];
@@ -79,10 +107,10 @@ async function bubbleFetchAll<T>(
       params.set("descending", String(options.descending ?? true));
     }
 
-    const url = `${BUBBLE_API_URL}/obj/${typeName}?${params}`;
+    const url = `${creds.url}/obj/${typeName}?${params}`;
     const res = await fetch(url, {
       headers: {
-        Authorization: `Bearer ${BUBBLE_API_TOKEN}`,
+        Authorization: `Bearer ${creds.token}`,
       },
     });
 

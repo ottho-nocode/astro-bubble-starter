@@ -1,0 +1,324 @@
+---
+export const prerender = false;
+
+import Admin from "../../layouts/Admin.astro";
+import { verifySession, getSessionFromRequest } from "../../lib/admin-auth";
+
+// Protéger la page
+const token = getSessionFromRequest(Astro.request);
+if (!(await verifySession(token))) {
+  return Astro.redirect("/admin/login");
+}
+---
+
+<Admin title="Dashboard">
+  <header class="admin-header">
+    <h1>Admin Panel</h1>
+    <div style="display:flex;gap:1rem;align-items:center;">
+      <a href="/" target="_blank">Voir le site</a>
+      <button id="logoutBtn" class="btn btn-secondary" style="font-size:0.8rem;padding:0.4rem 0.8rem;">
+        Déconnexion
+      </button>
+    </div>
+  </header>
+
+  <div class="admin-content">
+    <div id="statusMessage"></div>
+
+    <!-- Général -->
+    <div class="card">
+      <h2>Général</h2>
+      <div class="form-group">
+        <label for="cfg-name">Nom du site</label>
+        <input type="text" id="cfg-name" />
+      </div>
+      <div class="form-group">
+        <label for="cfg-description">Description (SEO)</label>
+        <textarea id="cfg-description"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="cfg-url">URL du site</label>
+        <input type="url" id="cfg-url" />
+      </div>
+      <div class="form-group">
+        <label for="cfg-bubbleAppUrl">URL de l'app Bubble</label>
+        <input type="url" id="cfg-bubbleAppUrl" />
+      </div>
+      <div class="form-group">
+        <label for="cfg-bubbleApiUrl">URL API Bubble</label>
+        <input type="url" id="cfg-bubbleApiUrl" placeholder="https://app.bubbleapps.io/api/1.1" />
+      </div>
+      <div class="form-group">
+        <label for="cfg-bubbleApiToken">Token API Bubble</label>
+        <input type="text" id="cfg-bubbleApiToken" placeholder="Votre token API" />
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="card">
+      <h2>Hero</h2>
+      <div class="form-group">
+        <label for="cfg-hero-title">Titre</label>
+        <input type="text" id="cfg-hero-title" />
+      </div>
+      <div class="form-group">
+        <label for="cfg-hero-subtitle">Sous-titre</label>
+        <textarea id="cfg-hero-subtitle"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="cfg-hero-ctaText">Texte du bouton CTA</label>
+        <input type="text" id="cfg-hero-ctaText" />
+      </div>
+      <div class="form-group">
+        <label for="cfg-hero-ctaLink">Lien du bouton CTA</label>
+        <input type="text" id="cfg-hero-ctaLink" />
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="card">
+      <h2>Fonctionnalités</h2>
+      <div class="form-group">
+        <label for="cfg-features-title">Titre de la section</label>
+        <input type="text" id="cfg-features-title" />
+      </div>
+      <div id="features-list"></div>
+      <button type="button" id="addFeatureBtn" class="btn btn-secondary" style="margin-top:0.75rem;">
+        + Ajouter une fonctionnalité
+      </button>
+    </div>
+
+    <!-- CTA -->
+    <div class="card">
+      <h2>Section CTA</h2>
+      <div class="form-group">
+        <label for="cfg-cta-title">Titre</label>
+        <input type="text" id="cfg-cta-title" />
+      </div>
+      <div class="form-group">
+        <label for="cfg-cta-description">Description</label>
+        <textarea id="cfg-cta-description"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="cfg-cta-ctaText">Texte du bouton</label>
+        <input type="text" id="cfg-cta-ctaText" />
+      </div>
+      <div class="form-group">
+        <label for="cfg-cta-ctaLink">Lien du bouton</label>
+        <input type="text" id="cfg-cta-ctaLink" />
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:1rem;justify-content:flex-end;margin-bottom:3rem;">
+      <button id="saveBtn" class="btn btn-primary">
+        Enregistrer & Publier
+      </button>
+    </div>
+  </div>
+
+  <script>
+    interface FeatureItem {
+      title: string;
+      description: string;
+      icon: string;
+    }
+
+    interface SiteConfigData {
+      name: string;
+      description: string;
+      url: string;
+      defaultLanguage: string;
+      bubbleAppUrl: string;
+      bubbleApiUrl: string;
+      bubbleApiToken: string;
+      hero: { title: string; subtitle: string; ctaText: string; ctaLink: string };
+      features: { title: string; items: FeatureItem[] };
+      cta: { title: string; description: string; ctaText: string; ctaLink: string };
+    }
+
+    let currentConfig: SiteConfigData | null = null;
+
+    // --- Helpers ---
+    function $(id: string): HTMLInputElement | HTMLTextAreaElement {
+      return document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement;
+    }
+
+    function showMessage(text: string, type: "success" | "error") {
+      const el = document.getElementById("statusMessage")!;
+      el.innerHTML = `<div class="alert alert-${type}">${text}</div>`;
+      setTimeout(() => { el.innerHTML = ""; }, 5000);
+    }
+
+    // --- Features dynamic list ---
+    function renderFeatures(items: FeatureItem[]) {
+      const container = document.getElementById("features-list")!;
+      container.innerHTML = "";
+      items.forEach((item, i) => {
+        const div = document.createElement("div");
+        div.style.cssText = "border:1px solid #e5e7eb;border-radius:0.5rem;padding:1rem;margin-bottom:0.75rem;position:relative;";
+        div.innerHTML = `
+          <button type="button" class="remove-feature" data-index="${i}"
+            style="position:absolute;top:0.5rem;right:0.5rem;background:#fee2e2;color:#991b1b;border:none;border-radius:0.25rem;padding:0.25rem 0.5rem;cursor:pointer;font-size:0.75rem;">
+            Supprimer
+          </button>
+          <div class="form-group">
+            <label>Icône</label>
+            <input type="text" class="feature-icon" data-index="${i}" value="${item.icon}" style="width:80px;" />
+          </div>
+          <div class="form-group">
+            <label>Titre</label>
+            <input type="text" class="feature-title" data-index="${i}" value="${item.title}" />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea class="feature-desc" data-index="${i}">${item.description}</textarea>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      // Remove buttons
+      container.querySelectorAll(".remove-feature").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const idx = parseInt((e.currentTarget as HTMLElement).dataset.index!);
+          if (currentConfig) {
+            currentConfig.features.items.splice(idx, 1);
+            renderFeatures(currentConfig.features.items);
+          }
+        });
+      });
+
+      // Sync changes back
+      container.querySelectorAll(".feature-icon, .feature-title, .feature-desc").forEach((input) => {
+        input.addEventListener("input", (e) => {
+          const el = e.target as HTMLInputElement | HTMLTextAreaElement;
+          const idx = parseInt(el.dataset.index!);
+          if (!currentConfig) return;
+          if (el.classList.contains("feature-icon")) currentConfig.features.items[idx].icon = el.value;
+          if (el.classList.contains("feature-title")) currentConfig.features.items[idx].title = el.value;
+          if (el.classList.contains("feature-desc")) currentConfig.features.items[idx].description = el.value;
+        });
+      });
+    }
+
+    // --- Load config ---
+    async function loadConfig() {
+      try {
+        const res = await fetch("/api/admin/config");
+        if (res.status === 401) { window.location.href = "/admin/login"; return; }
+        const data = await res.json();
+
+        if (!data.config) {
+          showMessage("Aucune configuration trouvée. Vérifiez Supabase.", "error");
+          return;
+        }
+
+        currentConfig = data.config;
+        const c = currentConfig!;
+
+        $("cfg-name").value = c.name || "";
+        $("cfg-description").value = c.description || "";
+        $("cfg-url").value = c.url || "";
+        $("cfg-bubbleAppUrl").value = c.bubbleAppUrl || "";
+        $("cfg-bubbleApiUrl").value = c.bubbleApiUrl || "";
+        $("cfg-bubbleApiToken").value = c.bubbleApiToken || "";
+
+        $("cfg-hero-title").value = c.hero?.title || "";
+        $("cfg-hero-subtitle").value = c.hero?.subtitle || "";
+        $("cfg-hero-ctaText").value = c.hero?.ctaText || "";
+        $("cfg-hero-ctaLink").value = c.hero?.ctaLink || "";
+
+        $("cfg-features-title").value = c.features?.title || "";
+        renderFeatures(c.features?.items || []);
+
+        $("cfg-cta-title").value = c.cta?.title || "";
+        $("cfg-cta-description").value = c.cta?.description || "";
+        $("cfg-cta-ctaText").value = c.cta?.ctaText || "";
+        $("cfg-cta-ctaLink").value = c.cta?.ctaLink || "";
+      } catch {
+        showMessage("Erreur de chargement de la configuration", "error");
+      }
+    }
+
+    // --- Gather config from form ---
+    function gatherConfig(): SiteConfigData {
+      return {
+        name: $("cfg-name").value,
+        description: $("cfg-description").value,
+        url: $("cfg-url").value,
+        defaultLanguage: "fr",
+        bubbleAppUrl: $("cfg-bubbleAppUrl").value,
+        bubbleApiUrl: $("cfg-bubbleApiUrl").value,
+        bubbleApiToken: $("cfg-bubbleApiToken").value,
+        hero: {
+          title: $("cfg-hero-title").value,
+          subtitle: $("cfg-hero-subtitle").value,
+          ctaText: $("cfg-hero-ctaText").value,
+          ctaLink: $("cfg-hero-ctaLink").value,
+        },
+        features: {
+          title: $("cfg-features-title").value,
+          items: currentConfig?.features?.items || [],
+        },
+        cta: {
+          title: $("cfg-cta-title").value,
+          description: $("cfg-cta-description").value,
+          ctaText: $("cfg-cta-ctaText").value,
+          ctaLink: $("cfg-cta-ctaLink").value,
+        },
+      };
+    }
+
+    // --- Save & Deploy ---
+    document.getElementById("saveBtn")!.addEventListener("click", async () => {
+      const btn = document.getElementById("saveBtn") as HTMLButtonElement;
+      btn.disabled = true;
+      btn.textContent = "Publication en cours...";
+
+      try {
+        const config = gatherConfig();
+        const res = await fetch("/api/admin/deploy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ config }),
+        });
+
+        if (res.status === 401) { window.location.href = "/admin/login"; return; }
+
+        const data = await res.json();
+        if (data.success) {
+          showMessage(data.message || "Configuration sauvegardée !", "success");
+          currentConfig = config;
+        } else {
+          showMessage(data.error || "Erreur lors de la sauvegarde", "error");
+        }
+      } catch {
+        showMessage("Erreur réseau", "error");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Enregistrer & Publier";
+      }
+    });
+
+    // --- Add feature ---
+    document.getElementById("addFeatureBtn")!.addEventListener("click", () => {
+      if (!currentConfig) return;
+      currentConfig.features.items.push({
+        title: "Nouvelle fonctionnalité",
+        description: "Description de la fonctionnalité",
+        icon: String(currentConfig.features.items.length + 1),
+      });
+      renderFeatures(currentConfig.features.items);
+    });
+
+    // --- Logout ---
+    document.getElementById("logoutBtn")!.addEventListener("click", async () => {
+      await fetch("/api/admin/logout", { method: "POST" });
+      window.location.href = "/admin/login";
+    });
+
+    // --- Init ---
+    loadConfig();
+  </script>
+</Admin>

@@ -1,11 +1,12 @@
 import type { APIRoute } from "astro";
-import { siteConfig } from "../config";
+import { loadSiteConfig } from "../config";
 
-export const GET: APIRoute = () => {
+export const GET: APIRoute = async () => {
+  const config = await loadSiteConfig();
   const body = `User-agent: *
 Allow: /
 
-Sitemap: ${siteConfig.url}/sitemap-index.xml
+Sitemap: ${config.url}/sitemap-index.xml
 `;
   return new Response(body, {
     headers: { "Content-Type": "text/plain" },
