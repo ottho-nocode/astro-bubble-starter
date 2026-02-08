@@ -37,6 +37,7 @@ export interface SiteConfig {
   bubbleApiToken: string;
   bubbleContentTable?: string;
   bubbleFieldMapping?: BubbleFieldMapping;
+  blogTemplate?: "grid" | "list" | "magazine";
   hero: {
     title: string;
     subtitle: string;

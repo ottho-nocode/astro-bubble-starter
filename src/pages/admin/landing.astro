@@ -1,0 +1,330 @@
+---
+export const prerender = false;
+
+import Admin from "../../layouts/Admin.astro";
+import { verifySession, getSessionFromRequest } from "../../lib/admin-auth";
+
+const token = getSessionFromRequest(Astro.request);
+if (!(await verifySession(token))) {
+  return Astro.redirect("/admin/login");
+}
+---
+
+<Admin title="Landing Page" activePage="landing">
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-dots">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <div class="admin-content">
+    <h2 class="page-title">Landing Page</h2>
+    <p class="page-subtitle">Modifiez les textes et parametres de votre page d'accueil.</p>
+
+    <div id="statusMessage"></div>
+
+    <!-- General -->
+    <div class="card">
+      <div class="card-header">
+        <h2>General</h2>
+        <p>Nom, description et URL du site</p>
+      </div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cfg-name">Nom du site</label>
+            <input type="text" id="cfg-name" placeholder="Mon Site" />
+          </div>
+          <div class="form-group">
+            <label for="cfg-url">URL du site</label>
+            <input type="url" id="cfg-url" placeholder="https://example.com" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="cfg-description">Description (SEO)</label>
+          <textarea id="cfg-description" placeholder="Description du site pour les moteurs de recherche"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Section Hero</h2>
+        <p>Titre principal et appel a l'action</p>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label for="cfg-hero-title">Titre</label>
+          <input type="text" id="cfg-hero-title" placeholder="Bienvenue sur notre plateforme" />
+        </div>
+        <div class="form-group">
+          <label for="cfg-hero-subtitle">Sous-titre</label>
+          <textarea id="cfg-hero-subtitle" placeholder="Une description convaincante..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cfg-hero-ctaText">Texte du bouton</label>
+            <input type="text" id="cfg-hero-ctaText" placeholder="Commencer" />
+          </div>
+          <div class="form-group">
+            <label for="cfg-hero-ctaLink">Lien du bouton</label>
+            <input type="text" id="cfg-hero-ctaLink" placeholder="https://..." />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Fonctionnalites</h2>
+        <p>Points forts affiches sur la page d'accueil</p>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label for="cfg-features-title">Titre de la section</label>
+          <input type="text" id="cfg-features-title" placeholder="Pourquoi nous choisir" />
+        </div>
+        <div id="features-list"></div>
+        <button type="button" id="addFeatureBtn" class="btn btn-secondary" style="width:100%;margin-top:0.5rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter une fonctionnalite
+        </button>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Section CTA</h2>
+        <p>Appel a l'action en bas de page</p>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label for="cfg-cta-title">Titre</label>
+          <input type="text" id="cfg-cta-title" placeholder="Pret a commencer ?" />
+        </div>
+        <div class="form-group">
+          <label for="cfg-cta-description">Description</label>
+          <textarea id="cfg-cta-description" placeholder="Rejoignez des milliers d'utilisateurs..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cfg-cta-ctaText">Texte du bouton</label>
+            <input type="text" id="cfg-cta-ctaText" placeholder="Essayer gratuitement" />
+          </div>
+          <div class="form-group">
+            <label for="cfg-cta-ctaLink">Lien du bouton</label>
+            <input type="text" id="cfg-cta-ctaLink" placeholder="https://..." />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sticky save bar -->
+  <div class="save-bar">
+    <div class="save-bar-inner">
+      <div class="save-bar-status" id="saveStatus">Pret a publier</div>
+      <button id="saveBtn" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        Enregistrer & Publier
+      </button>
+    </div>
+  </div>
+
+  <script>
+    interface FeatureItem {
+      title: string;
+      description: string;
+      icon: string;
+    }
+
+    let currentConfig: Record<string, any> | null = null;
+
+    function $(id: string): HTMLInputElement | HTMLTextAreaElement {
+      return document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement;
+    }
+
+    function showMessage(text: string, type: "success" | "error") {
+      const el = document.getElementById("statusMessage")!;
+      const icon = type === "success"
+        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+      el.innerHTML = `<div class="alert alert-${type}">${icon} ${text}</div>`;
+      setTimeout(() => { el.innerHTML = ""; }, 5000);
+    }
+
+    function renderFeatures(items: FeatureItem[]) {
+      const container = document.getElementById("features-list")!;
+      container.innerHTML = "";
+      items.forEach((item, i) => {
+        const div = document.createElement("div");
+        div.className = "feature-item";
+        div.innerHTML = `
+          <div class="feature-item-header">
+            <span class="feature-item-number">Fonctionnalite ${i + 1}</span>
+            <button type="button" class="btn btn-destructive remove-feature" data-index="${i}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              Supprimer
+            </button>
+          </div>
+          <div class="form-row" style="margin-bottom:0.75rem;">
+            <div class="form-group" style="flex:0 0 100px;">
+              <label>Icone</label>
+              <input type="text" class="feature-icon" data-index="${i}" value="${item.icon}" />
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label>Titre</label>
+              <input type="text" class="feature-title" data-index="${i}" value="${item.title}" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea class="feature-desc" data-index="${i}" style="min-height:60px;">${item.description}</textarea>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      container.querySelectorAll(".remove-feature").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const idx = parseInt((e.currentTarget as HTMLElement).dataset.index!);
+          if (currentConfig) {
+            currentConfig.features.items.splice(idx, 1);
+            renderFeatures(currentConfig.features.items);
+          }
+        });
+      });
+
+      container.querySelectorAll(".feature-icon, .feature-title, .feature-desc").forEach((input) => {
+        input.addEventListener("input", (e) => {
+          const el = e.target as HTMLInputElement | HTMLTextAreaElement;
+          const idx = parseInt(el.dataset.index!);
+          if (!currentConfig) return;
+          if (el.classList.contains("feature-icon")) currentConfig.features.items[idx].icon = el.value;
+          if (el.classList.contains("feature-title")) currentConfig.features.items[idx].title = el.value;
+          if (el.classList.contains("feature-desc")) currentConfig.features.items[idx].description = el.value;
+        });
+      });
+    }
+
+    async function loadConfig() {
+      try {
+        const res = await fetch("/api/admin/config");
+        if (res.status === 401) { window.location.href = "/admin/login"; return; }
+        const data = await res.json();
+
+        if (!data.config) {
+          showMessage("Aucune configuration trouvee.", "error");
+          document.getElementById("loadingOverlay")!.classList.add("hidden");
+          return;
+        }
+
+        currentConfig = data.config;
+        const c = currentConfig!;
+
+        $("cfg-name").value = c.name || "";
+        $("cfg-description").value = c.description || "";
+        $("cfg-url").value = c.url || "";
+
+        $("cfg-hero-title").value = c.hero?.title || "";
+        $("cfg-hero-subtitle").value = c.hero?.subtitle || "";
+        $("cfg-hero-ctaText").value = c.hero?.ctaText || "";
+        $("cfg-hero-ctaLink").value = c.hero?.ctaLink || "";
+
+        $("cfg-features-title").value = c.features?.title || "";
+        renderFeatures(c.features?.items || []);
+
+        $("cfg-cta-title").value = c.cta?.title || "";
+        $("cfg-cta-description").value = c.cta?.description || "";
+        $("cfg-cta-ctaText").value = c.cta?.ctaText || "";
+        $("cfg-cta-ctaLink").value = c.cta?.ctaLink || "";
+
+        document.getElementById("loadingOverlay")!.classList.add("hidden");
+      } catch {
+        showMessage("Erreur de chargement de la configuration", "error");
+        document.getElementById("loadingOverlay")!.classList.add("hidden");
+      }
+    }
+
+    function gatherConfig(): Record<string, any> {
+      return {
+        ...currentConfig,
+        name: $("cfg-name").value,
+        description: $("cfg-description").value,
+        url: $("cfg-url").value,
+        defaultLanguage: currentConfig?.defaultLanguage || "fr",
+        hero: {
+          title: $("cfg-hero-title").value,
+          subtitle: $("cfg-hero-subtitle").value,
+          ctaText: $("cfg-hero-ctaText").value,
+          ctaLink: $("cfg-hero-ctaLink").value,
+        },
+        features: {
+          title: $("cfg-features-title").value,
+          items: currentConfig?.features?.items || [],
+        },
+        cta: {
+          title: $("cfg-cta-title").value,
+          description: $("cfg-cta-description").value,
+          ctaText: $("cfg-cta-ctaText").value,
+          ctaLink: $("cfg-cta-ctaLink").value,
+        },
+      };
+    }
+
+    // Save & Deploy
+    document.getElementById("saveBtn")!.addEventListener("click", async () => {
+      const btn = document.getElementById("saveBtn") as HTMLButtonElement;
+      const status = document.getElementById("saveStatus")!;
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Publication...';
+      status.textContent = "Sauvegarde en cours...";
+
+      try {
+        const config = gatherConfig();
+        const res = await fetch("/api/admin/deploy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ config }),
+        });
+
+        if (res.status === 401) { window.location.href = "/admin/login"; return; }
+
+        const data = await res.json();
+        if (data.success) {
+          showMessage(data.message || "Configuration sauvegardee !", "success");
+          status.textContent = "Publie avec succes";
+          currentConfig = config;
+        } else {
+          showMessage(data.error || "Erreur lors de la sauvegarde", "error");
+          status.textContent = "Erreur de publication";
+        }
+      } catch {
+        showMessage("Erreur reseau", "error");
+        status.textContent = "Erreur reseau";
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Enregistrer & Publier';
+        setTimeout(() => { status.textContent = "Pret a publier"; }, 4000);
+      }
+    });
+
+    // Add feature
+    document.getElementById("addFeatureBtn")!.addEventListener("click", () => {
+      if (!currentConfig) return;
+      currentConfig.features.items.push({
+        title: "Nouvelle fonctionnalite",
+        description: "Description de la fonctionnalite",
+        icon: String(currentConfig.features.items.length + 1),
+      });
+      renderFeatures(currentConfig.features.items);
+    });
+
+    // Init
+    loadConfig();
+  </script>
+</Admin>

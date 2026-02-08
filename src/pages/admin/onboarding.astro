@@ -1,0 +1,621 @@
+---
+export const prerender = false;
+
+import Admin from "../../layouts/Admin.astro";
+import { verifySession, getSessionFromRequest } from "../../lib/admin-auth";
+
+const token = getSessionFromRequest(Astro.request);
+if (!(await verifySession(token))) {
+  return Astro.redirect("/admin/login");
+}
+---
+
+<Admin title="Onboarding" activePage="onboarding">
+  <div class="admin-content" style="max-width:48rem;">
+    <h2 class="page-title">Configuration initiale</h2>
+    <p class="page-subtitle">Connectez votre application Bubble en 4 etapes.</p>
+
+    <div id="statusMessage"></div>
+
+    <!-- Stepper -->
+    <div class="stepper">
+      <div class="step active" data-step="1">
+        <div class="step-number">1</div>
+        <div class="step-label">API</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" data-step="2">
+        <div class="step-number">2</div>
+        <div class="step-label">Table</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" data-step="3">
+        <div class="step-number">3</div>
+        <div class="step-label">Mapping</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" data-step="4">
+        <div class="step-number">4</div>
+        <div class="step-label">Template</div>
+      </div>
+    </div>
+
+    <!-- Step 1: Credentials -->
+    <div id="step1" class="card">
+      <div class="card-header">
+        <h2>Connexion a Bubble</h2>
+        <p>Renseignez l'URL et le token de votre API Bubble</p>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label for="ob-apiUrl">URL de l'API Bubble</label>
+          <input type="url" id="ob-apiUrl" placeholder="https://votre-app.bubbleapps.io/api/1.1" />
+        </div>
+        <div class="form-group">
+          <label for="ob-apiToken">Token API</label>
+          <input type="password" id="ob-apiToken" placeholder="Votre token API Bubble" />
+        </div>
+        <div id="testResult"></div>
+        <div style="display:flex; gap:0.5rem; margin-top:1rem; justify-content:space-between;">
+          <button id="testConnectionBtn" class="btn btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+            Tester la connexion
+          </button>
+          <button id="step1Next" class="btn btn-primary" disabled>
+            Suivant
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Table selection -->
+    <div id="step2" class="card" style="display:none;">
+      <div class="card-header">
+        <h2>Selection de la table</h2>
+        <p>Choisissez la table Bubble contenant vos articles</p>
+      </div>
+      <div class="card-body">
+        <div id="tablesContainer"></div>
+        <div style="display:flex; gap:0.5rem; margin-top:1rem; justify-content:space-between;">
+          <button id="step2Back" class="btn btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Retour
+          </button>
+          <button id="step2Next" class="btn btn-primary" disabled>
+            Suivant
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Field mapping -->
+    <div id="step3" class="card" style="display:none;">
+      <div class="card-header">
+        <h2>Mapping des champs</h2>
+        <p>Associez les champs de votre table aux champs du blog</p>
+      </div>
+      <div class="card-body">
+        <div id="mappingContainer"></div>
+        <div style="display:flex; gap:0.5rem; margin-top:1rem; justify-content:space-between;">
+          <button id="step3Back" class="btn btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Retour
+          </button>
+          <button id="step3Next" class="btn btn-primary">
+            Suivant
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Blog template -->
+    <div id="step4" class="card" style="display:none;">
+      <div class="card-header">
+        <h2>Template du blog</h2>
+        <p>Choisissez la mise en page de votre page blog</p>
+      </div>
+      <div class="card-body">
+        <div id="templateContainer" class="template-grid"></div>
+        <div style="display:flex; gap:0.5rem; margin-top:1.5rem; justify-content:space-between;">
+          <button id="step4Back" class="btn btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Retour
+          </button>
+          <button id="saveBtn" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            Terminer & Publier
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style is:global>
+    /* ── Tables list ── */
+    .tables-list { margin-top: 0; }
+    .table-option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .table-option:hover { border-color: #94a3b8; background: #fafafa; }
+    .table-option.selected { border-color: #171717; background: #f8fafc; }
+    .table-option input[type="radio"] { accent-color: #171717; }
+    .table-option-info { flex: 1; }
+    .table-option-name { font-weight: 600; font-size: 0.875rem; color: #0f172a; }
+    .table-option-meta { font-size: 0.75rem; color: #94a3b8; margin-top: 0.125rem; }
+
+    /* ── Mapping rows ── */
+    .mapping-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .mapping-row:last-child { border-bottom: none; }
+    .mapping-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #0f172a;
+    }
+    .mapping-label .required { color: #ef4444; }
+    .mapping-label .field-hint {
+      font-size: 0.6875rem;
+      color: #94a3b8;
+      font-weight: 400;
+      display: block;
+    }
+    .mapping-row select {
+      width: 100%;
+      height: 2.25rem;
+      padding: 0.25rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      font-family: inherit;
+      color: #0f172a;
+      background: white;
+      outline: none;
+      cursor: pointer;
+    }
+    .mapping-row select:focus {
+      border-color: #0f172a;
+      box-shadow: 0 0 0 3px rgba(15,23,42,0.08);
+    }
+
+    /* ── Type badges ── */
+    .type-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .type-badge.text { background: #dbeafe; color: #1e40af; }
+    .type-badge.image { background: #fce7f3; color: #9d174d; }
+    .type-badge.date { background: #d1fae5; color: #065f46; }
+    .type-badge.boolean { background: #fef3c7; color: #92400e; }
+    .type-badge.number { background: #ede9fe; color: #5b21b6; }
+    .type-badge.list { background: #e0f2fe; color: #0369a1; }
+    .type-badge.option_set { background: #fdf4ff; color: #86198f; }
+    .type-badge.ref { background: #fff7ed; color: #c2410c; }
+    .type-badge.address { background: #ecfdf5; color: #047857; }
+    .type-badge.other { background: #f1f5f9; color: #475569; }
+
+    /* ── Template cards ── */
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 640px) {
+      .template-grid { grid-template-columns: 1fr; }
+    }
+    .template-card {
+      border: 2px solid #e2e8f0;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .template-card:hover { border-color: #94a3b8; }
+    .template-card.selected { border-color: #171717; background: #f8fafc; }
+    .template-card input[type="radio"] { display: none; }
+    .template-card-preview {
+      height: 80px;
+      margin-bottom: 0.75rem;
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      align-items: center;
+    }
+    .template-card-preview .block {
+      background: #e2e8f0;
+      border-radius: 3px;
+    }
+    .template-card-name {
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: #0f172a;
+      margin-bottom: 0.25rem;
+    }
+    .template-card-desc {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+  </style>
+
+  <script>
+    interface BubbleField {
+      name: string;
+      type: string;
+    }
+    interface BubbleType {
+      name: string;
+      fields: BubbleField[];
+    }
+    interface FieldMapping {
+      title: string;
+      content: string;
+      excerpt: string;
+      coverImage: string;
+      slug: string;
+      author: string;
+      category: string;
+      date: string;
+      published?: string;
+    }
+
+    const BLOG_FIELDS: Array<{
+      key: keyof FieldMapping;
+      label: string;
+      hint: string;
+      required: boolean;
+      preferredTypes: string[];
+      nameHints: string[];
+    }> = [
+      { key: "title", label: "Titre", hint: "Titre de l'article", required: true, preferredTypes: ["text"], nameHints: ["title", "titre", "name", "nom"] },
+      { key: "slug", label: "Slug", hint: "URL de l'article", required: true, preferredTypes: ["text"], nameHints: ["slug", "Slug", "url", "permalink"] },
+      { key: "content", label: "Contenu", hint: "Corps de l'article (HTML)", required: true, preferredTypes: ["text"], nameHints: ["content", "contenu", "body", "corps", "texte", "html", "article"] },
+      { key: "excerpt", label: "Extrait", hint: "Resume court", required: false, preferredTypes: ["text"], nameHints: ["excerpt", "extrait", "summary", "resume", "résumé", "description", "Description", "description SEO", "intro", "headline"] },
+      { key: "coverImage", label: "Image", hint: "Image de couverture", required: false, preferredTypes: ["image"], nameHints: ["cover", "couv", "image couv", "Image couv", "image", "photo", "thumbnail", "vignette", "image vignette", "img", "picture", "banner", "banniere", "bannière", "panorama", "illustration", "logo"] },
+      { key: "author", label: "Auteur", hint: "Nom de l'auteur", required: false, preferredTypes: ["text", "ref"], nameHints: ["author", "auteur", "writer", "by", "redacteur", "rédacteur"] },
+      { key: "category", label: "Categorie", hint: "Categorie de l'article", required: false, preferredTypes: ["text", "ref", "option_set"], nameHints: ["category", "categorie", "catégorie", "rubrique", "tag", "type article", "type"] },
+      { key: "date", label: "Date", hint: "Date de publication", required: false, preferredTypes: ["date"], nameHints: ["date", "date_generation", "published_at", "created", "Created Date", "publication", "date publication"] },
+      { key: "published", label: "Publie", hint: "Ce champ sera utilise pour publier/depublier les articles", required: false, preferredTypes: ["boolean"], nameHints: ["published", "publie", "publié", "active", "actif", "visible", "live", "online", "en ligne"] },
+    ];
+
+    let allTypes: BubbleType[] = [];
+    let selectedTable = "";
+    let selectedFields: BubbleField[] = [];
+    let mapping: Partial<FieldMapping> = {};
+    let selectedTemplate: "grid" | "list" | "magazine" = "grid";
+    let currentStep = 1;
+    let connectionTested = false;
+
+    function $(id: string) {
+      return document.getElementById(id) as HTMLInputElement;
+    }
+
+    function showMessage(text: string, type: "success" | "error") {
+      const el = document.getElementById("statusMessage")!;
+      const icon = type === "success"
+        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+      el.innerHTML = `<div class="alert alert-${type}">${icon} ${text}</div>`;
+      setTimeout(() => { el.innerHTML = ""; }, 5000);
+    }
+
+    function setStep(n: number) {
+      currentStep = n;
+      document.querySelectorAll(".step").forEach((s) => {
+        const stepN = parseInt((s as HTMLElement).dataset.step!);
+        s.classList.toggle("active", stepN === n);
+        s.classList.toggle("done", stepN < n);
+      });
+      for (let i = 1; i <= 4; i++) {
+        const el = document.getElementById(`step${i}`) as HTMLElement;
+        if (el) el.style.display = i === n ? "" : "none";
+      }
+    }
+
+    function typeBadge(type: string): string {
+      const t = type.toLowerCase();
+      let cls = "other";
+      if (t === "text" || t === "string") cls = "text";
+      else if (t === "image" || t === "file") cls = "image";
+      else if (t === "date" || t === "date_range") cls = "date";
+      else if (t === "boolean" || t === "yes_no") cls = "boolean";
+      else if (t === "number" || t === "integer" || t === "float") cls = "number";
+      else if (t === "list" || t === "list_option_set") cls = "list";
+      else if (t === "option_set") cls = "option_set";
+      else if (t === "ref") cls = "ref";
+      else if (t === "address") cls = "address";
+      const labels: Record<string, string> = {
+        text: "Texte", image: "Image", date: "Date", boolean: "Oui/Non",
+        number: "Nombre", list: "Liste", option_set: "Option Set", ref: "Ref",
+        address: "Adresse", other: type,
+      };
+      return `<span class="type-badge ${cls}">${labels[cls]}</span>`;
+    }
+
+    function autoDetect(fieldDef: typeof BLOG_FIELDS[number], available: BubbleField[]): string {
+      for (const hint of fieldDef.nameHints) {
+        const match = available.find((f) => f.name.toLowerCase() === hint.toLowerCase());
+        if (match) return match.name;
+      }
+      for (const hint of fieldDef.nameHints) {
+        const match = available.find((f) => f.name.toLowerCase().includes(hint.toLowerCase()));
+        if (match) return match.name;
+      }
+      if (fieldDef.preferredTypes[0] !== "text") {
+        const match = available.find((f) =>
+          fieldDef.preferredTypes.includes(f.type.toLowerCase())
+        );
+        if (match) return match.name;
+      }
+      return "";
+    }
+
+    // Step 1: Test connection
+    async function testConnection() {
+      const btn = document.getElementById("testConnectionBtn") as HTMLButtonElement;
+      const apiUrl = $("ob-apiUrl").value.trim();
+      const apiToken = $("ob-apiToken").value.trim();
+
+      if (!apiUrl || !apiToken) {
+        showMessage("Renseignez l'URL et le token API", "error");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner" style="border-color:rgba(0,0,0,0.1);border-top-color:#171717;"></div> Test...';
+
+      try {
+        // First save credentials temporarily to config for the meta endpoint to use
+        const configRes = await fetch("/api/admin/config");
+        const configData = await configRes.json();
+        const currentConfig = configData.config || {};
+
+        await fetch("/api/admin/deploy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            config: { ...currentConfig, bubbleApiUrl: apiUrl, bubbleApiToken: apiToken }
+          }),
+        });
+
+        // Now test via bubble-meta
+        const res = await fetch("/api/admin/bubble-meta");
+        const data = await res.json();
+
+        if (data.error) {
+          document.getElementById("testResult")!.innerHTML =
+            '<div class="alert alert-error"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Connexion echouee. Verifiez vos identifiants.</div>';
+          connectionTested = false;
+        } else {
+          allTypes = data.types || [];
+          document.getElementById("testResult")!.innerHTML =
+            `<div class="alert alert-success"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Connexion reussie ! ${allTypes.length} table(s) trouvee(s).</div>`;
+          connectionTested = true;
+          (document.getElementById("step1Next") as HTMLButtonElement).disabled = false;
+        }
+      } catch {
+        document.getElementById("testResult")!.innerHTML =
+          '<div class="alert alert-error"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Erreur reseau</div>';
+        connectionTested = false;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg> Tester la connexion';
+      }
+    }
+
+    // Step 2: Render tables
+    function renderTables() {
+      const container = document.getElementById("tablesContainer")!;
+      container.innerHTML = "";
+
+      if (allTypes.length === 0) {
+        container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding:1rem;">Aucune table trouvee.</p>';
+        return;
+      }
+
+      allTypes.forEach((t) => {
+        const div = document.createElement("div");
+        div.className = "table-option";
+        div.innerHTML = `
+          <input type="radio" name="tableSelect" value="${t.name}" />
+          <div class="table-option-info">
+            <div class="table-option-name">${t.name}</div>
+            <div class="table-option-meta">${t.fields.length} champs</div>
+          </div>
+          <div>${t.fields.slice(0, 3).map((f) => typeBadge(f.type)).join(" ")}</div>
+        `;
+        div.addEventListener("click", () => {
+          container.querySelectorAll(".table-option").forEach((o) => o.classList.remove("selected"));
+          div.classList.add("selected");
+          (div.querySelector("input") as HTMLInputElement).checked = true;
+          selectedTable = t.name;
+          selectedFields = t.fields;
+          (document.getElementById("step2Next") as HTMLButtonElement).disabled = false;
+        });
+        container.appendChild(div);
+      });
+    }
+
+    // Step 3: Render mapping
+    function renderMapping() {
+      const container = document.getElementById("mappingContainer")!;
+      container.innerHTML = "";
+
+      BLOG_FIELDS.forEach((fieldDef) => {
+        const defaultVal = autoDetect(fieldDef, selectedFields);
+        mapping[fieldDef.key] = defaultVal;
+
+        const row = document.createElement("div");
+        row.className = "mapping-row";
+
+        const options = selectedFields.map((f) => {
+          const selected = f.name === defaultVal ? "selected" : "";
+          return `<option value="${f.name}" ${selected}>${f.name} (${f.type})</option>`;
+        }).join("");
+
+        row.innerHTML = `
+          <div class="mapping-label">
+            ${fieldDef.label} ${fieldDef.required ? '<span class="required">*</span>' : ''}
+            <span class="field-hint">${fieldDef.hint}</span>
+          </div>
+          <select data-key="${fieldDef.key}">
+            <option value="">-- Non mappe --</option>
+            ${options}
+          </select>
+        `;
+
+        const select = row.querySelector("select")!;
+        select.addEventListener("change", () => {
+          (mapping as any)[fieldDef.key] = select.value;
+        });
+
+        container.appendChild(row);
+      });
+    }
+
+    function validateMapping(): boolean {
+      const required = BLOG_FIELDS.filter((f) => f.required);
+      for (const f of required) {
+        if (!(mapping as any)[f.key]) {
+          showMessage(`Le champ "${f.label}" est obligatoire.`, "error");
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // Step 4: Render templates
+    function renderTemplates() {
+      const container = document.getElementById("templateContainer")!;
+      const templates = [
+        {
+          value: "grid",
+          name: "Grille",
+          desc: "Articles en grille 3 colonnes",
+          preview: '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;width:100%;height:100%;"><div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div></div>',
+        },
+        {
+          value: "list",
+          name: "Liste",
+          desc: "Articles en liste horizontale",
+          preview: '<div style="display:flex;flex-direction:column;gap:3px;width:100%;height:100%;"><div class="block" style="height:33%;display:flex;"><div style="width:30%;background:#cbd5e1;border-radius:3px;"></div><div style="flex:1;margin-left:3px;background:#e2e8f0;border-radius:3px;"></div></div><div class="block" style="height:33%;display:flex;"><div style="width:30%;background:#cbd5e1;border-radius:3px;"></div><div style="flex:1;margin-left:3px;background:#e2e8f0;border-radius:3px;"></div></div><div class="block" style="height:33%;display:flex;"><div style="width:30%;background:#cbd5e1;border-radius:3px;"></div><div style="flex:1;margin-left:3px;background:#e2e8f0;border-radius:3px;"></div></div></div>',
+        },
+        {
+          value: "magazine",
+          name: "Magazine",
+          desc: "Hero + grille pour les autres",
+          preview: '<div style="display:flex;flex-direction:column;gap:3px;width:100%;height:100%;"><div class="block" style="height:55%;"></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;height:45%;"><div class="block"></div><div class="block"></div><div class="block"></div></div></div>',
+        },
+      ];
+
+      container.innerHTML = templates.map((t) => `
+        <label class="template-card${t.value === "grid" ? " selected" : ""}">
+          <input type="radio" name="blogTemplate" value="${t.value}" ${t.value === "grid" ? "checked" : ""} />
+          <div class="template-card-preview">${t.preview}</div>
+          <div class="template-card-name">${t.name}</div>
+          <div class="template-card-desc">${t.desc}</div>
+        </label>
+      `).join("");
+
+      container.querySelectorAll(".template-card").forEach((card) => {
+        card.addEventListener("click", () => {
+          container.querySelectorAll(".template-card").forEach((c) => c.classList.remove("selected"));
+          card.classList.add("selected");
+          const radio = card.querySelector("input") as HTMLInputElement;
+          radio.checked = true;
+          selectedTemplate = radio.value as "grid" | "list" | "magazine";
+        });
+      });
+    }
+
+    // Save onboarding
+    async function saveOnboarding() {
+      const btn = document.getElementById("saveBtn") as HTMLButtonElement;
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Publication...';
+
+      try {
+        const configRes = await fetch("/api/admin/config");
+        const configData = await configRes.json();
+        const currentConfig = configData.config || {};
+
+        const updatedConfig = {
+          ...currentConfig,
+          bubbleApiUrl: $("ob-apiUrl").value.trim(),
+          bubbleApiToken: $("ob-apiToken").value.trim(),
+          bubbleContentTable: selectedTable,
+          bubbleFieldMapping: mapping,
+          blogTemplate: selectedTemplate,
+        };
+
+        const res = await fetch("/api/admin/deploy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ config: updatedConfig }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showMessage("Configuration terminee !", "success");
+          setTimeout(() => {
+            window.location.href = "/admin/articles";
+          }, 1000);
+        } else {
+          showMessage(data.error || "Erreur lors de la sauvegarde", "error");
+        }
+      } catch {
+        showMessage("Erreur reseau", "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Terminer & Publier';
+      }
+    }
+
+    // Wire up events
+    document.getElementById("testConnectionBtn")!.addEventListener("click", testConnection);
+
+    document.getElementById("step1Next")!.addEventListener("click", () => {
+      if (!connectionTested) { showMessage("Testez d'abord la connexion", "error"); return; }
+      renderTables();
+      setStep(2);
+    });
+
+    document.getElementById("step2Back")!.addEventListener("click", () => setStep(1));
+    document.getElementById("step2Next")!.addEventListener("click", () => {
+      if (!selectedTable) { showMessage("Selectionnez une table", "error"); return; }
+      renderMapping();
+      setStep(3);
+    });
+
+    document.getElementById("step3Back")!.addEventListener("click", () => setStep(2));
+    document.getElementById("step3Next")!.addEventListener("click", () => {
+      if (!validateMapping()) return;
+      renderTemplates();
+      setStep(4);
+    });
+
+    document.getElementById("step4Back")!.addEventListener("click", () => setStep(3));
+    document.getElementById("saveBtn")!.addEventListener("click", saveOnboarding);
+  </script>
+</Admin>

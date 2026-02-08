@@ -22,6 +22,7 @@ export const siteConfig = {
     date: "Created Date",
     published: "published",
   },
+  blogTemplate: "grid",
   hero: {
     title: "Votre titre principal ici",
     subtitle:

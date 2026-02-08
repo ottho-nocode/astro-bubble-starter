@@ -159,7 +159,7 @@ const DEFAULT_MAPPING: BubbleFieldMapping = {
 let _contentTable: string | undefined;
 let _fieldMapping: BubbleFieldMapping | undefined;
 
-async function getContentConfig(): Promise<{ table: string; mapping: BubbleFieldMapping }> {
+export async function getContentConfig(): Promise<{ table: string; mapping: BubbleFieldMapping }> {
   if (_contentTable && _fieldMapping) return { table: _contentTable, mapping: _fieldMapping };
 
   try {
@@ -191,6 +191,40 @@ function mapBubbleRecord(raw: Record<string, any>, mapping: BubbleFieldMapping):
     category: mapping.category ? (raw[mapping.category] || "") : "",
     published: mapping.published ? Boolean(raw[mapping.published]) : true,
   };
+}
+
+export async function getAllPosts(): Promise<BubblePost[]> {
+  const { table, mapping } = await getContentConfig();
+
+  const sortField = mapping.date || "Created_Date";
+
+  const rawResults = await bubbleFetchAll<Record<string, any>>(table, {
+    sort_field: sortField,
+    descending: true,
+  });
+
+  return rawResults.map((raw) => mapBubbleRecord(raw, mapping));
+}
+
+export async function bubblePatch(
+  typeName: string,
+  recordId: string,
+  data: Record<string, any>
+): Promise<void> {
+  const creds = await getBubbleCredentials();
+  const url = `${creds.url}/obj/${typeName}/${recordId}`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${creds.token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Bubble PATCH error: ${res.status} ${res.statusText}`);
+  }
 }
 
 export async function getPosts(): Promise<BubblePost[]> {

@@ -3,9 +3,11 @@ export const prerender = false;
 
 interface Props {
   title: string;
+  activePage?: "articles" | "landing" | "settings" | "onboarding";
 }
 
-const { title } = Astro.props;
+const { title, activePage } = Astro.props;
+const showSidebar = activePage === "articles" || activePage === "landing" || activePage === "settings";
 ---
 
 <!doctype html>
@@ -22,14 +24,109 @@ const { title } = Astro.props;
 
       body {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        background: #f8fafc; /* bg-slate-50 */
+        background: #f8fafc;
         color: #0a0a0a;
         min-height: 100vh;
         -webkit-font-smoothing: antialiased;
         font-size: 14px;
       }
 
-      /* ── Header ── */
+      /* ── Layout with sidebar ── */
+      .admin-layout {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* ── Sidebar ── */
+      .admin-sidebar {
+        width: 240px;
+        background: white;
+        border-right: 1px solid #e2e8f0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s ease;
+      }
+      .sidebar-header {
+        padding: 1.25rem 1.25rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+      }
+      .sidebar-header h1 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0f172a;
+        letter-spacing: -0.025em;
+      }
+      .sidebar-header p {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-top: 0.125rem;
+      }
+      .sidebar-nav {
+        flex: 1;
+        padding: 0.75rem;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #64748b;
+        text-decoration: none;
+        transition: all 0.15s;
+        cursor: pointer;
+        border: none;
+        background: none;
+        width: 100%;
+        font-family: inherit;
+      }
+      .nav-item:hover { background: #f5f5f5; color: #0f172a; }
+      .nav-item.active { background: #f1f5f9; color: #0f172a; }
+      .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+      .sidebar-footer {
+        padding: 0.75rem;
+        border-top: 1px solid #f1f5f9;
+      }
+      .sidebar-footer .nav-item { font-size: 0.8125rem; }
+
+      /* ── Sidebar main content offset ── */
+      .admin-main {
+        flex: 1;
+        margin-left: 240px;
+        min-height: 100vh;
+      }
+
+      /* ── Mobile hamburger ── */
+      .sidebar-toggle {
+        display: none;
+        position: fixed;
+        top: 0.75rem;
+        left: 0.75rem;
+        z-index: 30;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.375rem;
+        padding: 0.5rem;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      }
+      .sidebar-toggle svg { width: 20px; height: 20px; color: #0f172a; }
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.3);
+        z-index: 15;
+      }
+
+      /* ── Header (used in non-sidebar pages) ── */
       .admin-header {
         background: white;
         border-bottom: 1px solid #e2e8f0;
@@ -38,7 +135,7 @@ const { title } = Astro.props;
         z-index: 10;
       }
       .admin-header-inner {
-        max-width: 64rem; /* max-w-5xl */
+        max-width: 64rem;
         margin: 0 auto;
         padding: 1rem 1.5rem;
         display: flex;
@@ -51,14 +148,14 @@ const { title } = Astro.props;
         gap: 1rem;
       }
       .admin-header-left h1 {
-        font-size: 1.25rem; /* text-xl */
+        font-size: 1.25rem;
         font-weight: 700;
-        color: #0f172a; /* text-slate-900 */
+        color: #0f172a;
         letter-spacing: -0.025em;
       }
       .admin-header-left p {
         font-size: 0.875rem;
-        color: #64748b; /* text-slate-500 */
+        color: #64748b;
       }
       .admin-header-right {
         display: flex;
@@ -90,9 +187,9 @@ const { title } = Astro.props;
       /* ── Cards (shadcn style) ── */
       .card {
         background: white;
-        border-radius: 0.75rem; /* rounded-xl */
+        border-radius: 0.75rem;
         border: 1px solid #e2e8f0;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* shadow-sm */
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         margin-bottom: 1.5rem;
         overflow: hidden;
       }
@@ -100,14 +197,14 @@ const { title } = Astro.props;
         padding: 1.5rem 1.5rem 0;
       }
       .card-header h2 {
-        font-size: 0.875rem; /* text-sm */
+        font-size: 0.875rem;
         font-weight: 600;
         color: #0f172a;
         line-height: 1;
       }
       .card-header p {
         font-size: 0.75rem;
-        color: #94a3b8; /* text-slate-400 */
+        color: #94a3b8;
         margin-top: 0.375rem;
       }
       .card-body {
@@ -126,27 +223,27 @@ const { title } = Astro.props;
         display: block;
         font-size: 0.875rem;
         font-weight: 500;
-        color: #334155; /* text-slate-700 */
+        color: #334155;
         margin-bottom: 0.375rem;
       }
-      .form-group input, .form-group textarea {
+      .form-group input, .form-group textarea, .form-group select {
         width: 100%;
-        height: 2.25rem; /* h-9 */
+        height: 2.25rem;
         padding: 0.25rem 0.75rem;
-        border: 1px solid #e2e8f0; /* border-input */
-        border-radius: 0.375rem; /* rounded-md */
+        border: 1px solid #e2e8f0;
+        border-radius: 0.375rem;
         font-size: 0.875rem;
         font-family: inherit;
         color: #0f172a;
         background: transparent;
-        box-shadow: 0 1px 1px rgba(0,0,0,0.04); /* shadow-xs */
+        box-shadow: 0 1px 1px rgba(0,0,0,0.04);
         transition: color 0.15s, box-shadow 0.15s;
         outline: none;
       }
       .form-group input::placeholder, .form-group textarea::placeholder {
         color: #94a3b8;
       }
-      .form-group input:focus, .form-group textarea:focus {
+      .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
         border-color: #0f172a;
         box-shadow: 0 0 0 3px rgba(15,23,42,0.08);
       }
@@ -156,6 +253,10 @@ const { title } = Astro.props;
         padding: 0.5rem 0.75rem;
         resize: vertical;
         line-height: 1.5;
+      }
+      .form-group select {
+        background: white;
+        cursor: pointer;
       }
 
       /* ── Buttons (shadcn style) ── */
@@ -186,14 +287,9 @@ const { title } = Astro.props;
       }
       .btn svg { width: 16px; height: 16px; pointer-events: none; flex-shrink: 0; }
 
-      /* Primary: dark bg */
-      .btn-primary {
-        background: #171717;
-        color: white;
-      }
+      .btn-primary { background: #171717; color: white; }
       .btn-primary:hover { background: #171717e6; }
 
-      /* Outline */
       .btn-outline {
         background: white;
         color: #0f172a;
@@ -202,7 +298,6 @@ const { title } = Astro.props;
       }
       .btn-outline:hover { background: #f5f5f5; }
 
-      /* Ghost */
       .btn-ghost {
         background: transparent;
         color: #64748b;
@@ -210,7 +305,6 @@ const { title } = Astro.props;
       }
       .btn-ghost:hover { background: #f5f5f5; color: #0f172a; }
 
-      /* Destructive */
       .btn-destructive {
         background: #ef4444;
         color: white;
@@ -221,11 +315,7 @@ const { title } = Astro.props;
       }
       .btn-destructive:hover { background: #ef4444e6; }
 
-      /* Secondary */
-      .btn-secondary {
-        background: #f5f5f5;
-        color: #171717;
-      }
+      .btn-secondary { background: #f5f5f5; color: #171717; }
       .btn-secondary:hover { background: #e5e5e5; }
 
       /* ── Alerts ── */
@@ -249,6 +339,11 @@ const { title } = Astro.props;
         background: #fef2f2;
         color: #dc2626;
         border: 1px solid #fecaca;
+      }
+      .alert-warning {
+        background: #fffbeb;
+        color: #92400e;
+        border: 1px solid #fde68a;
       }
 
       /* ── Sticky save bar ── */
@@ -294,6 +389,38 @@ const { title } = Astro.props;
         font-weight: 500;
         color: #94a3b8;
       }
+
+      /* ── Toggle switch ── */
+      .toggle {
+        position: relative;
+        width: 36px;
+        height: 20px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .toggle input { display: none; }
+      .toggle-slider {
+        position: absolute;
+        inset: 0;
+        background: #cbd5e1;
+        border-radius: 999px;
+        transition: background 0.2s;
+      }
+      .toggle-slider::before {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.2s;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      }
+      .toggle input:checked + .toggle-slider { background: #22c55e; }
+      .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+      .toggle input:disabled + .toggle-slider { opacity: 0.5; cursor: not-allowed; }
 
       /* ── Spinner ── */
       .spinner {
@@ -350,7 +477,80 @@ const { title } = Astro.props;
         color: #0f172a;
       }
 
+      /* ── Stepper ── */
+      .stepper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        margin-bottom: 2rem;
+      }
+      .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.375rem;
+      }
+      .step-number {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        border: 2px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #94a3b8;
+        transition: all 0.2s;
+      }
+      .step-label {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+      .step.active .step-number {
+        border-color: #171717;
+        background: #171717;
+        color: white;
+      }
+      .step.active .step-label { color: #0f172a; }
+      .step.done .step-number {
+        border-color: #22c55e;
+        background: #22c55e;
+        color: white;
+      }
+      .step.done .step-label { color: #22c55e; }
+      .step-line {
+        width: 3rem;
+        height: 2px;
+        background: #e2e8f0;
+        margin: 0 0.5rem;
+        margin-bottom: 1.25rem;
+      }
+
       /* ── Responsive ── */
+      @media (max-width: 768px) {
+        .admin-sidebar {
+          transform: translateX(-100%);
+        }
+        .admin-sidebar.open {
+          transform: translateX(0);
+        }
+        .sidebar-toggle {
+          display: block;
+        }
+        .sidebar-overlay.open {
+          display: block;
+        }
+        .admin-main {
+          margin-left: 0;
+        }
+        .admin-content {
+          padding-top: 3.5rem;
+        }
+      }
       @media (max-width: 640px) {
         .admin-content { padding: 1.5rem 1rem 8rem; }
         .form-row { grid-template-columns: 1fr; }
@@ -359,6 +559,84 @@ const { title } = Astro.props;
     </style>
   </head>
   <body>
-    <slot />
+    {showSidebar ? (
+      <div class="admin-layout">
+        <!-- Mobile toggle -->
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="admin-sidebar" id="adminSidebar">
+          <div class="sidebar-header">
+            <h1>Admin</h1>
+            <p>Gestion du site</p>
+          </div>
+          <nav class="sidebar-nav">
+            <a href="/admin/articles" class={`nav-item ${activePage === "articles" ? "active" : ""}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Articles
+            </a>
+            <a href="/admin/landing" class={`nav-item ${activePage === "landing" ? "active" : ""}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+              Landing Page
+            </a>
+            <a href="/admin/settings" class={`nav-item ${activePage === "settings" ? "active" : ""}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+              Reglages
+            </a>
+          </nav>
+          <div class="sidebar-footer">
+            <a href="/" target="_blank" class="nav-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Voir le site
+            </a>
+            <button class="nav-item" id="logoutBtn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Deconnexion
+            </button>
+          </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="admin-main">
+          <slot />
+        </main>
+      </div>
+    ) : (
+      <slot />
+    )}
+
+    {showSidebar && (
+      <script>
+        // Logout
+        document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+          await fetch("/api/admin/logout", { method: "POST" });
+          window.location.href = "/admin/login";
+        });
+
+        // Mobile sidebar toggle
+        const toggle = document.getElementById("sidebarToggle");
+        const sidebar = document.getElementById("adminSidebar");
+        const overlay = document.getElementById("sidebarOverlay");
+
+        function openSidebar() {
+          sidebar?.classList.add("open");
+          overlay?.classList.add("open");
+        }
+        function closeSidebar() {
+          sidebar?.classList.remove("open");
+          overlay?.classList.remove("open");
+        }
+
+        toggle?.addEventListener("click", openSidebar);
+        overlay?.addEventListener("click", closeSidebar);
+      </script>
+    )}
   </body>
 </html>

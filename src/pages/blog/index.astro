@@ -1,7 +1,10 @@
 ---
 import Base from "../../layouts/Base.astro";
 import BlogCard from "../../components/BlogCard.astro";
+import BlogCardList from "../../components/BlogCardList.astro";
+import BlogHeroCard from "../../components/BlogHeroCard.astro";
 import { getPosts } from "../../lib/bubble";
+import { loadSiteConfig } from "../../config";
 
 let posts: Awaited<ReturnType<typeof getPosts>> = [];
 try {
@@ -9,6 +12,9 @@ try {
 } catch {
   // API non configurée
 }
+
+const config = await loadSiteConfig();
+const template = config.blogTemplate || "grid";
 ---
 
 <Base title="Blog" description="Découvrez nos derniers articles et actualités.">
@@ -20,18 +26,66 @@ try {
       </p>
 
       {posts.length > 0 ? (
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {posts.map((post) => (
-            <BlogCard
-              title={post.title}
-              excerpt={post.excerpt}
-              slug={post.slug}
-              coverImage={post.cover_image}
-              date={post.date}
-              category={post.category}
-            />
-          ))}
-        </div>
+        <>
+          {template === "grid" && (
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {posts.map((post) => (
+                <BlogCard
+                  title={post.title}
+                  excerpt={post.excerpt}
+                  slug={post.slug}
+                  coverImage={post.cover_image}
+                  date={post.date}
+                  category={post.category}
+                />
+              ))}
+            </div>
+          )}
+
+          {template === "list" && (
+            <div class="flex flex-col gap-6 max-w-4xl mx-auto">
+              {posts.map((post) => (
+                <BlogCardList
+                  title={post.title}
+                  excerpt={post.excerpt}
+                  slug={post.slug}
+                  coverImage={post.cover_image}
+                  date={post.date}
+                  category={post.category}
+                />
+              ))}
+            </div>
+          )}
+
+          {template === "magazine" && (
+            <>
+              {posts[0] && (
+                <BlogHeroCard
+                  title={posts[0].title}
+                  excerpt={posts[0].excerpt}
+                  slug={posts[0].slug}
+                  coverImage={posts[0].cover_image}
+                  date={posts[0].date}
+                  category={posts[0].category}
+                />
+              )}
+              {posts.length > 1 && (
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
+                  {posts.slice(1).map((post) => (
+                    <BlogCard
+                      title={post.title}
+                      excerpt={post.excerpt}
+                      slug={post.slug}
+                      coverImage={post.cover_image}
+                      date={post.date}
+                      category={post.category}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </>
       ) : (
         <p class="text-gray-500 text-center py-20">
           Aucun article pour le moment. Configurez votre API Bubble pour commencer.

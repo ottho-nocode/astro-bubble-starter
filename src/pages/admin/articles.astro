@@ -1,0 +1,322 @@
+---
+export const prerender = false;
+
+import Admin from "../../layouts/Admin.astro";
+import { verifySession, getSessionFromRequest } from "../../lib/admin-auth";
+
+const token = getSessionFromRequest(Astro.request);
+if (!(await verifySession(token))) {
+  return Astro.redirect("/admin/login");
+}
+---
+
+<Admin title="Articles" activePage="articles">
+  <div class="admin-content">
+    <h2 class="page-title">Articles</h2>
+    <p class="page-subtitle">Gerez la publication de vos articles</p>
+
+    <div id="statusMessage"></div>
+
+    <!-- Stats -->
+    <div id="articleStats" class="article-stats" style="display:none;">
+      <span id="statsText"></span>
+    </div>
+
+    <!-- Warning if no published field -->
+    <div id="noPublishedWarning" style="display:none;"></div>
+
+    <!-- Articles list -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <div id="articlesList" class="articles-list"></div>
+
+    <!-- Deploy button -->
+    <div id="deployBar" class="save-bar" style="display:none;">
+      <div class="save-bar-inner">
+        <div class="save-bar-status" id="deployStatus">Pret a publier</div>
+        <button id="deployBtn" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          Publier les modifications
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <style is:global>
+    .article-stats {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+      color: #64748b;
+    }
+    .article-stats strong {
+      color: #0f172a;
+    }
+
+    .articles-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .article-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.875rem 1.25rem;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-bottom: none;
+      transition: background 0.1s;
+    }
+    .article-row:first-child { border-radius: 0.75rem 0.75rem 0 0; }
+    .article-row:last-child { border-bottom: 1px solid #e2e8f0; border-radius: 0 0 0.75rem 0.75rem; }
+    .article-row:only-child { border-radius: 0.75rem; border-bottom: 1px solid #e2e8f0; }
+    .article-row:hover { background: #fafafa; }
+
+    .article-img {
+      width: 48px;
+      height: 48px;
+      border-radius: 0.375rem;
+      object-fit: cover;
+      border: 1px solid #e2e8f0;
+      flex-shrink: 0;
+    }
+    .article-img-placeholder {
+      width: 48px;
+      height: 48px;
+      border-radius: 0.375rem;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .article-img-placeholder svg { width: 20px; height: 20px; color: #cbd5e1; }
+
+    .article-info { flex: 1; min-width: 0; }
+    .article-title {
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .article-meta {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 0.125rem;
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #94a3b8;
+    }
+    .empty-state p {
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+    }
+  </style>
+
+  <script>
+    interface Article {
+      _id: string;
+      title: string;
+      slug: string;
+      excerpt: string;
+      cover_image: string;
+      author: string;
+      category: string;
+      date: string;
+      published: boolean;
+    }
+
+    let articles: Article[] = [];
+    let publishedField: string | null = null;
+    let hasChanges = false;
+
+    function showMessage(text: string, type: "success" | "error") {
+      const el = document.getElementById("statusMessage")!;
+      const icon = type === "success"
+        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+      el.innerHTML = `<div class="alert alert-${type}">${icon} ${text}</div>`;
+      setTimeout(() => { el.innerHTML = ""; }, 5000);
+    }
+
+    function updateStats() {
+      const published = articles.filter((a) => a.published).length;
+      const total = articles.length;
+      const statsEl = document.getElementById("statsText")!;
+      statsEl.innerHTML = `<strong>${published}</strong> article(s) publie(s) sur <strong>${total}</strong>`;
+      document.getElementById("articleStats")!.style.display = "";
+    }
+
+    function formatDate(dateStr: string): string {
+      if (!dateStr) return "";
+      try {
+        return new Date(dateStr).toLocaleDateString("fr-FR", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        });
+      } catch {
+        return dateStr;
+      }
+    }
+
+    function renderArticles() {
+      const container = document.getElementById("articlesList")!;
+
+      if (articles.length === 0) {
+        container.innerHTML = '<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg><p>Aucun article trouve dans Bubble.</p></div>';
+        return;
+      }
+
+      container.innerHTML = articles.map((article, index) => {
+        const img = article.cover_image
+          ? `<img src="${article.cover_image}" alt="" class="article-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" /><div class="article-img-placeholder" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`
+          : `<div class="article-img-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
+
+        const toggleDisabled = !publishedField ? "disabled" : "";
+
+        return `
+          <div class="article-row" data-index="${index}">
+            ${img}
+            <div class="article-info">
+              <div class="article-title">${article.title || "Sans titre"}</div>
+              <div class="article-meta">
+                ${article.category ? `<span>${article.category}</span>` : ""}
+                ${article.date ? `<span>${formatDate(article.date)}</span>` : ""}
+              </div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" ${article.published ? "checked" : ""} ${toggleDisabled} data-id="${article._id}" data-index="${index}" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        `;
+      }).join("");
+
+      // Bind toggle events
+      container.querySelectorAll('.toggle input[type="checkbox"]').forEach((input) => {
+        input.addEventListener("change", async (e) => {
+          const checkbox = e.target as HTMLInputElement;
+          const id = checkbox.dataset.id!;
+          const idx = parseInt(checkbox.dataset.index!);
+          const newValue = checkbox.checked;
+
+          checkbox.disabled = true;
+
+          try {
+            const res = await fetch("/api/admin/bubble-update", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id,
+                field: publishedField,
+                value: newValue,
+              }),
+            });
+
+            if (res.status === 401) { window.location.href = "/admin/login"; return; }
+
+            const data = await res.json();
+            if (data.success) {
+              articles[idx].published = newValue;
+              updateStats();
+              hasChanges = true;
+              document.getElementById("deployBar")!.style.display = "";
+            } else {
+              checkbox.checked = !newValue;
+              showMessage(data.error || "Erreur lors de la mise a jour", "error");
+            }
+          } catch {
+            checkbox.checked = !newValue;
+            showMessage("Erreur reseau", "error");
+          } finally {
+            checkbox.disabled = false;
+          }
+        });
+      });
+    }
+
+    async function loadArticles() {
+      try {
+        const res = await fetch("/api/admin/articles");
+        if (res.status === 401) { window.location.href = "/admin/login"; return; }
+
+        const data = await res.json();
+        if (data.error) {
+          showMessage(data.error, "error");
+          document.getElementById("loadingOverlay")!.classList.add("hidden");
+          return;
+        }
+
+        articles = data.articles || [];
+        publishedField = data.publishedField || null;
+
+        if (!publishedField) {
+          document.getElementById("noPublishedWarning")!.style.display = "";
+          document.getElementById("noPublishedWarning")!.innerHTML =
+            '<div class="alert alert-warning"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Aucun champ "publie" n\'est mappe. Les toggles de publication sont desactives. <a href="/admin/settings" style="color:inherit;text-decoration:underline;">Configurer le mapping</a></div>';
+        }
+
+        updateStats();
+        renderArticles();
+        document.getElementById("loadingOverlay")!.classList.add("hidden");
+      } catch {
+        showMessage("Erreur de chargement des articles", "error");
+        document.getElementById("loadingOverlay")!.classList.add("hidden");
+      }
+    }
+
+    // Deploy button
+    document.getElementById("deployBtn")!.addEventListener("click", async () => {
+      const btn = document.getElementById("deployBtn") as HTMLButtonElement;
+      const status = document.getElementById("deployStatus")!;
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Publication...';
+      status.textContent = "Rebuild en cours...";
+
+      try {
+        const res = await fetch("/api/admin/deploy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showMessage(data.message || "Rebuild declenche !", "success");
+          status.textContent = "Publie avec succes";
+          hasChanges = false;
+        } else {
+          showMessage(data.error || "Erreur de publication", "error");
+          status.textContent = "Erreur";
+        }
+      } catch {
+        showMessage("Erreur reseau", "error");
+        status.textContent = "Erreur reseau";
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Publier les modifications';
+        setTimeout(() => { status.textContent = "Pret a publier"; }, 4000);
+      }
+    });
+
+    // Init
+    loadArticles();
+  </script>
+</Admin>
