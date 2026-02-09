@@ -930,7 +930,7 @@ if (!(await verifySession(token))) {
         var t=nav;
         if(nav.parentElement&&nav.parentElement!==document.body&&nav.parentElement.parentElement===document.body&&nav.parentElement.tagName==="DIV")t=nav.parentElement;
         [t,nav].forEach(function(el){
-          var c=(el.getAttribute("class")||"").replace(/\b-?translate-x-1\/2\b/g,"").replace(/\bleft-1\/2\b/g,"").replace(/\btop-\S+/g,"").replace(/\bmax-w-\S+/g,"").replace(/\bp[xlr]-\S+/g,"").replace(/\brounded-\S+/g,"").replace(/\s{2,}/g," ").trim();
+          var c=(el.getAttribute("class")||"").replace(/\\b-?translate-x-1\\/2\\b/g,"").replace(/\\bleft-1\\/2\\b/g,"").replace(/\\btop-\\S+/g,"").replace(/\\bmax-w-\\S+/g,"").replace(/\\bp[xlr]-\\S+/g,"").replace(/\\brounded-\\S+/g,"").replace(/\\s{2,}/g," ").trim();
           el.setAttribute("class",c);
         });
         var tc=t.getAttribute("class")||"";
@@ -938,7 +938,7 @@ if (!(await verifySession(token))) {
         t.setAttribute("class",tc.trim());
         var inner=nav.querySelector(":scope > div");
         if(inner){
-          var ic=(inner.getAttribute("class")||"").replace(/\brounded-\S+/g,"").replace(/\bmax-w-\S+/g,"").replace(/\bm[xlr]-\S+/g,"").replace(/\s{2,}/g," ").trim();
+          var ic=(inner.getAttribute("class")||"").replace(/\\brounded-\\S+/g,"").replace(/\\bmax-w-\\S+/g,"").replace(/\\bm[xlr]-\\S+/g,"").replace(/\\s{2,}/g," ").trim();
           inner.setAttribute("class",ic);
         }
       }
