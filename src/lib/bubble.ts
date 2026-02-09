@@ -259,7 +259,11 @@ async function fetchSwaggerRefMap(tableName: string): Promise<SwaggerRefInfo[]> 
   if (!defKey || !defs[defKey]?.properties) return [];
 
   const props = defs[defKey].properties;
+  const allDefNames = Object.keys(defs);
   const refs: SwaggerRefInfo[] = [];
+
+  // Regex pour détecter "'TypeName' represented by a unique ID" dans la description Bubble
+  const descRefRe = /\('([^']+)'\s+represented by a unique ID\)/;
 
   for (const [fieldName, fd] of Object.entries<any>(props)) {
     if (fd.$ref) {
@@ -270,6 +274,21 @@ async function fetchSwaggerRefMap(tableName: string): Promise<SwaggerRefInfo[]> 
       // Liste de références : { type: "array", items: { $ref: "..." } }
       const refType = fd.items.$ref.split("/").pop();
       if (refType) refs.push({ fieldName, refTypeName: refType, isList: true });
+    } else if (fd.description) {
+      // Bubble n'utilise pas toujours $ref — parfois la référence est indiquée
+      // dans la description : "('rubriques' represented by a unique ID)"
+      const m = fd.description.match(descRefRe);
+      if (m) {
+        const mentioned = m[1];
+        // Vérifier que ce type existe bien dans les definitions du swagger
+        const actualDef = allDefNames.find(
+          (d) => d.toLowerCase() === mentioned.toLowerCase()
+        );
+        if (actualDef) {
+          const isList = fd.type === "array";
+          refs.push({ fieldName, refTypeName: actualDef, isList });
+        }
+      }
     }
   }
 
@@ -284,6 +303,9 @@ const DISPLAY_FIELD_CANDIDATES = [
   "Titre",
   "Label",
   "Libelle",
+  "Text",
+  "Texte",
+  "text",
 ];
 
 function pickDisplayValue(record: Record<string, any>): string | undefined {
