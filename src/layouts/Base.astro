@@ -2,6 +2,8 @@
 import SEOHead from "../components/SEOHead.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import { getTemplateParts } from "../lib/template-parts";
+import { loadSiteConfig } from "../config";
 
 interface Props {
   title: string;
@@ -13,18 +15,42 @@ interface Props {
 }
 
 const props = Astro.props;
+const config = await loadSiteConfig();
+const tpl = await getTemplateParts(config);
+const accentColor = tpl?.accentColor || (config.blogConfig as any)?.accentColor || "#0284c7";
 ---
 
 <!doctype html>
 <html lang="fr">
   <head>
     <SEOHead {...props} />
+    {tpl && <Fragment set:html={tpl.headAssets} />}
+    {tpl && <Fragment set:html={tpl.headScripts} />}
+    {tpl && (
+      <style set:html={`
+        :root { --tpl-accent: ${accentColor}; }
+        .text-primary-600 { color: var(--tpl-accent) !important; }
+        .text-primary-700 { color: color-mix(in srgb, var(--tpl-accent) 85%, black) !important; }
+        .hover\\:text-primary-600:hover { color: var(--tpl-accent) !important; }
+        .hover\\:text-primary-700:hover { color: color-mix(in srgb, var(--tpl-accent) 85%, black) !important; }
+        .bg-primary-50 { background-color: color-mix(in srgb, var(--tpl-accent) 10%, white) !important; }
+        .bg-primary-600 { background-color: var(--tpl-accent) !important; }
+        .bg-primary-700 { background-color: color-mix(in srgb, var(--tpl-accent) 85%, black) !important; }
+        .hover\\:bg-primary-700:hover { background-color: color-mix(in srgb, var(--tpl-accent) 85%, black) !important; }
+        .group-hover\\:text-primary-600:hover { color: var(--tpl-accent) !important; }
+        .border-primary-600 { border-color: var(--tpl-accent) !important; }
+        .ring-primary-600 { --tw-ring-color: var(--tpl-accent) !important; }
+      `} />
+    )}
   </head>
-  <body class="min-h-screen flex flex-col bg-white text-gray-900 antialiased">
-    <Header />
+  <body
+    class="min-h-screen flex flex-col bg-white text-gray-900 antialiased"
+    style={tpl ? `font-family:${tpl.bodyFontFamily}` : undefined}
+  >
+    {tpl ? <Fragment set:html={tpl.navHtml} /> : <Header />}
     <main class="flex-1">
       <slot />
     </main>
-    <Footer />
+    {tpl ? <Fragment set:html={tpl.footerHtml} /> : <Footer />}
   </body>
 </html>
