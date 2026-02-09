@@ -921,6 +921,24 @@ if (!(await verifySession(token))) {
       }
       idx++;
     });
+    // Force nav fixed full-width
+    var nav=document.querySelector("nav");
+    if(nav){
+      var t=nav;
+      if(nav.parentElement&&nav.parentElement!==document.body&&nav.parentElement.parentElement===document.body&&nav.parentElement.tagName==="DIV")t=nav.parentElement;
+      [t,nav].forEach(function(el){
+        var c=(el.getAttribute("class")||"").replace(/\b-?translate-x-1\/2\b/g,"").replace(/\bleft-1\/2\b/g,"").replace(/\btop-\S+/g,"").replace(/\bmax-w-\S+/g,"").replace(/\bp[xlr]-\S+/g,"").replace(/\brounded-\S+/g,"").replace(/\s{2,}/g," ").trim();
+        el.setAttribute("class",c);
+      });
+      var tc=t.getAttribute("class")||"";
+      ["fixed","top-0","left-0","w-full","z-50"].forEach(function(fc){if(tc.indexOf(fc)===-1)tc+=" "+fc;});
+      t.setAttribute("class",tc.trim());
+      var inner=nav.querySelector(":scope > div");
+      if(inner){
+        var ic=(inner.getAttribute("class")||"").replace(/\brounded-\S+/g,"").replace(/\bmax-w-\S+/g,"").replace(/\bm[xlr]-\S+/g,"").replace(/\s{2,}/g," ").trim();
+        inner.setAttribute("class",ic);
+      }
+    }
     window.parent.postMessage({type:"template-schema",sections:sections},"*");
   }
   window.addEventListener("message",function(e){
