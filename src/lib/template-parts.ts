@@ -216,23 +216,40 @@ function escapeHtml(str: string): string {
 
 // ── Extraction helpers ──
 
-function forceFixedFullWidth(el: HTMLElement): void {
-  const cls = el.getAttribute("class") || "";
-  // Remove centering/offset classes that conflict with full-width fixed
-  const cleaned = cls
+function stripNavClasses(cls: string): string {
+  return cls
     .replace(/\b-?translate-x-1\/2\b/g, "")
     .replace(/\bleft-1\/2\b/g, "")
-    .replace(/\btop-6\b/g, "")
+    .replace(/\btop-\S+\b/g, "")
     .replace(/\bmax-w-\S+\b/g, "")
+    .replace(/\bp[xlr]-\S+\b/g, "")
+    .replace(/\brounded-\S+\b/g, "")
     .replace(/\s{2,}/g, " ")
     .trim();
-  // Ensure fixed + full width + top-0
+}
+
+function forceFixedFullWidth(el: HTMLElement): void {
+  const cleaned = stripNavClasses(el.getAttribute("class") || "");
   const fixedClasses = ["fixed", "top-0", "left-0", "w-full", "z-50"];
   const parts = cleaned.split(" ");
   for (const fc of fixedClasses) {
     if (!parts.includes(fc)) parts.push(fc);
   }
   el.setAttribute("class", parts.join(" "));
+
+  // Also flatten the first child div (inner container): remove rounding, margin, max-width
+  const firstChild = el.childNodes.find(
+    (n) => (n as HTMLElement).rawTagName?.toUpperCase() === "DIV"
+  ) as HTMLElement | undefined;
+  if (firstChild) {
+    const childCls = (firstChild.getAttribute("class") || "")
+      .replace(/\brounded-\S+\b/g, "")
+      .replace(/\bmax-w-\S+\b/g, "")
+      .replace(/\bm[xlr]-\S+\b/g, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+    firstChild.setAttribute("class", childCls);
+  }
 }
 
 function extractNav(root: HTMLElement): string {
@@ -250,6 +267,9 @@ function extractNav(root: HTMLElement): string {
     parent.rawTagName?.toUpperCase() === "DIV"
   ) {
     forceFixedFullWidth(parent);
+    // Also flatten the nav itself inside the wrapper
+    const navCls = stripNavClasses(nav.getAttribute("class") || "");
+    nav.setAttribute("class", navCls + " w-full");
     return parent.outerHTML;
   }
 

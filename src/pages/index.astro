@@ -19,26 +19,63 @@ if (landingTemplate && landingTemplate !== "custom") {
   try {
     let html = fs.readFileSync(templatePath, "utf-8");
 
-    // Force nav fixed full-width
+    // Force nav fixed full-width, no rounding, no side padding
     const root = parse(html, { comment: false });
     const nav = root.querySelector("nav");
     if (nav) {
       const body = root.querySelector("body");
       const parent = nav.parentNode as any;
-      const target = (parent && body && parent !== body && parent.parentNode === body && parent.rawTagName?.toUpperCase() === "DIV") ? parent : nav;
-      const cls = (target.getAttribute("class") || "")
-        .replace(/\b-?translate-x-1\/2\b/g, "")
-        .replace(/\bleft-1\/2\b/g, "")
-        .replace(/\btop-6\b/g, "")
-        .replace(/\bmax-w-\S+\b/g, "")
-        .replace(/\s{2,}/g, " ")
-        .trim();
-      const fixedClasses = ["fixed", "top-0", "left-0", "w-full", "z-50"];
-      const parts = cls.split(" ");
-      for (const fc of fixedClasses) {
-        if (!parts.includes(fc)) parts.push(fc);
+      const isWrapped = parent && body && parent !== body && parent.parentNode === body && parent.rawTagName?.toUpperCase() === "DIV";
+      const target = isWrapped ? parent : nav;
+
+      function stripAndFix(el: any) {
+        const cls = (el.getAttribute("class") || "")
+          .replace(/\b-?translate-x-1\/2\b/g, "")
+          .replace(/\bleft-1\/2\b/g, "")
+          .replace(/\btop-\S+\b/g, "")
+          .replace(/\bmax-w-\S+\b/g, "")
+          .replace(/\bp[xlr]-\S+\b/g, "")
+          .replace(/\brounded-\S+\b/g, "")
+          .replace(/\s{2,}/g, " ")
+          .trim();
+        const fixedClasses = ["fixed", "top-0", "left-0", "w-full", "z-50"];
+        const parts = cls.split(" ");
+        for (const fc of fixedClasses) {
+          if (!parts.includes(fc)) parts.push(fc);
+        }
+        el.setAttribute("class", parts.join(" "));
       }
-      target.setAttribute("class", parts.join(" "));
+
+      stripAndFix(target);
+
+      // Flatten nav inside wrapper if wrapped
+      if (isWrapped) {
+        const navCls = (nav.getAttribute("class") || "")
+          .replace(/\b-?translate-x-1\/2\b/g, "")
+          .replace(/\bleft-1\/2\b/g, "")
+          .replace(/\btop-\S+\b/g, "")
+          .replace(/\bmax-w-\S+\b/g, "")
+          .replace(/\bp[xlr]-\S+\b/g, "")
+          .replace(/\brounded-\S+\b/g, "")
+          .replace(/\s{2,}/g, " ")
+          .trim();
+        nav.setAttribute("class", navCls + " w-full");
+      }
+
+      // Flatten inner container div: remove rounding, margin, max-width
+      const innerDiv = nav.childNodes.find(
+        (n: any) => n.rawTagName?.toUpperCase() === "DIV"
+      ) as any;
+      if (innerDiv) {
+        const childCls = (innerDiv.getAttribute("class") || "")
+          .replace(/\brounded-\S+\b/g, "")
+          .replace(/\bmax-w-\S+\b/g, "")
+          .replace(/\bm[xlr]-\S+\b/g, "")
+          .replace(/\s{2,}/g, " ")
+          .trim();
+        innerDiv.setAttribute("class", childCls);
+      }
+
       html = root.toString();
     }
 
