@@ -48,7 +48,7 @@ const accentColor = tpl?.accentColor || (config.blogConfig as any)?.accentColor 
     style={tpl ? `font-family:${tpl.bodyFontFamily}` : undefined}
   >
     {tpl ? <Fragment set:html={tpl.navHtml} /> : <Header />}
-    <main class="flex-1">
+    <main class="flex-1 pt-20">
       <slot />
     </main>
     {tpl ? <Fragment set:html={tpl.footerHtml} /> : <Footer />}

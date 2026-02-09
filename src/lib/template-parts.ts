@@ -216,6 +216,25 @@ function escapeHtml(str: string): string {
 
 // ── Extraction helpers ──
 
+function forceFixedFullWidth(el: HTMLElement): void {
+  const cls = el.getAttribute("class") || "";
+  // Remove centering/offset classes that conflict with full-width fixed
+  const cleaned = cls
+    .replace(/\b-?translate-x-1\/2\b/g, "")
+    .replace(/\bleft-1\/2\b/g, "")
+    .replace(/\btop-6\b/g, "")
+    .replace(/\bmax-w-\S+\b/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  // Ensure fixed + full width + top-0
+  const fixedClasses = ["fixed", "top-0", "left-0", "w-full", "z-50"];
+  const parts = cleaned.split(" ");
+  for (const fc of fixedClasses) {
+    if (!parts.includes(fc)) parts.push(fc);
+  }
+  el.setAttribute("class", parts.join(" "));
+}
+
 function extractNav(root: HTMLElement): string {
   const nav = root.querySelector("nav");
   if (!nav) return "";
@@ -230,9 +249,11 @@ function extractNav(root: HTMLElement): string {
     parent.parentNode === body &&
     parent.rawTagName?.toUpperCase() === "DIV"
   ) {
+    forceFixedFullWidth(parent);
     return parent.outerHTML;
   }
 
+  forceFixedFullWidth(nav);
   return nav.outerHTML;
 }
 
