@@ -220,6 +220,135 @@ function bbcodeToHtml(bbcode: string): string {
 }
 
 // ============================================================
+// Résolution des IDs de références Bubble
+// ============================================================
+
+const BUBBLE_UID_RE = /^\d{13,}x\d{10,}$/;
+
+function isBubbleUniqueId(value: unknown): value is string {
+  return typeof value === "string" && BUBBLE_UID_RE.test(value);
+}
+
+interface SwaggerRefInfo {
+  fieldName: string;
+  refTypeName: string;
+  isList: boolean;
+}
+
+async function fetchSwaggerRefMap(tableName: string): Promise<SwaggerRefInfo[]> {
+  const creds = await getBubbleCredentials();
+  const swaggerUrl = `${creds.url}/meta/swagger.json`;
+
+  let spec: any;
+  try {
+    const res = await fetch(swaggerUrl);
+    if (!res.ok) return [];
+    spec = await res.json();
+  } catch {
+    return [];
+  }
+
+  // Trouver la définition du type dans le swagger
+  const defs = spec.definitions;
+  if (!defs) return [];
+
+  // Chercher la définition correspondant au tableName (case-insensitive)
+  const defKey = Object.keys(defs).find(
+    (k) => k.toLowerCase() === tableName.toLowerCase()
+  );
+  if (!defKey || !defs[defKey]?.properties) return [];
+
+  const props = defs[defKey].properties;
+  const refs: SwaggerRefInfo[] = [];
+
+  for (const [fieldName, fd] of Object.entries<any>(props)) {
+    if (fd.$ref) {
+      // Référence directe : "#/definitions/category"
+      const refType = fd.$ref.split("/").pop();
+      if (refType) refs.push({ fieldName, refTypeName: refType, isList: false });
+    } else if (fd.type === "array" && fd.items?.$ref) {
+      // Liste de références : { type: "array", items: { $ref: "..." } }
+      const refType = fd.items.$ref.split("/").pop();
+      if (refType) refs.push({ fieldName, refTypeName: refType, isList: true });
+    }
+  }
+
+  return refs;
+}
+
+const DISPLAY_FIELD_CANDIDATES = [
+  "Display",
+  "Name",
+  "Nom",
+  "Title",
+  "Titre",
+  "Label",
+  "Libelle",
+];
+
+function pickDisplayValue(record: Record<string, any>): string | undefined {
+  // Essayer les champs candidats connus
+  for (const field of DISPLAY_FIELD_CANDIDATES) {
+    if (typeof record[field] === "string" && record[field].trim()) {
+      return record[field].trim();
+    }
+  }
+  // Fallback : premier champ string non-système
+  const systemKeys = new Set(["_id", "_type", "Created By", "Created Date", "Modified Date", "Slug"]);
+  for (const [key, val] of Object.entries(record)) {
+    if (!systemKeys.has(key) && typeof val === "string" && val.trim() && !BUBBLE_UID_RE.test(val)) {
+      return val.trim();
+    }
+  }
+  return undefined;
+}
+
+async function buildRefLookup(refInfos: SwaggerRefInfo[]): Promise<Map<string, string>> {
+  const lookup = new Map<string, string>();
+  // Dédupliquer les types référencés
+  const uniqueTypes = [...new Set(refInfos.map((r) => r.refTypeName))];
+
+  const fetches = uniqueTypes.map(async (typeName) => {
+    try {
+      const records = await bubbleFetchAll<Record<string, any>>(typeName);
+      for (const rec of records) {
+        const id = rec._id;
+        if (!id) continue;
+        const display = pickDisplayValue(rec);
+        if (display) lookup.set(id, display);
+      }
+    } catch {
+      // Erreur silencieuse : les IDs non résolus resteront bruts
+    }
+  });
+
+  await Promise.all(fetches);
+  return lookup;
+}
+
+// Cache module-level pour la résolution de références
+let _refInfoCache: Map<string, SwaggerRefInfo[]> = new Map();
+let _refLookupCache: Map<string, Map<string, string>> = new Map();
+
+async function getRefResolutionData(
+  tableName: string
+): Promise<{ refInfos: SwaggerRefInfo[]; lookup: Map<string, string> }> {
+  if (_refInfoCache.has(tableName) && _refLookupCache.has(tableName)) {
+    return {
+      refInfos: _refInfoCache.get(tableName)!,
+      lookup: _refLookupCache.get(tableName)!,
+    };
+  }
+
+  const refInfos = await fetchSwaggerRefMap(tableName);
+  const lookup = refInfos.length > 0 ? await buildRefLookup(refInfos) : new Map<string, string>();
+
+  _refInfoCache.set(tableName, refInfos);
+  _refLookupCache.set(tableName, lookup);
+  return { refInfos, lookup };
+}
+
+// ============================================================
 // Type article normalisé (après mapping)
 // ============================================================
 
@@ -273,7 +402,36 @@ export async function getContentConfig(): Promise<{ table: string; mapping: Bubb
   return { table: _contentTable, mapping: _fieldMapping };
 }
 
-function mapBubbleRecord(raw: Record<string, any>, mapping: BubbleFieldMapping): BubblePost {
+function resolveRef(
+  value: unknown,
+  lookup: Map<string, string>
+): string {
+  if (Array.isArray(value)) {
+    return value
+      .map((v) => (isBubbleUniqueId(v) ? lookup.get(v) ?? v : String(v)))
+      .join(", ");
+  }
+  if (isBubbleUniqueId(value)) {
+    return lookup.get(value) ?? value;
+  }
+  return typeof value === "string" ? value : "";
+}
+
+function mapBubbleRecord(
+  raw: Record<string, any>,
+  mapping: BubbleFieldMapping,
+  refInfos: SwaggerRefInfo[] = [],
+  lookup: Map<string, string> = new Map()
+): BubblePost {
+  // Champs qui peuvent contenir des IDs de référence
+  const refFieldNames = new Set(refInfos.map((r) => r.fieldName));
+
+  const rawAuthor = mapping.author ? raw[mapping.author] : "";
+  const rawCategory = mapping.category ? raw[mapping.category] : "";
+
+  const authorIsRef = mapping.author && refFieldNames.has(mapping.author);
+  const categoryIsRef = mapping.category && refFieldNames.has(mapping.category);
+
   return {
     _id: raw._id || "",
     date: (mapping.date ? raw[mapping.date] : raw["Created Date"]) || raw["Created Date"] || "",
@@ -282,14 +440,15 @@ function mapBubbleRecord(raw: Record<string, any>, mapping: BubbleFieldMapping):
     content: bbcodeToHtml(raw[mapping.content] || ""),
     excerpt: raw[mapping.excerpt] || "",
     cover_image: mapping.coverImage ? (raw[mapping.coverImage] || "") : "",
-    author: mapping.author ? (raw[mapping.author] || "") : "",
-    category: mapping.category ? (raw[mapping.category] || "") : "",
+    author: authorIsRef ? resolveRef(rawAuthor, lookup) : (rawAuthor || ""),
+    category: categoryIsRef ? resolveRef(rawCategory, lookup) : (rawCategory || ""),
     published: mapping.published ? Boolean(raw[mapping.published]) : true,
   };
 }
 
 export async function getAllPosts(): Promise<BubblePost[]> {
   const { table, mapping } = await getContentConfig();
+  const { refInfos, lookup } = await getRefResolutionData(table);
 
   const sortField = mapping.date || "Created_Date";
 
@@ -298,7 +457,7 @@ export async function getAllPosts(): Promise<BubblePost[]> {
     descending: true,
   });
 
-  return rawResults.map((raw) => mapBubbleRecord(raw, mapping));
+  return rawResults.map((raw) => mapBubbleRecord(raw, mapping, refInfos, lookup));
 }
 
 export async function bubblePatch(
@@ -324,6 +483,7 @@ export async function bubblePatch(
 
 export async function getPosts(): Promise<BubblePost[]> {
   const { table, mapping } = await getContentConfig();
+  const { refInfos, lookup } = await getRefResolutionData(table);
 
   const constraints: FetchOptions["constraints"] = [];
   if (mapping.published) {
@@ -338,13 +498,14 @@ export async function getPosts(): Promise<BubblePost[]> {
     descending: true,
   });
 
-  return rawResults.map((raw) => mapBubbleRecord(raw, mapping));
+  return rawResults.map((raw) => mapBubbleRecord(raw, mapping, refInfos, lookup));
 }
 
 export async function getPostBySlug(
   slug: string
 ): Promise<BubblePost | undefined> {
   const { table, mapping } = await getContentConfig();
+  const { refInfos, lookup } = await getRefResolutionData(table);
 
   const constraints: FetchOptions["constraints"] = [
     { key: mapping.slug, constraint_type: "equals", value: slug },
@@ -359,7 +520,7 @@ export async function getPostBySlug(
   });
 
   if (!rawResults[0]) return undefined;
-  return mapBubbleRecord(rawResults[0], mapping);
+  return mapBubbleRecord(rawResults[0], mapping, refInfos, lookup);
 }
 
 export { bubbleFetch, bubbleFetchAll };

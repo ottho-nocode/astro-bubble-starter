@@ -898,15 +898,14 @@ if (!(await verifySession(token))) {
       if(["SCRIPT","STYLE","LINK","META"].indexOf(sec.tagName)!==-1)return;
       var sid="section-"+idx;
       sec.setAttribute("data-section-id",sid);
-      var heading=sec.querySelector("h1,h2,h3");
-      var label=heading?heading.textContent.trim().substring(0,50):sec.tagName.toLowerCase()+" "+(idx+1);
+      var label="Section "+(idx+1);
       var texts=[],images=[],ti=0;
       sec.querySelectorAll(TAGS).forEach(function(el){
         var t=(el.textContent||"").trim();
         if(t.length<2)return;
-        var ch=el.querySelectorAll(TAGS),skip=false;
-        ch.forEach(function(c){if((c.textContent||"").trim().length>2)skip=true;});
-        if(skip)return;
+        var isH=/^H[1-6]$/.test(el.tagName);
+        if(!isH&&el.closest("h1,h2,h3,h4,h5,h6"))return;
+        if(!isH){var ch=el.querySelectorAll(TAGS),skip=false;ch.forEach(function(c){if((c.textContent||"").trim().length>2)skip=true;});if(skip)return;}
         var key=sid+"-text-"+ti;
         el.setAttribute("data-edit-id",key);
         texts.push({key:key,tag:el.tagName.toLowerCase(),text:t.substring(0,500),href:el.tagName==="A"?el.getAttribute("href"):undefined});
