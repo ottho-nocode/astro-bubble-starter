@@ -1,6 +1,7 @@
 ---
 import fs from "node:fs";
 import path from "node:path";
+import { parse } from "node-html-parser";
 import Base from "../layouts/Base.astro";
 import Hero from "../components/Hero.astro";
 import Features from "../components/Features.astro";
@@ -17,6 +18,29 @@ if (landingTemplate && landingTemplate !== "custom") {
   const templatePath = path.join(process.cwd(), "public", "templates", `${landingTemplate}.html`);
   try {
     let html = fs.readFileSync(templatePath, "utf-8");
+
+    // Force nav fixed full-width
+    const root = parse(html, { comment: false });
+    const nav = root.querySelector("nav");
+    if (nav) {
+      const body = root.querySelector("body");
+      const parent = nav.parentNode as any;
+      const target = (parent && body && parent !== body && parent.parentNode === body && parent.rawTagName?.toUpperCase() === "DIV") ? parent : nav;
+      const cls = (target.getAttribute("class") || "")
+        .replace(/\b-?translate-x-1\/2\b/g, "")
+        .replace(/\bleft-1\/2\b/g, "")
+        .replace(/\btop-6\b/g, "")
+        .replace(/\bmax-w-\S+\b/g, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+      const fixedClasses = ["fixed", "top-0", "left-0", "w-full", "z-50"];
+      const parts = cls.split(" ");
+      for (const fc of fixedClasses) {
+        if (!parts.includes(fc)) parts.push(fc);
+      }
+      target.setAttribute("class", parts.join(" "));
+      html = root.toString();
+    }
 
     // Récupérer les overrides stockés pour ce template
     const allOverrides = (config as any).templateOverrides || {};
