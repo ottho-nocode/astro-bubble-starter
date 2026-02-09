@@ -876,7 +876,12 @@ if (!(await verifySession(token))) {
       if (!templateOverrides[selectedTemplate]) {
         templateOverrides[selectedTemplate] = { texts: {}, images: {}, hrefs: {}, hiddenSections: [] };
       }
-      return templateOverrides[selectedTemplate];
+      const ov = templateOverrides[selectedTemplate];
+      if (!ov.texts) ov.texts = {};
+      if (!ov.images) ov.images = {};
+      if (!ov.hrefs) ov.hrefs = {};
+      if (!ov.hiddenSections) ov.hiddenSections = [];
+      return ov;
     }
 
     // ── Scan script injected into iframe (runs inside template) ──
@@ -980,7 +985,7 @@ if (!(await verifySession(token))) {
               <label class="toggle-switch"><input type="checkbox" ${isHidden ? "" : "checked"} data-section-vis="${section.id}" /><span class="toggle-track"><span class="toggle-thumb"></span></span></label>
             </div>`;
         section.texts.forEach((t: any) => {
-          const val = overrides.texts?.[t.key] || t.text;
+          const val = overrides.texts?.[t.key] ?? t.text;
           const escaped = esc(val);
           const tag = t.tag;
           const lbl = esc(t.text.substring(0, 40)) + (t.text.length > 40 ? "..." : "");
@@ -992,13 +997,13 @@ if (!(await verifySession(token))) {
               <input type="text" data-tpl-edit="${t.key}" data-tpl-type="text" value="${escaped}" /></div>`;
           }
           if (t.href !== undefined) {
-            const hrefVal = overrides.hrefs?.[t.key] || t.href || "";
+            const hrefVal = overrides.hrefs?.[t.key] ?? t.href ?? "";
             html += `<div class="ctrl-group"><label><span class="edit-tag">url</span> Lien</label>
               <input type="url" data-tpl-edit="${t.key}" data-tpl-type="href" value="${esc(hrefVal)}" placeholder="https://..." /></div>`;
           }
         });
         section.images.forEach((img: any) => {
-          const src = overrides.images?.[img.key] || img.src;
+          const src = overrides.images?.[img.key] ?? img.src;
           html += `<div class="ctrl-group"><label><span class="edit-tag">img</span> ${esc(img.alt || "Image")}</label>
             <input type="url" data-tpl-edit="${img.key}" data-tpl-type="image" value="${esc(src)}" placeholder="URL de l'image" />
             <img class="img-thumb" src="${esc(src)}" onerror="this.style.display='none'" onload="this.style.display='block'" /></div>`;

@@ -45,10 +45,10 @@ export const POST: APIRoute = async ({ request }) => {
         const hidden = (currentOverrides?.hiddenSections || []).includes(section.id);
         let desc = `## Section "${section.label}" (id: ${section.id}, ${hidden ? "MASQUÉE" : "visible"})\n`;
         section.texts.forEach((t: any) => {
-          const current = currentOverrides?.texts?.[t.key] || t.text;
+          const current = currentOverrides?.texts?.[t.key] ?? t.text;
           desc += `  - [${t.key}] <${t.tag}>: "${current}"\n`;
           if (t.href !== undefined) {
-            const href = currentOverrides?.hrefs?.[t.key] || t.href;
+            const href = currentOverrides?.hrefs?.[t.key] ?? t.href;
             desc += `    lien: ${href}\n`;
           }
         });
@@ -70,12 +70,12 @@ Réponds UNIQUEMENT avec un objet JSON valide (pas de markdown, pas de backticks
 - "visibleSections": ["id"] — sections à RENDRE VISIBLES
 
 Règles :
-- N'inclus QUE les champs qui doivent changer
+- IMPORTANT : Quand l'utilisateur demande d'adapter le site à un thème, secteur ou entreprise, modifie TOUS les textes de TOUTES les sections visibles pour les rendre cohérents avec la demande. Ne laisse aucun texte générique ou sans rapport.
 - Adapte les textes au ton, contexte et secteur demandé
 - Garde les textes concis et percutants (style landing page)
 - Les textes doivent être en français sauf indication contraire
 - Pour les images, utilise des URLs Unsplash valides si besoin (format: https://images.unsplash.com/photo-xxx?w=800&q=80)
-- Ne touche pas aux éléments que l'utilisateur n'a pas mentionnés`;
+- Si l'utilisateur demande un changement ciblé sur un élément spécifique, ne modifie que cet élément`;
 
     const userMessage = `Structure actuelle du template :\n\n${schemaDescription}\n\nDemande : ${prompt}`;
 
