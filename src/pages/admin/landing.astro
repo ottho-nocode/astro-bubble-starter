@@ -879,54 +879,86 @@ if (!(await verifySession(token))) {
       return templateOverrides[selectedTemplate];
     }
 
-    function scanTemplateDOM(doc: Document): any[] {
-      const TAGS = "h1,h2,h3,h4,h5,h6,p,a,button,span,li";
-      let sectionEls: Element[] = Array.from(doc.querySelectorAll("section, header, footer, nav"));
-      if (sectionEls.length === 0) {
-        sectionEls = Array.from(doc.body.children).filter((el: Element) =>
-          !["SCRIPT","STYLE","LINK","META","BR","HR"].includes(el.tagName)
-        );
-      }
-      const sections: any[] = [];
-      let idx = 0;
-      sectionEls.forEach((sec: Element) => {
-        if (["SCRIPT","STYLE","LINK","META"].includes(sec.tagName)) return;
-        const sectionId = "section-" + idx;
-        sec.setAttribute("data-section-id", sectionId);
-        const heading = sec.querySelector("h1,h2,h3");
-        const label = heading
-          ? heading.textContent!.trim().substring(0, 50)
-          : sec.tagName.toLowerCase() + " " + (idx + 1);
-        const texts: any[] = [];
-        const images: any[] = [];
-        let textIdx = 0;
-        sec.querySelectorAll(TAGS).forEach((el: Element) => {
-          const text = el.textContent?.trim() || "";
-          if (text.length < 2) return;
-          const children = el.querySelectorAll(TAGS);
-          let skip = false;
-          children.forEach((c: Element) => { if ((c.textContent?.trim() || "").length > 2) skip = true; });
-          if (skip) return;
-          const key = sectionId + "-text-" + textIdx;
-          el.setAttribute("data-edit-id", key);
-          texts.push({
-            key, tag: el.tagName.toLowerCase(), text: text.substring(0, 500),
-            href: el.tagName === "A" ? el.getAttribute("href") : undefined,
-          });
-          textIdx++;
-        });
-        sec.querySelectorAll("img").forEach((img: Element, m: number) => {
-          const key = sectionId + "-img-" + m;
-          img.setAttribute("data-edit-id", key);
-          images.push({ key, src: img.getAttribute("src") || "", alt: img.getAttribute("alt") || "" });
-        });
-        if (texts.length > 0 || images.length > 0) {
-          sections.push({ id: sectionId, tag: sec.tagName.toLowerCase(), label, texts, images });
-        }
-        idx++;
+    // ── Scan script injected into iframe (runs inside template) ──
+    const IFRAME_SCAN_SCRIPT = `<script>
+(function(){
+  var TAGS="h1,h2,h3,h4,h5,h6,p,a,button,span,li";
+  function scan(){
+    var sectionEls=document.querySelectorAll("section,header,footer,nav");
+    var elements=sectionEls.length>0?Array.from(sectionEls):Array.from(document.body.children).filter(function(el){
+      return["SCRIPT","STYLE","LINK","META","BR","HR"].indexOf(el.tagName)===-1;
+    });
+    var sections=[],idx=0;
+    elements.forEach(function(sec){
+      if(["SCRIPT","STYLE","LINK","META"].indexOf(sec.tagName)!==-1)return;
+      var sid="section-"+idx;
+      sec.setAttribute("data-section-id",sid);
+      var heading=sec.querySelector("h1,h2,h3");
+      var label=heading?heading.textContent.trim().substring(0,50):sec.tagName.toLowerCase()+" "+(idx+1);
+      var texts=[],images=[],ti=0;
+      sec.querySelectorAll(TAGS).forEach(function(el){
+        var t=(el.textContent||"").trim();
+        if(t.length<2)return;
+        var ch=el.querySelectorAll(TAGS),skip=false;
+        ch.forEach(function(c){if((c.textContent||"").trim().length>2)skip=true;});
+        if(skip)return;
+        var key=sid+"-text-"+ti;
+        el.setAttribute("data-edit-id",key);
+        texts.push({key:key,tag:el.tagName.toLowerCase(),text:t.substring(0,500),href:el.tagName==="A"?el.getAttribute("href"):undefined});
+        ti++;
       });
-      return sections;
+      sec.querySelectorAll("img").forEach(function(img,m){
+        var key=sid+"-img-"+m;
+        img.setAttribute("data-edit-id",key);
+        images.push({key:key,src:img.getAttribute("src")||"",alt:img.getAttribute("alt")||""});
+      });
+      if(texts.length>0||images.length>0){
+        sections.push({id:sid,tag:sec.tagName.toLowerCase(),label:label,texts:texts,images:images});
+      }
+      idx++;
+    });
+    window.parent.postMessage({type:"template-schema",sections:sections},"*");
+  }
+  window.addEventListener("message",function(e){
+    if(!e.data||!e.data.type)return;
+    if(e.data.type==="update-element"){
+      var el=document.querySelector('[data-edit-id="'+e.data.key+'"]');
+      if(!el)return;
+      if(e.data.editType==="text")el.textContent=e.data.value;
+      else if(e.data.editType==="image")el.src=e.data.value;
+      else if(e.data.editType==="href")el.href=e.data.value;
     }
+    if(e.data.type==="toggle-section"){
+      var sec=document.querySelector('[data-section-id="'+e.data.sectionId+'"]');
+      if(sec)sec.style.display=e.data.visible?"":"none";
+    }
+    if(e.data.type==="apply-overrides"){
+      var ov=e.data.overrides;
+      Object.keys(ov.texts||{}).forEach(function(k){var el=document.querySelector('[data-edit-id="'+k+'"]');if(el)el.textContent=ov.texts[k];});
+      Object.keys(ov.images||{}).forEach(function(k){var el=document.querySelector('[data-edit-id="'+k+'"]');if(el)el.src=ov.images[k];});
+      Object.keys(ov.hrefs||{}).forEach(function(k){var el=document.querySelector('[data-edit-id="'+k+'"]');if(el)el.href=ov.hrefs[k];});
+      (ov.hiddenSections||[]).forEach(function(sid){var el=document.querySelector('[data-section-id="'+sid+'"]');if(el)el.style.display="none";});
+    }
+  });
+  if(document.readyState==="complete"||document.readyState==="interactive"){setTimeout(scan,200);}
+  else{document.addEventListener("DOMContentLoaded",function(){setTimeout(scan,200);});}
+})();
+<\/script>`;
+
+    // ── Listen for schema from iframe ──
+    window.addEventListener("message", (e: MessageEvent) => {
+      if (e.data?.type === "template-schema") {
+        const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
+        if (e.source !== iframe?.contentWindow) return;
+        templateSchema = e.data.sections;
+        buildTemplateSections(templateSchema);
+        // Apply stored overrides
+        const ov = getCurrentOverrides();
+        if (iframe.contentWindow) {
+          iframe.contentWindow.postMessage({ type: "apply-overrides", overrides: ov }, "*");
+        }
+      }
+    });
 
     function buildTemplateSections(schema: any[]) {
       const container = document.getElementById("templateSections")!;
@@ -1010,25 +1042,16 @@ if (!(await verifySession(token))) {
 
     function updateTemplateElement(key: string, value: string, type: string) {
       const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
-      try {
-        const doc = iframe.contentDocument;
-        if (!doc) return;
-        const el = doc.querySelector(`[data-edit-id="${key}"]`);
-        if (!el) return;
-        if (type === "text") el.textContent = value;
-        else if (type === "image") (el as HTMLImageElement).src = value;
-        else if (type === "href") (el as HTMLAnchorElement).href = value;
-      } catch { /* cross-origin fallback */ }
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.postMessage({ type: "update-element", key, editType: type, value }, "*");
+      }
     }
 
     function toggleSectionVisibility(sectionId: string, visible: boolean) {
       const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
-      try {
-        const doc = iframe.contentDocument;
-        if (!doc) return;
-        const el = doc.querySelector(`[data-section-id="${sectionId}"]`) as HTMLElement | null;
-        if (el) el.style.display = visible ? "" : "none";
-      } catch {}
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.postMessage({ type: "toggle-section", sectionId, visible }, "*");
+      }
       const ov = getCurrentOverrides();
       if (visible) {
         ov.hiddenSections = (ov.hiddenSections || []).filter((s: string) => s !== sectionId);
@@ -1038,25 +1061,6 @@ if (!(await verifySession(token))) {
           ov.hiddenSections.push(sectionId);
         }
       }
-    }
-
-    function applyOverridesToDOM(doc: Document, overrides: any) {
-      Object.entries(overrides.texts || {}).forEach(([key, value]) => {
-        const el = doc.querySelector(`[data-edit-id="${key}"]`);
-        if (el) el.textContent = value as string;
-      });
-      Object.entries(overrides.images || {}).forEach(([key, value]) => {
-        const el = doc.querySelector(`[data-edit-id="${key}"]`);
-        if (el) (el as HTMLImageElement).src = value as string;
-      });
-      Object.entries(overrides.hrefs || {}).forEach(([key, value]) => {
-        const el = doc.querySelector(`[data-edit-id="${key}"]`);
-        if (el) (el as HTMLAnchorElement).href = value as string;
-      });
-      (overrides.hiddenSections || []).forEach((sectionId: string) => {
-        const el = doc.querySelector(`[data-section-id="${sectionId}"]`) as HTMLElement | null;
-        if (el) el.style.display = "none";
-      });
     }
 
     function toggleSectionsMode(isTemplate: boolean) {
@@ -1092,7 +1096,11 @@ if (!(await verifySession(token))) {
       const input = document.getElementById("aiPromptInput") as HTMLTextAreaElement;
       const sendBtn = document.getElementById("aiPromptSend") as HTMLButtonElement;
       const prompt = input.value.trim();
-      if (!prompt || selectedTemplate === "custom" || templateSchema.length === 0) return;
+      if (!prompt) return;
+      if (selectedTemplate === "custom" || templateSchema.length === 0) {
+        showMessage("Selectionnez un template et attendez son chargement", "error");
+        return;
+      }
 
       sendBtn.disabled = true;
       sendBtn.innerHTML = '<div class="spinner" style="width:12px;height:12px;border-width:2px;"></div>';
@@ -1159,13 +1167,7 @@ if (!(await verifySession(token))) {
       }
 
       // Rebuild controls to reflect AI changes
-      try {
-        const doc = iframe.contentDocument;
-        if (doc) {
-          templateSchema = scanTemplateDOM(doc);
-          buildTemplateSections(templateSchema);
-        }
-      } catch {}
+      buildTemplateSections(templateSchema);
     }
 
     // ── Gather config from controls ──
@@ -1310,20 +1312,13 @@ ${ctaSectionHTML(cfg)}
         const cfg = gatherConfig();
         iframe.srcdoc = generatePreviewHTML(cfg);
       } else {
-        const html = await loadTemplateHTML(selectedTemplate);
-        iframe.onload = null;
-        iframe.onload = () => {
-          setTimeout(() => {
-            try {
-              const doc = iframe.contentDocument;
-              if (!doc) return;
-              templateSchema = scanTemplateDOM(doc);
-              buildTemplateSections(templateSchema);
-              const ov = getCurrentOverrides();
-              applyOverridesToDOM(doc, ov);
-            } catch { /* cross-origin fallback */ }
-          }, 300);
-        };
+        let html = await loadTemplateHTML(selectedTemplate);
+        // Inject scan + communication script into the template
+        if (html.includes("</body>")) {
+          html = html.replace("</body>", IFRAME_SCAN_SCRIPT + "</body>");
+        } else {
+          html += IFRAME_SCAN_SCRIPT;
+        }
         iframe.srcdoc = html;
       }
     }
