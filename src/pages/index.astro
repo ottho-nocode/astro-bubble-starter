@@ -28,6 +28,8 @@ if (landingTemplate && landingTemplate !== "custom") {
       const isWrapped = parent && body && parent !== body && parent.parentNode === body && parent.rawTagName?.toUpperCase() === "DIV";
       const target = isWrapped ? parent : nav;
 
+      const NAV_FIXED_STYLE = "position:fixed;top:0;left:0;width:100%;z-index:50;border-radius:0;padding-left:0;padding-right:0;max-width:none;";
+
       function stripAndFix(el: any) {
         const cls = (el.getAttribute("class") || "")
           .replace(/\b-?translate-x-1\/2\b/g, "")
@@ -44,6 +46,8 @@ if (landingTemplate && landingTemplate !== "custom") {
           if (!parts.includes(fc)) parts.push(fc);
         }
         el.setAttribute("class", parts.join(" "));
+        const existing = el.getAttribute("style") || "";
+        el.setAttribute("style", NAV_FIXED_STYLE + existing);
       }
 
       stripAndFix(target);
@@ -74,6 +78,8 @@ if (landingTemplate && landingTemplate !== "custom") {
           .replace(/\s{2,}/g, " ")
           .trim();
         innerDiv.setAttribute("class", childCls);
+        const childStyle = innerDiv.getAttribute("style") || "";
+        innerDiv.setAttribute("style", "border-radius:0;max-width:none;" + childStyle);
       }
 
       html = root.toString();

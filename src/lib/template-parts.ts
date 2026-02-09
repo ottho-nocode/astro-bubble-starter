@@ -228,6 +228,9 @@ function stripNavClasses(cls: string): string {
     .trim();
 }
 
+const NAV_FIXED_STYLE = "position:fixed;top:0;left:0;width:100%;z-index:50;border-radius:0;padding-left:0;padding-right:0;max-width:none;";
+const NAV_INNER_STYLE = "border-radius:0;max-width:none;";
+
 function forceFixedFullWidth(el: HTMLElement): void {
   const cleaned = stripNavClasses(el.getAttribute("class") || "");
   const fixedClasses = ["fixed", "top-0", "left-0", "w-full", "z-50"];
@@ -236,6 +239,9 @@ function forceFixedFullWidth(el: HTMLElement): void {
     if (!parts.includes(fc)) parts.push(fc);
   }
   el.setAttribute("class", parts.join(" "));
+  // Inline style as fallback to guarantee fixed full-width
+  const existing = el.getAttribute("style") || "";
+  el.setAttribute("style", NAV_FIXED_STYLE + existing);
 
   // Also flatten the first child div (inner container): remove rounding, margin, max-width
   const firstChild = el.childNodes.find(
@@ -249,6 +255,8 @@ function forceFixedFullWidth(el: HTMLElement): void {
       .replace(/\s{2,}/g, " ")
       .trim();
     firstChild.setAttribute("class", childCls);
+    const childStyle = firstChild.getAttribute("style") || "";
+    firstChild.setAttribute("style", NAV_INNER_STYLE + childStyle);
   }
 }
 

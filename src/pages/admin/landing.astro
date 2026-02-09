@@ -936,10 +936,12 @@ if (!(await verifySession(token))) {
         var tc=t.getAttribute("class")||"";
         ["fixed","top-0","left-0","w-full","z-50"].forEach(function(fc){if(tc.indexOf(fc)===-1)tc+=" "+fc;});
         t.setAttribute("class",tc.trim());
+        t.style.cssText="position:fixed;top:0;left:0;width:100%;z-index:50;border-radius:0;padding-left:0;padding-right:0;max-width:none;"+t.style.cssText;
         var inner=nav.querySelector(":scope > div");
         if(inner){
           var ic=(inner.getAttribute("class")||"").replace(/\\brounded-\\S+/g,"").replace(/\\bmax-w-\\S+/g,"").replace(/\\bm[xlr]-\\S+/g,"").replace(/\\s{2,}/g," ").trim();
           inner.setAttribute("class",ic);
+          inner.style.cssText="border-radius:0;max-width:none;"+inner.style.cssText;
         }
       }
       sent=true;
