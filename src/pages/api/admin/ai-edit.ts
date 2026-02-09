@@ -62,12 +62,15 @@ export const POST: APIRoute = async ({ request }) => {
 
     const systemPrompt = `Tu es un assistant d'édition de landing page. Tu reçois la structure actuelle d'un template avec toutes ses sections, textes et images. L'utilisateur te demande de modifier le contenu.
 
-Réponds UNIQUEMENT avec un objet JSON valide (pas de markdown, pas de backticks, pas de texte avant/après) contenant :
-- "texts": { "clé": "nouvelle valeur" } — pour les textes à modifier
-- "hrefs": { "clé": "nouvelle URL" } — pour les liens à modifier
-- "images": { "clé": "nouvelle URL d'image" } — pour les images à changer
-- "hiddenSections": ["id"] — sections à MASQUER
-- "visibleSections": ["id"] — sections à RENDRE VISIBLES
+FORMAT DE RÉPONSE OBLIGATOIRE — retourne UNIQUEMENT un objet JSON valide (pas de markdown, pas de backticks, pas d'explication) avec cette structure exacte :
+{
+  "texts": { "section-N-text-M": "nouvelle valeur" },
+  "hrefs": { "section-N-text-M": "https://..." },
+  "images": { "section-N-img-M": "https://..." },
+  "hiddenSections": ["section-N"],
+  "visibleSections": ["section-N"]
+}
+N'inclus que les clés que tu modifies. Les textes vont dans "texts", les images dans "images", les liens dans "hrefs".
 
 Règles :
 - IMPORTANT : Quand l'utilisateur demande d'adapter le site à un thème, secteur ou entreprise, modifie TOUS les textes de TOUTES les sections visibles pour les rendre cohérents avec la demande. Ne laisse aucun texte générique ou sans rapport.
@@ -114,6 +117,30 @@ Règles :
         JSON.stringify({ error: "Réponse IA invalide", raw: content }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
+    }
+
+    // Normaliser la réponse : si l'IA retourne un format plat (clés section-*
+    // directement au lieu de les nester sous "texts"/"images"/"hrefs"), restructurer
+    const keyPattern = /^section-\d+-(?:text|img)-\d+$/;
+    const hasNestedFormat = changes.texts || changes.images || changes.hrefs ||
+      changes.hiddenSections || changes.visibleSections;
+
+    if (!hasNestedFormat) {
+      const normalized: Record<string, any> = { texts: {}, images: {}, hrefs: {} };
+      for (const [key, value] of Object.entries(changes)) {
+        if (keyPattern.test(key)) {
+          if (key.includes("-img-")) {
+            normalized.images[key] = value;
+          } else {
+            normalized.texts[key] = value;
+          }
+        }
+      }
+      // Ne garder que les clés non vides
+      if (Object.keys(normalized.texts).length === 0) delete normalized.texts;
+      if (Object.keys(normalized.images).length === 0) delete normalized.images;
+      if (Object.keys(normalized.hrefs).length === 0) delete normalized.hrefs;
+      changes = normalized;
     }
 
     return new Response(
