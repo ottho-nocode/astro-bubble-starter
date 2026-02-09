@@ -12,6 +12,62 @@ function getEnv(key: string): string {
   return vite || "";
 }
 
+/**
+ * Tente de réparer un JSON tronqué (réponse coupée par max_tokens).
+ * Ajoute les accolades/crochets manquants pour fermer l'objet.
+ */
+function repairTruncatedJson(raw: string): string {
+  // Extraire le contenu à partir du premier {
+  const start = raw.indexOf("{");
+  if (start === -1) return raw;
+  let json = raw.slice(start);
+
+  // Compter les délimiteurs ouverts/fermés
+  let braces = 0;
+  let brackets = 0;
+  let inString = false;
+  let escape = false;
+
+  for (const ch of json) {
+    if (escape) { escape = false; continue; }
+    if (ch === "\\") { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === "{") braces++;
+    else if (ch === "}") braces--;
+    else if (ch === "[") brackets++;
+    else if (ch === "]") brackets--;
+  }
+
+  // Si on est au milieu d'une string, la fermer
+  if (inString) json += '"';
+
+  // Supprimer la dernière entrée potentiellement tronquée (clé sans valeur ou valeur coupée)
+  // On cherche la dernière virgule avant la fin et on coupe après
+  const lastComplete = Math.max(json.lastIndexOf('",'), json.lastIndexOf('"],'), json.lastIndexOf("},"));
+  if (lastComplete > 0 && (braces > 0 || brackets > 0)) {
+    json = json.slice(0, lastComplete + 1);
+    // Recompter
+    braces = 0; brackets = 0; inString = false; escape = false;
+    for (const ch of json) {
+      if (escape) { escape = false; continue; }
+      if (ch === "\\") { escape = true; continue; }
+      if (ch === '"') { inString = !inString; continue; }
+      if (inString) continue;
+      if (ch === "{") braces++;
+      else if (ch === "}") braces--;
+      else if (ch === "[") brackets++;
+      else if (ch === "]") brackets--;
+    }
+  }
+
+  // Fermer les délimiteurs ouverts
+  while (brackets > 0) { json += "]"; brackets--; }
+  while (braces > 0) { json += "}"; braces--; }
+
+  return json;
+}
+
 export const POST: APIRoute = async ({ request }) => {
   const token = getSessionFromRequest(request);
   if (!(await verifySession(token))) {
@@ -39,8 +95,16 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
+    // Limiter le schema pour rester dans les limites de tokens :
+    // max 8 textes par section, max 2 images par section
+    const trimmedSchema = schema.map((section: any) => ({
+      ...section,
+      texts: section.texts.slice(0, 8),
+      images: section.images.slice(0, 2),
+    }));
+
     // Build a structured description of the template
-    const schemaDescription = schema
+    const schemaDescription = trimmedSchema
       .map((section: any) => {
         const hidden = (currentOverrides?.hiddenSections || []).includes(section.id);
         let desc = `## Section "${section.label}" (id: ${section.id}, ${hidden ? "MASQUÉE" : "visible"})\n`;
@@ -91,7 +155,7 @@ Règles :
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 4096,
+        max_tokens: 8192,
         system: systemPrompt,
         messages: [{ role: "user", content: userMessage }],
       }),
@@ -107,16 +171,29 @@ Règles :
 
     const data = await response.json();
     const content = data.content?.[0]?.text || "{}";
+    const truncated = data.stop_reason === "max_tokens";
 
     let changes;
     try {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
-      changes = JSON.parse(jsonMatch ? jsonMatch[0] : content);
+      let jsonStr = jsonMatch ? jsonMatch[0] : content;
+
+      // Si la réponse a été tronquée, tenter de réparer le JSON
+      if (truncated || !jsonMatch) {
+        jsonStr = repairTruncatedJson(content);
+      }
+
+      changes = JSON.parse(jsonStr);
     } catch {
-      return new Response(
-        JSON.stringify({ error: "Réponse IA invalide", raw: content }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
+      // Dernier recours : tenter la réparation sur le contenu brut
+      try {
+        changes = JSON.parse(repairTruncatedJson(content));
+      } catch {
+        return new Response(
+          JSON.stringify({ error: "Réponse IA invalide", raw: content.substring(0, 500) }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Normaliser la réponse : si l'IA retourne un format plat (clés section-*
@@ -136,7 +213,6 @@ Règles :
           }
         }
       }
-      // Ne garder que les clés non vides
       if (Object.keys(normalized.texts).length === 0) delete normalized.texts;
       if (Object.keys(normalized.images).length === 0) delete normalized.images;
       if (Object.keys(normalized.hrefs).length === 0) delete normalized.hrefs;
