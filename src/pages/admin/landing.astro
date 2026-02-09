@@ -888,61 +888,69 @@ if (!(await verifySession(token))) {
     const IFRAME_SCAN_SCRIPT = `<script>
 (function(){
   var TAGS="h1,h2,h3,h4,h5,h6,p,a,button,span,li";
+  var sent=false;
   function scan(){
-    var sectionEls=document.querySelectorAll("section,header,footer,nav");
-    var elements=sectionEls.length>0?Array.from(sectionEls):Array.from(document.body.children).filter(function(el){
-      return["SCRIPT","STYLE","LINK","META","BR","HR"].indexOf(el.tagName)===-1;
-    });
-    var sections=[],idx=0;
-    elements.forEach(function(sec){
-      if(["SCRIPT","STYLE","LINK","META"].indexOf(sec.tagName)!==-1)return;
-      var sid="section-"+idx;
-      sec.setAttribute("data-section-id",sid);
-      var label="Section "+(idx+1);
-      var texts=[],images=[],ti=0;
-      sec.querySelectorAll(TAGS).forEach(function(el){
-        var t=(el.textContent||"").trim();
-        if(t.length<2)return;
-        var isH=/^H[1-6]$/.test(el.tagName);
-        if(!isH&&el.closest("h1,h2,h3,h4,h5,h6"))return;
-        if(!isH){var ch=el.querySelectorAll(TAGS),skip=false;ch.forEach(function(c){if((c.textContent||"").trim().length>2)skip=true;});if(skip)return;}
-        var key=sid+"-text-"+ti;
-        el.setAttribute("data-edit-id",key);
-        texts.push({key:key,tag:el.tagName.toLowerCase(),text:t.substring(0,500),href:el.tagName==="A"?el.getAttribute("href"):undefined});
-        ti++;
+    try{
+      if(sent)return;
+      var sectionEls=document.querySelectorAll("section,header,footer,nav");
+      var elements=sectionEls.length>0?Array.from(sectionEls):Array.from(document.body.children).filter(function(el){
+        return["SCRIPT","STYLE","LINK","META","BR","HR"].indexOf(el.tagName)===-1;
       });
-      sec.querySelectorAll("img").forEach(function(img,m){
-        var key=sid+"-img-"+m;
-        img.setAttribute("data-edit-id",key);
-        images.push({key:key,src:img.getAttribute("src")||"",alt:img.getAttribute("alt")||""});
+      var sections=[],idx=0;
+      elements.forEach(function(sec){
+        if(["SCRIPT","STYLE","LINK","META"].indexOf(sec.tagName)!==-1)return;
+        var sid="section-"+idx;
+        sec.setAttribute("data-section-id",sid);
+        var label="Section "+(idx+1);
+        var texts=[],images=[],ti=0;
+        sec.querySelectorAll(TAGS).forEach(function(el){
+          var t=(el.textContent||"").trim();
+          if(t.length<2)return;
+          var isH=/^H[1-6]$/.test(el.tagName);
+          if(!isH&&el.closest("h1,h2,h3,h4,h5,h6"))return;
+          if(!isH){var ch=el.querySelectorAll(TAGS),skip=false;ch.forEach(function(c){if((c.textContent||"").trim().length>2)skip=true;});if(skip)return;}
+          var key=sid+"-text-"+ti;
+          el.setAttribute("data-edit-id",key);
+          texts.push({key:key,tag:el.tagName.toLowerCase(),text:t.substring(0,500),href:el.tagName==="A"?el.getAttribute("href"):undefined});
+          ti++;
+        });
+        sec.querySelectorAll("img").forEach(function(img,m){
+          var key=sid+"-img-"+m;
+          img.setAttribute("data-edit-id",key);
+          images.push({key:key,src:img.getAttribute("src")||"",alt:img.getAttribute("alt")||""});
+        });
+        if(texts.length>0||images.length>0){
+          sections.push({id:sid,tag:sec.tagName.toLowerCase(),label:label,texts:texts,images:images});
+        }
+        idx++;
       });
-      if(texts.length>0||images.length>0){
-        sections.push({id:sid,tag:sec.tagName.toLowerCase(),label:label,texts:texts,images:images});
+      // Force nav fixed full-width
+      var nav=document.querySelector("nav");
+      if(nav){
+        var t=nav;
+        if(nav.parentElement&&nav.parentElement!==document.body&&nav.parentElement.parentElement===document.body&&nav.parentElement.tagName==="DIV")t=nav.parentElement;
+        [t,nav].forEach(function(el){
+          var c=(el.getAttribute("class")||"").replace(/\b-?translate-x-1\/2\b/g,"").replace(/\bleft-1\/2\b/g,"").replace(/\btop-\S+/g,"").replace(/\bmax-w-\S+/g,"").replace(/\bp[xlr]-\S+/g,"").replace(/\brounded-\S+/g,"").replace(/\s{2,}/g," ").trim();
+          el.setAttribute("class",c);
+        });
+        var tc=t.getAttribute("class")||"";
+        ["fixed","top-0","left-0","w-full","z-50"].forEach(function(fc){if(tc.indexOf(fc)===-1)tc+=" "+fc;});
+        t.setAttribute("class",tc.trim());
+        var inner=nav.querySelector(":scope > div");
+        if(inner){
+          var ic=(inner.getAttribute("class")||"").replace(/\brounded-\S+/g,"").replace(/\bmax-w-\S+/g,"").replace(/\bm[xlr]-\S+/g,"").replace(/\s{2,}/g," ").trim();
+          inner.setAttribute("class",ic);
+        }
       }
-      idx++;
-    });
-    // Force nav fixed full-width
-    var nav=document.querySelector("nav");
-    if(nav){
-      var t=nav;
-      if(nav.parentElement&&nav.parentElement!==document.body&&nav.parentElement.parentElement===document.body&&nav.parentElement.tagName==="DIV")t=nav.parentElement;
-      [t,nav].forEach(function(el){
-        var c=(el.getAttribute("class")||"").replace(/\b-?translate-x-1\/2\b/g,"").replace(/\bleft-1\/2\b/g,"").replace(/\btop-\S+/g,"").replace(/\bmax-w-\S+/g,"").replace(/\bp[xlr]-\S+/g,"").replace(/\brounded-\S+/g,"").replace(/\s{2,}/g," ").trim();
-        el.setAttribute("class",c);
-      });
-      var tc=t.getAttribute("class")||"";
-      ["fixed","top-0","left-0","w-full","z-50"].forEach(function(fc){if(tc.indexOf(fc)===-1)tc+=" "+fc;});
-      t.setAttribute("class",tc.trim());
-      var inner=nav.querySelector(":scope > div");
-      if(inner){
-        var ic=(inner.getAttribute("class")||"").replace(/\brounded-\S+/g,"").replace(/\bmax-w-\S+/g,"").replace(/\bm[xlr]-\S+/g,"").replace(/\s{2,}/g," ").trim();
-        inner.setAttribute("class",ic);
-      }
+      sent=true;
+      window.parent.postMessage({type:"template-schema",sections:sections},"*");
+    }catch(err){
+      window.parent.postMessage({type:"scan-error",error:err.message},"*");
     }
-    window.parent.postMessage({type:"template-schema",sections:sections},"*");
   }
   window.addEventListener("message",function(e){
     if(!e.data||!e.data.type)return;
+    if(e.data.type==="request-rescan"){scan();return;}
     if(e.data.type==="update-element"){
       var el=document.querySelector('[data-edit-id="'+e.data.key+'"]');
       if(!el)return;
@@ -962,25 +970,45 @@ if (!(await verifySession(token))) {
       (ov.hiddenSections||[]).forEach(function(sid){var el=document.querySelector('[data-section-id="'+sid+'"]');if(el)el.style.display="none";});
     }
   });
-  if(document.readyState==="complete"||document.readyState==="interactive"){setTimeout(scan,200);}
-  else{document.addEventListener("DOMContentLoaded",function(){setTimeout(scan,200);});}
+  // Multiple trigger points to ensure scan runs even if external scripts block DOMContentLoaded
+  if(document.readyState==="complete"||document.readyState==="interactive"){setTimeout(scan,300);}
+  else{document.addEventListener("DOMContentLoaded",function(){setTimeout(scan,300);});}
+  // Fallback: window.onload fires after all resources (including external scripts) are loaded
+  window.addEventListener("load",function(){setTimeout(scan,100);});
+  // Ultimate fallback: try after 3 seconds regardless
+  setTimeout(scan,3000);
 })();
 <\/script>`;
 
     // ── Listen for schema from iframe ──
     window.addEventListener("message", (e: MessageEvent) => {
       if (e.data?.type === "template-schema") {
-        const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
-        if (e.source !== iframe?.contentWindow) return;
         templateSchema = e.data.sections;
         buildTemplateSections(templateSchema);
         // Apply stored overrides
+        const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
         const ov = getCurrentOverrides();
-        if (iframe.contentWindow) {
+        if (iframe?.contentWindow) {
           iframe.contentWindow.postMessage({ type: "apply-overrides", overrides: ov }, "*");
         }
       }
+      if (e.data?.type === "scan-error") {
+        console.warn("[landing] Scan error in iframe:", e.data.error);
+      }
     });
+
+    // Fallback: if iframe loads but scan message never arrived, request a re-scan
+    const lpIframe = document.getElementById("lpPreview") as HTMLIFrameElement;
+    if (lpIframe) {
+      lpIframe.addEventListener("load", () => {
+        // Give the scan script time to run first (it has 300ms delay)
+        setTimeout(() => {
+          if (selectedTemplate !== "custom" && templateSchema.length === 0 && lpIframe.contentWindow) {
+            lpIframe.contentWindow.postMessage({ type: "request-rescan" }, "*");
+          }
+        }, 1000);
+      });
+    }
 
     function buildTemplateSections(schema: any[]) {
       const container = document.getElementById("templateSections")!;
