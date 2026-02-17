@@ -1,25 +1,10 @@
-import { getSiteConfig, type BubbleFieldMapping } from "./supabase";
+import type { BubbleFieldMapping } from "./supabase";
 
-// Credentials dynamiques : Supabase > env vars > fallback
-let _bubbleApiUrl: string | undefined;
-let _bubbleApiToken: string | undefined;
+// Credentials depuis env vars uniquement
+const _bubbleApiUrl = import.meta.env.BUBBLE_API_URL || "";
+const _bubbleApiToken = import.meta.env.BUBBLE_API_TOKEN || "";
 
-async function getBubbleCredentials() {
-  if (_bubbleApiUrl && _bubbleApiToken) return { url: _bubbleApiUrl, token: _bubbleApiToken };
-
-  try {
-    const config = await getSiteConfig();
-    if (config?.bubbleApiUrl && config?.bubbleApiToken) {
-      _bubbleApiUrl = config.bubbleApiUrl;
-      _bubbleApiToken = config.bubbleApiToken;
-      return { url: _bubbleApiUrl, token: _bubbleApiToken };
-    }
-  } catch {
-    // Fallback sur env vars
-  }
-
-  _bubbleApiUrl = import.meta.env.BUBBLE_API_URL || "";
-  _bubbleApiToken = import.meta.env.BUBBLE_API_TOKEN || "";
+function getBubbleCredentials() {
   return { url: _bubbleApiUrl, token: _bubbleApiToken };
 }
 
@@ -49,7 +34,7 @@ async function bubbleFetch<T>(
   typeName: string,
   options: FetchOptions = {}
 ): Promise<T[]> {
-  const creds = await getBubbleCredentials();
+  const creds = getBubbleCredentials();
   const params = new URLSearchParams();
 
   if (options.constraints) {
@@ -85,7 +70,7 @@ async function bubbleFetchAll<T>(
   typeName: string,
   options: FetchOptions = {}
 ): Promise<T[]> {
-  const creds = await getBubbleCredentials();
+  const creds = getBubbleCredentials();
   const limit = options.limit ?? 100;
   let cursor = 0;
   let all: T[] = [];
@@ -236,7 +221,7 @@ interface SwaggerRefInfo {
 }
 
 async function fetchSwaggerRefMap(tableName: string): Promise<SwaggerRefInfo[]> {
-  const creds = await getBubbleCredentials();
+  const creds = getBubbleCredentials();
   const swaggerUrl = `${creds.url}/meta/swagger.json`;
 
   let spec: any;
@@ -388,40 +373,24 @@ export interface BubblePost {
 }
 
 // Mapping par défaut (backward compatible)
-const DEFAULT_TABLE = "post";
+const DEFAULT_TABLE = "articles";
 const DEFAULT_MAPPING: BubbleFieldMapping = {
-  title: "title",
-  content: "content",
-  excerpt: "excerpt",
-  coverImage: "cover_image",
-  slug: "Slug",
-  author: "author",
-  category: "category",
+  title: "Titre",
+  content: "Contenu",
+  excerpt: "",
+  coverImage: "Thumbnail",
+  slug: "",
+  author: "Auteur",
+  category: "OS-categorie",
   date: "Created Date",
-  published: "published",
 };
 
-// Cache de la config contenu
-let _contentTable: string | undefined;
-let _fieldMapping: BubbleFieldMapping | undefined;
+// Champ Option Set pour le statut de publication
+const STATUS_FIELD = "Os-article_status";
+const STATUS_PUBLISHED = "Publié";
 
 export async function getContentConfig(): Promise<{ table: string; mapping: BubbleFieldMapping }> {
-  if (_contentTable && _fieldMapping) return { table: _contentTable, mapping: _fieldMapping };
-
-  try {
-    const config = await getSiteConfig();
-    if (config?.bubbleContentTable && config?.bubbleFieldMapping) {
-      _contentTable = config.bubbleContentTable;
-      _fieldMapping = config.bubbleFieldMapping;
-      return { table: _contentTable, mapping: _fieldMapping };
-    }
-  } catch {
-    // Fallback sur defaults
-  }
-
-  _contentTable = DEFAULT_TABLE;
-  _fieldMapping = DEFAULT_MAPPING;
-  return { table: _contentTable, mapping: _fieldMapping };
+  return { table: DEFAULT_TABLE, mapping: DEFAULT_MAPPING };
 }
 
 function resolveRef(
@@ -437,6 +406,25 @@ function resolveRef(
     return lookup.get(value) ?? value;
   }
   return typeof value === "string" ? value : "";
+}
+
+function generateExcerpt(text: string, maxLength = 160): string {
+  if (!text) return "";
+  const plain = text
+    .replace(/\[[^\]]*\]/g, "")
+    .replace(/<[^>]*>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (plain.length <= maxLength) return plain;
+  return plain.slice(0, maxLength).replace(/\s\S*$/, "") + "...";
+}
+
+function slugify(text: string): string {
+  return text
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function mapBubbleRecord(
@@ -457,14 +445,14 @@ function mapBubbleRecord(
   return {
     _id: raw._id || "",
     date: (mapping.date ? raw[mapping.date] : raw["Created Date"]) || raw["Created Date"] || "",
-    slug: raw[mapping.slug] || raw.Slug || "",
+    slug: raw[mapping.slug] || raw.Slug || slugify(raw[mapping.title] || raw._id || ""),
     title: raw[mapping.title] || "",
     content: bbcodeToHtml(raw[mapping.content] || ""),
-    excerpt: raw[mapping.excerpt] || "",
+    excerpt: raw[mapping.excerpt] || generateExcerpt(raw[mapping.content] || ""),
     cover_image: mapping.coverImage ? (raw[mapping.coverImage] || "") : "",
     author: authorIsRef ? resolveRef(rawAuthor, lookup) : (rawAuthor || ""),
     category: categoryIsRef ? resolveRef(rawCategory, lookup) : (rawCategory || ""),
-    published: mapping.published ? Boolean(raw[mapping.published]) : true,
+    published: raw[STATUS_FIELD] === STATUS_PUBLISHED,
   };
 }
 
@@ -487,7 +475,7 @@ export async function bubblePatch(
   recordId: string,
   data: Record<string, any>
 ): Promise<void> {
-  const creds = await getBubbleCredentials();
+  const creds = getBubbleCredentials();
   const url = `${creds.url}/obj/${typeName}/${recordId}`;
   const res = await fetch(url, {
     method: "PATCH",
@@ -507,15 +495,14 @@ export async function getPosts(): Promise<BubblePost[]> {
   const { table, mapping } = await getContentConfig();
   const { refInfos, lookup } = await getRefResolutionData(table);
 
-  const constraints: FetchOptions["constraints"] = [];
-  if (mapping.published) {
-    constraints.push({ key: mapping.published, constraint_type: "equals", value: true });
-  }
+  const constraints: FetchOptions["constraints"] = [
+    { key: STATUS_FIELD, constraint_type: "equals", value: STATUS_PUBLISHED },
+  ];
 
   const sortField = mapping.date || "Created_Date";
 
   const rawResults = await bubbleFetchAll<Record<string, any>>(table, {
-    constraints: constraints.length > 0 ? constraints : undefined,
+    constraints,
     sort_field: sortField,
     descending: true,
   });
@@ -531,10 +518,8 @@ export async function getPostBySlug(
 
   const constraints: FetchOptions["constraints"] = [
     { key: mapping.slug, constraint_type: "equals", value: slug },
+    { key: STATUS_FIELD, constraint_type: "equals", value: STATUS_PUBLISHED },
   ];
-  if (mapping.published) {
-    constraints.push({ key: mapping.published, constraint_type: "equals", value: true });
-  }
 
   const rawResults = await bubbleFetch<Record<string, any>>(table, {
     constraints,
@@ -543,6 +528,87 @@ export async function getPostBySlug(
 
   if (!rawResults[0]) return undefined;
   return mapBubbleRecord(rawResults[0], mapping, refInfos, lookup);
+}
+
+// ============================================================
+// Company-vitrine (landing page dynamique)
+// ============================================================
+
+export interface CompanyInfo {
+  _id: string;
+  nom: string;
+  slogan: string;
+  description: string;
+  logo: string;
+  cover: string;
+  email: string;
+  telephone: string;
+  adresse: string;
+  vitrineType: string;
+  // Landing config fields (from Bubble)
+  page_bg_color?: string;
+  hero_visible?: boolean;
+  hero_show_logo?: boolean;
+  hero_title_font_size?: string;
+  hero_title_color?: string;
+  hero_show_slogan?: boolean;
+  hero_slogan_font_size?: string;
+  hero_slogan_color?: string;
+  desc_visible?: boolean;
+  desc_text_color?: string;
+  desc_font_size?: string;
+  footer_visible?: boolean;
+  footer_bg_color?: string;
+  footer_text_color?: string;
+}
+
+let _companyInfoCache: CompanyInfo | null = null;
+
+export async function getCompanyInfo(): Promise<CompanyInfo | null> {
+  if (_companyInfoCache) return _companyInfoCache;
+
+  try {
+    const results = await bubbleFetch<Record<string, any>>("company-vitrine", {
+      limit: 1,
+    });
+    const raw = results[0];
+    if (!raw) return null;
+
+    _companyInfoCache = {
+      _id: raw._id || "",
+      nom: raw["Nom"] || raw["nom"] || "",
+      slogan: raw["Slogan"] || raw["slogan"] || "",
+      description: raw["Description"] || raw["description"] || "",
+      logo: raw["Logo"] || raw["logo"] || "",
+      cover: raw["Cover"] || raw["cover"] || "",
+      email: raw["Email"] || raw["email"] || "",
+      telephone: String(raw["Telephone"] || raw["telephone"] || raw["Téléphone"] || raw["téléphone"] || ""),
+      adresse: raw["adresse"]?.address || raw["Adresse"]?.address || "",
+      vitrineType: raw["Vitrine-type"] || raw["vitrine-type"] || "",
+      // Landing config fields
+      page_bg_color: raw["page_bg_color"] || undefined,
+      hero_visible: raw["hero_visible"] ?? undefined,
+      hero_show_logo: raw["hero_show_logo"] ?? undefined,
+      hero_title_font_size: raw["hero_title_font_size"] != null ? String(raw["hero_title_font_size"]) : undefined,
+      hero_title_color: raw["hero_title_color"] || undefined,
+      hero_show_slogan: raw["hero_show_slogan"] ?? undefined,
+      hero_slogan_font_size: raw["hero_slogan_font_size"] != null ? String(raw["hero_slogan_font_size"]) : undefined,
+      hero_slogan_color: raw["hero_slogan_color"] || undefined,
+      desc_visible: raw["desc_visible"] ?? undefined,
+      desc_text_color: raw["desc_text_color"] || undefined,
+      desc_font_size: raw["desc_font_size"] != null ? String(raw["desc_font_size"]) : undefined,
+      footer_visible: raw["footer_visible"] ?? undefined,
+      footer_bg_color: raw["footer_bg_color"] || undefined,
+      footer_text_color: raw["footer_text_color"] || undefined,
+    };
+    return _companyInfoCache;
+  } catch {
+    return null;
+  }
+}
+
+export function clearCompanyInfoCache(): void {
+  _companyInfoCache = null;
 }
 
 export { bubbleFetch, bubbleFetchAll };

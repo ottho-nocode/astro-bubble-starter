@@ -2,12 +2,11 @@ import { getSiteConfig, type SiteConfig } from "./lib/supabase";
 
 // Defaults statiques (utilisés si Supabase n'est pas connecté)
 export const siteConfig = {
-  name: import.meta.env.SITE_NAME || "Mon Site",
-  description:
-    import.meta.env.SITE_DESCRIPTION || "Description du site pour le SEO",
-  url: import.meta.env.SITE_URL || "https://example.com",
+  name: "Mon site",
+  description: "Site vitrine",
+  url: "",
   defaultLanguage: "fr",
-  bubbleAppUrl: "https://VOTRE-APP.bubbleapps.io",
+  bubbleAppUrl: "",
   bubbleApiUrl: "",
   bubbleApiToken: "",
   bubbleContentTable: "post",
@@ -24,7 +23,7 @@ export const siteConfig = {
   },
   blogTemplate: "grid",
   blogConfig: {
-    accentColor: "#0284c7",
+    accentColor: "#5700FF",
     cardBorderRadius: "md",
     cardShadow: "sm",
     titleSize: "md",
@@ -32,7 +31,8 @@ export const siteConfig = {
     showSearch: false,
     showCategoryFilter: false,
     heroTitle: "Blog",
-    heroSubtitle: "Decouvrez nos derniers articles et actualites.",
+    heroSubtitle:
+      "Actualités, articles, interviews, tout ce qui touche au No-Code de près ou de loin.",
     heroBackground: "white",
     showExcerpt: true,
     showCategoryBadge: true,
@@ -40,43 +40,6 @@ export const siteConfig = {
     showAuthor: false,
     showCoverImage: true,
     readMoreText: "Lire la suite",
-  },
-  hero: {
-    title: "Votre titre principal ici",
-    subtitle:
-      "Une description convaincante de votre produit ou service qui donne envie d'en savoir plus.",
-    ctaText: "Commencer",
-    ctaLink: "#",
-  },
-  features: {
-    title: "Pourquoi nous choisir",
-    items: [
-      {
-        title: "Fonctionnalité 1",
-        description:
-          "Description courte de cette fonctionnalité et de sa valeur ajoutée.",
-        icon: "1",
-      },
-      {
-        title: "Fonctionnalité 2",
-        description:
-          "Description courte de cette fonctionnalité et de sa valeur ajoutée.",
-        icon: "2",
-      },
-      {
-        title: "Fonctionnalité 3",
-        description:
-          "Description courte de cette fonctionnalité et de sa valeur ajoutée.",
-        icon: "3",
-      },
-    ],
-  },
-  cta: {
-    title: "Prêt à commencer ?",
-    description:
-      "Rejoignez-nous et découvrez comment notre solution peut vous aider.",
-    ctaText: "Essayer gratuitement",
-    ctaLink: "#",
   },
 } satisfies SiteConfig;
 

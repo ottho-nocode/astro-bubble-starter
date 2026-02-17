@@ -2,8 +2,8 @@
 import SEOHead from "../components/SEOHead.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import { getTemplateParts } from "../lib/template-parts";
-import { loadSiteConfig } from "../config";
+import { getCompanyInfo, clearCompanyInfoCache } from "../lib/bubble";
+import { setLandingConfigFromCompany, getLandingConfig } from "../lib/landing-config";
 
 interface Props {
   title: string;
@@ -15,42 +15,120 @@ interface Props {
 }
 
 const props = Astro.props;
-const config = await loadSiteConfig();
-const tpl = await getTemplateParts(config);
-const accentColor = tpl?.accentColor || (config.blogConfig as any)?.accentColor || "#0284c7";
+clearCompanyInfoCache();
+const company = await getCompanyInfo();
+if (company) setLandingConfigFromCompany(company);
+const cfg = getLandingConfig();
+const companyName = company?.nom || "Mon site";
+const companyLogo = company?.logo || "";
 ---
 
 <!doctype html>
-<html lang="fr">
+<html lang="fr" style="color-scheme: light">
   <head>
     <SEOHead {...props} />
-    {tpl && <Fragment set:html={tpl.headAssets} />}
-    {tpl && <Fragment set:html={tpl.headScripts} />}
-    {tpl && (
-      <style set:html={`
-        :root { --tpl-accent: ${accentColor}; }
-        .text-primary-600 { color: var(--tpl-accent) !important; }
-        .text-primary-700 { color: color-mix(in srgb, var(--tpl-accent) 85%, black) !important; }
-        .hover\\:text-primary-600:hover { color: var(--tpl-accent) !important; }
-        .hover\\:text-primary-700:hover { color: color-mix(in srgb, var(--tpl-accent) 85%, black) !important; }
-        .bg-primary-50 { background-color: color-mix(in srgb, var(--tpl-accent) 10%, white) !important; }
-        .bg-primary-600 { background-color: var(--tpl-accent) !important; }
-        .bg-primary-700 { background-color: color-mix(in srgb, var(--tpl-accent) 85%, black) !important; }
-        .hover\\:bg-primary-700:hover { background-color: color-mix(in srgb, var(--tpl-accent) 85%, black) !important; }
-        .group-hover\\:text-primary-600:hover { color: var(--tpl-accent) !important; }
-        .border-primary-600 { border-color: var(--tpl-accent) !important; }
-        .ring-primary-600 { --tw-ring-color: var(--tpl-accent) !important; }
-      `} />
-    )}
+    <meta name="theme-color" content="#FAFAF8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
-  <body
-    class="min-h-screen flex flex-col bg-white text-gray-900 antialiased"
-    style={tpl ? `font-family:${tpl.bodyFontFamily}` : undefined}
-  >
-    {tpl ? <Fragment set:html={tpl.navHtml} /> : <Header />}
-    <main class="flex-1 pt-20">
+  <body class="min-h-screen flex flex-col text-gray-900 antialiased font-body overflow-x-hidden" style={`background:${cfg.global.pageBgColor};touch-action:manipulation;`}>
+    <!-- Skip link (accessibilité) -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:bg-primary-600 focus:px-4 focus:py-2 focus:text-white focus:text-sm focus:font-semibold">
+      Aller au contenu principal
+    </a>
+
+    <Header name={companyName} logo={companyLogo} />
+    <main id="main-content" class="flex-1">
       <slot />
     </main>
-    {tpl ? <Fragment set:html={tpl.footerHtml} /> : <Footer />}
+    <Footer name={companyName} />
+
+    <!-- Scroll reveal animations -->
+    <style>
+      .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .reveal-delay-1 { transition-delay: 0.08s; }
+      .reveal-delay-2 { transition-delay: 0.16s; }
+      .reveal-delay-3 { transition-delay: 0.24s; }
+      .reveal-delay-4 { transition-delay: 0.32s; }
+      .reveal-delay-5 { transition-delay: 0.40s; }
+      .reveal-delay-6 { transition-delay: 0.48s; }
+
+      /* Respect prefers-reduced-motion */
+      @media (prefers-reduced-motion: reduce) {
+        .reveal {
+          opacity: 1;
+          transform: none;
+          transition: none;
+        }
+        .reveal-delay-1, .reveal-delay-2, .reveal-delay-3,
+        .reveal-delay-4, .reveal-delay-5, .reveal-delay-6 {
+          transition-delay: 0s;
+        }
+      }
+
+      /* Press effect global pour boutons gradient */
+      .btn-press:active {
+        transform: scale(0.97);
+      }
+
+      /* Text balance sur headings */
+      h1, h2, h3 {
+        text-wrap: balance;
+      }
+    </style>
+    <script>
+      const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!prefersReduced) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+              }
+            });
+          },
+          { threshold: 0.1, rootMargin: "0px 0px -40px 0px" }
+        );
+        document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+      } else {
+        document.querySelectorAll(".reveal").forEach((el) => el.classList.add("visible"));
+      }
+
+      // Auto-reload when Bubble data changes
+      (function() {
+        let lastModified = "";
+        const POLL_INTERVAL = 5000;
+
+        async function checkForUpdate() {
+          try {
+            const res = await fetch("/api/check-update", { cache: "no-store" });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data.modified) return;
+            if (lastModified && data.modified !== lastModified) {
+              location.reload();
+              return;
+            }
+            lastModified = data.modified;
+          } catch { /* silently ignore */ }
+        }
+
+        // Initial check to capture current value
+        checkForUpdate();
+        setInterval(checkForUpdate, POLL_INTERVAL);
+      })();
+    </script>
   </body>
 </html>

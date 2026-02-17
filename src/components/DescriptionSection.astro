@@ -1,0 +1,25 @@
+---
+import { getLandingConfig, resolveFontSize } from "../lib/landing-config";
+
+interface Props {
+  description: string;
+}
+
+const { description } = Astro.props;
+const cfg = getLandingConfig();
+const d = cfg.description;
+
+if (!d.visible || !description) return;
+const descSize = resolveFontSize(d.fontSize);
+---
+
+<section class:list={[d.verticalPadding]} style={`background:${d.bgColor};`}>
+  <div class:list={["mx-auto px-6", d.maxWidth]}>
+    <div
+      class:list={["reveal prose prose-gray mx-auto leading-relaxed", descSize.class, d.textAlign]}
+      style={`color:${d.textColor};${descSize.style || ""}`}
+    >
+      <p set:html={description} />
+    </div>
+  </div>
+</section>

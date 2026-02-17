@@ -1,34 +1,48 @@
 ---
-import { loadSiteConfig } from "../config";
 
-const config = await loadSiteConfig();
-
-interface Props {
-  title?: string;
-  description?: string;
-  ctaText?: string;
-  ctaLink?: string;
-}
-
-const {
-  title = config.cta?.title || "Prêt à commencer ?",
-  description = config.cta?.description || "Rejoignez-nous et découvrez comment notre solution peut vous aider.",
-  ctaText = config.cta?.ctaText || "Essayer gratuitement",
-  ctaLink = config.cta?.ctaLink || config.bubbleAppUrl,
-} = Astro.props;
 ---
 
-<section class="py-20">
+<section class="py-24 lg:py-32">
   <div class="mx-auto max-w-4xl px-6">
-    <div class="rounded-2xl bg-primary-600 px-8 py-16 text-center">
-      <h2 class="text-3xl font-bold text-white mb-4">{title}</h2>
-      <p class="text-primary-100 text-lg mb-8 max-w-xl mx-auto">{description}</p>
-      <a
-        href={ctaLink}
-        class="inline-block rounded-lg bg-white px-8 py-3 text-base font-semibold text-primary-700 shadow-sm hover:bg-primary-50 transition-colors"
-      >
-        {ctaText}
-      </a>
+    <div class="reveal relative rounded-3xl overflow-hidden">
+      <!-- Background layers -->
+      <div class="absolute inset-0 bg-gradient-to-br from-[#1A0B3A] via-[#160930] to-[#0D0620]"></div>
+      <div class="absolute top-0 right-0 w-96 h-96 rounded-full bg-primary-600/15 blur-[100px]"></div>
+      <div class="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-purple-600/10 blur-[80px]"></div>
+      <!-- Grid pattern -->
+      <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px); background-size: 40px 40px;"></div>
+      <!-- Border glow -->
+      <div class="absolute inset-0 rounded-3xl border border-white/[0.08]"></div>
+
+      <div class="relative z-10 px-8 sm:px-14 py-16 sm:py-20 text-center">
+        <h2 class="text-3xl sm:text-4xl lg:text-[2.75rem] font-heading font-extrabold text-white mb-5 leading-tight">
+          Prêt à lancer votre nouvelle carrière ?
+        </h2>
+        <p class="text-white/40 text-lg mb-10 max-w-xl mx-auto font-body leading-relaxed">
+          Un appel de 15 minutes avec un conseiller suffit pour trouver la formation adaptée à votre profil et votre financement.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="/prendre-rdv"
+            class="btn-press group relative inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-base font-semibold text-white overflow-hidden transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0118]"
+          >
+            <div class="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-500"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-primary-500 via-purple-500 to-primary-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div class="absolute inset-0 shadow-lg shadow-primary-600/30 rounded-full"></div>
+            <svg class="relative z-10 w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="relative z-10">Réserver mon appel gratuit</span>
+          </a>
+          <a
+            href="/#formations"
+            class="btn-press inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm px-7 py-3.5 text-base font-semibold text-white hover:bg-white/10 hover:border-white/20 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0118]"
+          >
+            Voir les formations
+          </a>
+        </div>
+        <p class="text-xs text-white/20 mt-4">Sans engagement &middot; Finançable CPF</p>
+      </div>
     </div>
   </div>
 </section>

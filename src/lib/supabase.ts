@@ -58,33 +58,6 @@ export interface SiteConfig {
   bubbleFieldMapping?: BubbleFieldMapping;
   blogTemplate?: "grid" | "list" | "magazine";
   blogConfig?: BlogConfig;
-  hero: {
-    title: string;
-    subtitle: string;
-    ctaText: string;
-    ctaLink: string;
-  };
-  features: {
-    title: string;
-    items: Array<{
-      title: string;
-      description: string;
-      icon: string;
-    }>;
-  };
-  cta: {
-    title: string;
-    description: string;
-    ctaText: string;
-    ctaLink: string;
-  };
-  landingTemplate?: string;
-  templateOverrides?: Record<string, {
-    texts?: Record<string, string>;
-    images?: Record<string, string>;
-    hrefs?: Record<string, string>;
-    hiddenSections?: string[];
-  }>;
 }
 
 export async function getSiteConfig(): Promise<SiteConfig | null> {

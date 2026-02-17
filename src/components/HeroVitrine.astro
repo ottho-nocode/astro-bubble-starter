@@ -1,0 +1,72 @@
+---
+import type { CompanyInfo } from "../lib/bubble";
+import { getLandingConfig, resolveFontSize } from "../lib/landing-config";
+
+interface Props {
+  company: CompanyInfo;
+}
+
+const { company } = Astro.props;
+const cfg = getLandingConfig();
+const h = cfg.hero;
+
+if (!h.visible) return;
+
+const coverUrl = company.cover
+  ? company.cover.startsWith("//")
+    ? `https:${company.cover}`
+    : company.cover
+  : "";
+
+const logoUrl = company.logo
+  ? company.logo.startsWith("//")
+    ? `https:${company.logo}`
+    : company.logo
+  : "";
+
+const overlayOpacity = h.overlayOpacity / 100;
+const titleSize = resolveFontSize(h.titleFontSize);
+const sloganSize = resolveFontSize(h.sloganFontSize);
+---
+
+<section
+  class:list={["relative flex items-center justify-center overflow-hidden", h.verticalPadding]}
+  style={`min-height:${h.minHeight};`}
+>
+  {coverUrl ? (
+    <div class="absolute inset-0">
+      <img src={coverUrl} alt="" class="w-full h-full object-cover" loading="eager" />
+      <div class="absolute inset-0" style={`background:${h.overlayColor};opacity:${overlayOpacity};`}></div>
+    </div>
+  ) : (
+    <div class="absolute inset-0" style={`background:linear-gradient(135deg,${h.fallbackGradientFrom},${h.fallbackGradientTo});`}></div>
+  )}
+
+  <div class="relative z-10 mx-auto max-w-4xl px-6 text-center">
+    {h.showLogo && logoUrl && (
+      <div class="reveal mb-8 flex justify-center">
+        <img
+          src={logoUrl}
+          alt={`Logo ${company.nom}`}
+          class:list={["w-auto max-w-[200px] object-contain backdrop-blur-sm p-3", h.logoHeight, h.logoRadius]}
+          style={`background:rgba(255,255,255,${h.logoBgOpacity / 100});`}
+          loading="eager"
+        />
+      </div>
+    )}
+    <h1
+      class:list={["reveal font-heading font-extrabold mb-6 drop-shadow-lg", titleSize.class]}
+      style={`color:${h.titleColor};${titleSize.style || ""}`}
+    >
+      {company.nom}
+    </h1>
+    {h.showSlogan && company.slogan && (
+      <p
+        class:list={["reveal reveal-delay-1 font-body max-w-2xl mx-auto leading-relaxed drop-shadow", sloganSize.class]}
+        style={`color:${h.sloganColor};${sloganSize.style || ""}`}
+      >
+        {company.slogan}
+      </p>
+    )}
+  </div>
+</section>

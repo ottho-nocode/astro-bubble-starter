@@ -1,215 +1,31 @@
 ---
-import fs from "node:fs";
-import path from "node:path";
-import { parse } from "node-html-parser";
+export const prerender = false;
+
 import Base from "../layouts/Base.astro";
-import Hero from "../components/Hero.astro";
-import Features from "../components/Features.astro";
-import CTA from "../components/CTA.astro";
-import BlogCard from "../components/BlogCard.astro";
-import { getPosts } from "../lib/bubble";
-import { loadSiteConfig } from "../config";
+import HeroVitrine from "../components/HeroVitrine.astro";
+import DescriptionSection from "../components/DescriptionSection.astro";
+import BlogPreview from "../components/BlogPreview.astro";
+import ContactSection from "../components/ContactSection.astro";
+import { getCompanyInfo } from "../lib/bubble";
+import { setLandingConfigFromCompany } from "../lib/landing-config";
 
-const config = await loadSiteConfig();
-
-// Si un template pré-construit est sélectionné, servir le HTML du template
-const landingTemplate = (config as any).landingTemplate;
-if (landingTemplate && landingTemplate !== "custom") {
-  const templatePath = path.join(process.cwd(), "public", "templates", `${landingTemplate}.html`);
-  try {
-    let html = fs.readFileSync(templatePath, "utf-8");
-
-    // Force nav fixed full-width, no rounding, no side padding
-    const root = parse(html, { comment: false });
-    const nav = root.querySelector("nav");
-    if (nav) {
-      const body = root.querySelector("body");
-      const parent = nav.parentNode as any;
-      const isWrapped = parent && body && parent !== body && parent.parentNode === body && parent.rawTagName?.toUpperCase() === "DIV";
-      const target = isWrapped ? parent : nav;
-
-      const NAV_FIXED_STYLE = "position:fixed;top:0;left:0;width:100%;z-index:50;border-radius:0;padding-left:0;padding-right:0;max-width:none;";
-
-      function stripAndFix(el: any) {
-        const cls = (el.getAttribute("class") || "")
-          .replace(/\b-?translate-x-1\/2\b/g, "")
-          .replace(/\bleft-1\/2\b/g, "")
-          .replace(/\btop-\S+\b/g, "")
-          .replace(/\bmax-w-\S+\b/g, "")
-          .replace(/\bp[xlr]-\S+\b/g, "")
-          .replace(/\brounded-\S+\b/g, "")
-          .replace(/\s{2,}/g, " ")
-          .trim();
-        const fixedClasses = ["fixed", "top-0", "left-0", "w-full", "z-50"];
-        const parts = cls.split(" ");
-        for (const fc of fixedClasses) {
-          if (!parts.includes(fc)) parts.push(fc);
-        }
-        el.setAttribute("class", parts.join(" "));
-        const existing = el.getAttribute("style") || "";
-        el.setAttribute("style", NAV_FIXED_STYLE + existing);
-      }
-
-      stripAndFix(target);
-
-      // Flatten nav inside wrapper if wrapped
-      if (isWrapped) {
-        const navCls = (nav.getAttribute("class") || "")
-          .replace(/\b-?translate-x-1\/2\b/g, "")
-          .replace(/\bleft-1\/2\b/g, "")
-          .replace(/\btop-\S+\b/g, "")
-          .replace(/\bmax-w-\S+\b/g, "")
-          .replace(/\bp[xlr]-\S+\b/g, "")
-          .replace(/\brounded-\S+\b/g, "")
-          .replace(/\s{2,}/g, " ")
-          .trim();
-        nav.setAttribute("class", navCls + " w-full");
-      }
-
-      // Flatten inner container div: remove rounding, margin, max-width
-      const innerDiv = nav.childNodes.find(
-        (n: any) => n.rawTagName?.toUpperCase() === "DIV"
-      ) as any;
-      if (innerDiv) {
-        const childCls = (innerDiv.getAttribute("class") || "")
-          .replace(/\brounded-\S+\b/g, "")
-          .replace(/\bmax-w-\S+\b/g, "")
-          .replace(/\bm[xlr]-\S+\b/g, "")
-          .replace(/\s{2,}/g, " ")
-          .trim();
-        innerDiv.setAttribute("class", childCls);
-        const childStyle = innerDiv.getAttribute("style") || "";
-        innerDiv.setAttribute("style", "border-radius:0;max-width:none;" + childStyle);
-      }
-
-      html = root.toString();
-    }
-
-    // Récupérer les overrides stockés pour ce template
-    const allOverrides = (config as any).templateOverrides || {};
-    const overrides = allOverrides[landingTemplate] || { texts: {}, images: {}, hrefs: {}, hiddenSections: [] };
-    const overridesJson = JSON.stringify(overrides);
-
-    // Script qui scanne le DOM (même algorithme que l'admin) et applique les overrides
-    const injectionScript = `<script>
-(function() {
-  var overrides = ${overridesJson};
-  var TAGS = "h1,h2,h3,h4,h5,h6,p,a,button,span,li";
-  var sectionEls = document.querySelectorAll("section, header, footer, nav");
-  var elements = sectionEls.length > 0
-    ? Array.from(sectionEls)
-    : Array.from(document.body.children).filter(function(el) {
-        return ["SCRIPT","STYLE","LINK","META","BR","HR"].indexOf(el.tagName) === -1;
-      });
-  var idx = 0;
-  elements.forEach(function(sec) {
-    if (["SCRIPT","STYLE","LINK","META"].indexOf(sec.tagName) !== -1) return;
-    var sectionId = "section-" + idx;
-    sec.setAttribute("data-section-id", sectionId);
-    var textIdx = 0;
-    sec.querySelectorAll(TAGS).forEach(function(el) {
-      var text = (el.textContent || "").trim();
-      if (text.length < 2) return;
-      var isH = /^H[1-6]$/.test(el.tagName);
-      if (!isH && el.closest("h1,h2,h3,h4,h5,h6")) return;
-      if (!isH) {
-        var children = el.querySelectorAll(TAGS);
-        var skip = false;
-        children.forEach(function(c) { if ((c.textContent || "").trim().length > 2) skip = true; });
-        if (skip) return;
-      }
-      el.setAttribute("data-edit-id", sectionId + "-text-" + textIdx);
-      textIdx++;
-    });
-    sec.querySelectorAll("img").forEach(function(img, m) {
-      img.setAttribute("data-edit-id", sectionId + "-img-" + m);
-    });
-    idx++;
-  });
-  // Apply text overrides
-  Object.keys(overrides.texts || {}).forEach(function(key) {
-    var el = document.querySelector('[data-edit-id="' + key + '"]');
-    if (el) el.textContent = overrides.texts[key];
-  });
-  // Apply image overrides
-  Object.keys(overrides.images || {}).forEach(function(key) {
-    var el = document.querySelector('[data-edit-id="' + key + '"]');
-    if (el) el.src = overrides.images[key];
-  });
-  // Apply href overrides
-  Object.keys(overrides.hrefs || {}).forEach(function(key) {
-    var el = document.querySelector('[data-edit-id="' + key + '"]');
-    if (el) el.href = overrides.hrefs[key];
-  });
-  // Hide sections
-  (overrides.hiddenSections || []).forEach(function(sectionId) {
-    var el = document.querySelector('[data-section-id="' + sectionId + '"]');
-    if (el) el.style.display = "none";
-  });
-})();
-</script>`;
-
-    if (html.includes("</body>")) {
-      html = html.replace("</body>", injectionScript + "</body>");
-    } else {
-      html += injectionScript;
-    }
-
-    return new Response(html, {
-      status: 200,
-      headers: { "Content-Type": "text/html; charset=utf-8" },
-    });
-  } catch {
-    // Template non trouvé, fallback sur le rendu classique
-  }
-}
-
-// Récupère les 3 derniers articles depuis Bubble
-let latestPosts: Awaited<ReturnType<typeof getPosts>> = [];
-try {
-  const allPosts = await getPosts();
-  latestPosts = allPosts.slice(0, 3);
-} catch {
-  // En mode dev sans API Bubble configurée, on continue sans articles
-}
+const company = await getCompanyInfo();
+if (company) setLandingConfigFromCompany(company);
+const title = company ? `${company.nom} — ${company.slogan || "Accueil"}` : "Accueil";
+const description = company?.description?.slice(0, 160) || "";
 ---
 
-<Base
-  title="Accueil"
-  description={config.description}
->
-  <Hero />
-  <Features />
-
-  {latestPosts.length > 0 && (
-    <section class="py-20 bg-gray-50">
-      <div class="mx-auto max-w-6xl px-6">
-        <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">
-          Derniers articles
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {latestPosts.map((post) => (
-            <BlogCard
-              title={post.title}
-              excerpt={post.excerpt}
-              slug={post.slug}
-              coverImage={post.cover_image}
-              date={post.date}
-              category={post.category}
-            />
-          ))}
-        </div>
-        <div class="text-center mt-10">
-          <a
-            href="/blog"
-            class="text-primary-600 hover:text-primary-700 font-medium"
-          >
-            Voir tous les articles &rarr;
-          </a>
-        </div>
-      </div>
-    </section>
+<Base title={title} description={description}>
+  {company ? (
+    <>
+      <HeroVitrine company={company} />
+      <DescriptionSection description={company.description} />
+      <BlogPreview />
+      <ContactSection company={company} />
+    </>
+  ) : (
+    <div class="py-32 text-center text-gray-500">
+      <p>Aucune information disponible.</p>
+    </div>
   )}
-
-  <CTA />
 </Base>

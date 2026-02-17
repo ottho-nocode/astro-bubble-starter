@@ -18,7 +18,7 @@ if (!(await verifySession(token))) {
     </div>
   </div>
 
-  <div class="lp-builder" id="lpBuilder">
+  <div class="landing-builder" id="landingBuilder">
     <!-- Panneau controles (gauche) -->
     <aside class="builder-controls" id="builderControls">
       <header class="builder-controls-header">
@@ -32,127 +32,543 @@ if (!(await verifySession(token))) {
       </header>
 
       <div class="builder-controls-body" id="controlsBody">
-        <!-- Section 0: Template -->
-        <div class="accordion-section" data-section="template">
-          <button class="accordion-trigger" type="button">
-            <span class="accordion-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-              Template
-            </span>
-            <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="accordion-content">
-            <div class="tpl-grid" id="templateContainer"></div>
-          </div>
-        </div>
 
-        <!-- Section 1: General -->
-        <div class="accordion-section" data-section="general">
+        <!-- Section 1: Couleurs & Typographie -->
+        <div class="accordion-section" data-section="global">
           <button class="accordion-trigger" type="button">
             <span class="accordion-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1.08-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1.08 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1.08z"/></svg>
-              General
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><path d="M17.5 10.5c.5.5 1 1.5 1 2.5a3.5 3.5 0 01-7 0c0-1 .5-2 1-2.5l2.5-3 2.5 3z"/><path d="M2 21l7.5-7.5"/><path d="M2 21l4-4"/></svg>
+              Couleurs & Typographie
             </span>
             <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="accordion-content">
             <div class="ctrl-group">
-              <label for="cfg-name">Nom du site</label>
-              <input type="text" id="cfg-name" placeholder="Mon Site" />
+              <label for="cfg-accentColor">Couleur d'accent</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-accentColor" value="#5700FF" />
+                <input type="text" id="cfg-accentColorText" placeholder="#5700FF" class="color-text-input" />
+              </div>
             </div>
             <div class="ctrl-group">
-              <label for="cfg-url">URL du site</label>
-              <input type="url" id="cfg-url" placeholder="https://example.com" />
+              <label for="cfg-pageBgColor">Fond de page</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-pageBgColor" value="#FAFAF8" />
+                <input type="text" id="cfg-pageBgColorText" placeholder="#FAFAF8" class="color-text-input" />
+              </div>
             </div>
             <div class="ctrl-group">
-              <label for="cfg-description">Description (SEO)</label>
-              <textarea id="cfg-description" rows="2" placeholder="Description du site..."></textarea>
+              <label for="cfg-headingFont">Police des titres</label>
+              <select id="cfg-headingFont">
+                <option value="Plus Jakarta Sans" selected>Plus Jakarta Sans</option>
+                <option value="Inter">Inter</option>
+                <option value="Montserrat">Montserrat</option>
+                <option value="Poppins">Poppins</option>
+                <option value="Roboto">Roboto</option>
+              </select>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-bodyFont">Police du corps</label>
+              <select id="cfg-bodyFont">
+                <option value="Inter" selected>Inter</option>
+                <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
+                <option value="Roboto">Roboto</option>
+                <option value="Open Sans">Open Sans</option>
+                <option value="Lato">Lato</option>
+              </select>
             </div>
           </div>
         </div>
 
-        <div id="customSections">
         <!-- Section 2: Hero -->
         <div class="accordion-section" data-section="hero">
           <button class="accordion-trigger" type="button">
             <span class="accordion-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              Section Hero
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Hero
             </span>
             <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="accordion-content">
-            <div class="ctrl-group">
-              <label for="cfg-hero-title">Titre</label>
-              <input type="text" id="cfg-hero-title" placeholder="Bienvenue sur notre plateforme" />
+            <div class="toggle-row">
+              <span class="toggle-label">Visible</span>
+              <label class="toggle">
+                <input type="checkbox" id="cfg-heroVisible" checked />
+                <span class="toggle-slider"></span>
+              </label>
             </div>
             <div class="ctrl-group">
-              <label for="cfg-hero-subtitle">Sous-titre</label>
-              <textarea id="cfg-hero-subtitle" rows="2" placeholder="Une description convaincante..."></textarea>
+              <label for="cfg-heroMinHeight">Hauteur minimale</label>
+              <select id="cfg-heroMinHeight">
+                <option value="50vh">50vh</option>
+                <option value="60vh">60vh</option>
+                <option value="70vh" selected>70vh</option>
+                <option value="80vh">80vh</option>
+                <option value="90vh">90vh</option>
+              </select>
             </div>
             <div class="ctrl-group">
-              <label for="cfg-hero-ctaText">Texte du bouton</label>
-              <input type="text" id="cfg-hero-ctaText" placeholder="Commencer" />
+              <label>Opacite de l'overlay <span class="range-value" id="heroOverlayVal">50</span>%</label>
+              <input type="range" id="cfg-heroOverlayOpacity" min="0" max="100" value="50" />
             </div>
             <div class="ctrl-group">
-              <label for="cfg-hero-ctaLink">Lien du bouton</label>
-              <input type="text" id="cfg-hero-ctaLink" placeholder="https://..." />
+              <label for="cfg-heroOverlayColor">Couleur de l'overlay</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-heroOverlayColor" value="#000000" />
+                <input type="text" id="cfg-heroOverlayColorText" placeholder="#000000" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-heroGradientFrom">Degrade depuis</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-heroGradientFrom" value="#5700FF" />
+                <input type="text" id="cfg-heroGradientFromText" placeholder="#5700FF" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-heroGradientTo">Degrade vers</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-heroGradientTo" value="#350099" />
+                <input type="text" id="cfg-heroGradientToText" placeholder="#350099" class="color-text-input" />
+              </div>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Afficher le logo</span>
+              <label class="toggle">
+                <input type="checkbox" id="cfg-heroShowLogo" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-heroLogoHeight">Taille du logo</label>
+              <select id="cfg-heroLogoHeight">
+                <option value="h-12">h-12</option>
+                <option value="h-16">h-16</option>
+                <option value="h-20" selected>h-20</option>
+                <option value="h-24">h-24</option>
+                <option value="h-32">h-32</option>
+              </select>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-heroLogoRadius">Arrondi du logo</label>
+              <select id="cfg-heroLogoRadius">
+                <option value="rounded-none">Aucun</option>
+                <option value="rounded-lg">Leger</option>
+                <option value="rounded-2xl" selected>Moyen</option>
+                <option value="rounded-full">Cercle</option>
+              </select>
+            </div>
+            <div class="ctrl-group">
+              <label>Opacite fond du logo <span class="range-value" id="heroLogoBgOpacityVal">10</span>%</label>
+              <input type="range" id="cfg-heroLogoBgOpacity" min="0" max="100" value="10" />
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-heroTitleFontSize">Taille du titre</label>
+              <select id="cfg-heroTitleFontSize">
+                <option value="text-3xl">text-3xl</option>
+                <option value="text-4xl" selected>text-4xl</option>
+                <option value="text-5xl">text-5xl</option>
+                <option value="text-6xl">text-6xl</option>
+              </select>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-heroTitleColor">Couleur du titre</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-heroTitleColor" value="#ffffff" />
+                <input type="text" id="cfg-heroTitleColorText" placeholder="#ffffff" class="color-text-input" />
+              </div>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Afficher le slogan</span>
+              <label class="toggle">
+                <input type="checkbox" id="cfg-heroShowSlogan" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-heroSloganFontSize">Taille du slogan</label>
+              <select id="cfg-heroSloganFontSize">
+                <option value="text-lg">text-lg</option>
+                <option value="text-xl" selected>text-xl</option>
+                <option value="text-2xl">text-2xl</option>
+              </select>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-heroSloganColor">Couleur du slogan</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-heroSloganColor" value="#e6e6e6" />
+                <input type="text" id="cfg-heroSloganColorText" placeholder="rgba(255,255,255,0.9)" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-heroVerticalPadding">Espacement vertical</label>
+              <select id="cfg-heroVerticalPadding">
+                <option value="py-16">py-16</option>
+                <option value="py-20">py-20</option>
+                <option value="py-24" selected>py-24</option>
+                <option value="py-32">py-32</option>
+              </select>
             </div>
           </div>
         </div>
 
-        <!-- Section 3: Features -->
-        <div class="accordion-section" data-section="features">
+        <!-- Section 3: Description -->
+        <div class="accordion-section" data-section="description">
           <button class="accordion-trigger" type="button">
             <span class="accordion-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-              Fonctionnalites
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+              Description
             </span>
             <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="accordion-content">
-            <div class="ctrl-group">
-              <label for="cfg-features-title">Titre de la section</label>
-              <input type="text" id="cfg-features-title" placeholder="Pourquoi nous choisir" />
+            <div class="toggle-row">
+              <span class="toggle-label">Visible</span>
+              <label class="toggle">
+                <input type="checkbox" id="cfg-descVisible" checked />
+                <span class="toggle-slider"></span>
+              </label>
             </div>
-            <div id="features-list"></div>
-            <button type="button" id="addFeatureBtn" class="add-feature-btn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Ajouter
-            </button>
+            <div class="ctrl-group">
+              <label for="cfg-descMaxWidth">Largeur max</label>
+              <select id="cfg-descMaxWidth">
+                <option value="max-w-2xl">max-w-2xl</option>
+                <option value="max-w-3xl" selected>max-w-3xl</option>
+                <option value="max-w-4xl">max-w-4xl</option>
+                <option value="max-w-5xl">max-w-5xl</option>
+              </select>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-descFontSize">Taille du texte</label>
+              <select id="cfg-descFontSize">
+                <option value="prose-base">prose-base</option>
+                <option value="prose-lg" selected>prose-lg</option>
+                <option value="prose-xl">prose-xl</option>
+              </select>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-descTextColor">Couleur du texte</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-descTextColor" value="#4B5563" />
+                <input type="text" id="cfg-descTextColorText" placeholder="#4B5563" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-descTextAlign">Alignement</label>
+              <select id="cfg-descTextAlign">
+                <option value="text-left" selected>Gauche</option>
+                <option value="text-center">Centre</option>
+                <option value="text-justify">Justifie</option>
+              </select>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-descBgColor">Couleur de fond</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-descBgColor" value="#FAFAF8" />
+                <input type="text" id="cfg-descBgColorText" placeholder="#FAFAF8" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-descVerticalPadding">Espacement vertical</label>
+              <select id="cfg-descVerticalPadding">
+                <option value="py-12">py-12</option>
+                <option value="py-16">py-16</option>
+                <option value="py-20" selected>py-20</option>
+                <option value="py-24">py-24</option>
+                <option value="py-28">py-28</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        <!-- Section 4: CTA -->
-        <div class="accordion-section" data-section="cta">
+        <!-- Section 4: Apercu Blog -->
+        <div class="accordion-section" data-section="blogPreview">
           <button class="accordion-trigger" type="button">
             <span class="accordion-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-              Section CTA
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2"/></svg>
+              Apercu Blog
             </span>
             <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="accordion-content">
-            <div class="ctrl-group">
-              <label for="cfg-cta-title">Titre</label>
-              <input type="text" id="cfg-cta-title" placeholder="Pret a commencer ?" />
+            <div class="toggle-row">
+              <span class="toggle-label">Visible</span>
+              <label class="toggle">
+                <input type="checkbox" id="cfg-blogVisible" checked />
+                <span class="toggle-slider"></span>
+              </label>
             </div>
             <div class="ctrl-group">
-              <label for="cfg-cta-description">Description</label>
-              <textarea id="cfg-cta-description" rows="2" placeholder="Rejoignez des milliers d'utilisateurs..."></textarea>
+              <label for="cfg-blogBadgeText">Texte du badge</label>
+              <input type="text" id="cfg-blogBadgeText" placeholder="Blog" />
             </div>
             <div class="ctrl-group">
-              <label for="cfg-cta-ctaText">Texte du bouton</label>
-              <input type="text" id="cfg-cta-ctaText" placeholder="Essayer gratuitement" />
+              <label for="cfg-blogSectionTitle">Titre de la section</label>
+              <input type="text" id="cfg-blogSectionTitle" placeholder="Derniers articles" />
             </div>
             <div class="ctrl-group">
-              <label for="cfg-cta-ctaLink">Lien du bouton</label>
-              <input type="text" id="cfg-cta-ctaLink" placeholder="https://..." />
+              <label for="cfg-blogSectionSubtitle">Sous-titre</label>
+              <textarea id="cfg-blogSectionSubtitle" rows="2" placeholder="Actualites, articles, interviews..."></textarea>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-blogCtaText">Texte du bouton CTA</label>
+              <input type="text" id="cfg-blogCtaText" placeholder="Voir tous les articles" />
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-blogPostCount">Nombre d'articles</label>
+              <select id="cfg-blogPostCount">
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="6">6</option>
+              </select>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-blogBgColor">Couleur de fond</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-blogBgColor" value="#F5F3EF" />
+                <input type="text" id="cfg-blogBgColorText" placeholder="#F5F3EF" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-blogCardRadius">Arrondi des cartes</label>
+              <select id="cfg-blogCardRadius">
+                <option value="rounded-lg">rounded-lg</option>
+                <option value="rounded-xl">rounded-xl</option>
+                <option value="rounded-2xl" selected>rounded-2xl</option>
+                <option value="rounded-3xl">rounded-3xl</option>
+              </select>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-blogCardShadow">Ombre des cartes</label>
+              <select id="cfg-blogCardShadow">
+                <option value="none" selected>Aucune</option>
+                <option value="shadow-sm">Legere</option>
+                <option value="shadow-md">Moyenne</option>
+                <option value="shadow-lg">Forte</option>
+              </select>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Image de couverture</span>
+              <label class="toggle">
+                <input type="checkbox" id="cfg-blogShowCoverImage" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Categorie</span>
+              <label class="toggle">
+                <input type="checkbox" id="cfg-blogShowCategory" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Date</span>
+              <label class="toggle">
+                <input type="checkbox" id="cfg-blogShowDate" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Extrait</span>
+              <label class="toggle">
+                <input type="checkbox" id="cfg-blogShowExcerpt" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="ctrl-group" style="margin-top:0.75rem;">
+              <label for="cfg-blogVerticalPadding">Espacement vertical</label>
+              <select id="cfg-blogVerticalPadding">
+                <option value="py-16">py-16</option>
+                <option value="py-20">py-20</option>
+                <option value="py-24" selected>py-24</option>
+                <option value="py-32">py-32</option>
+              </select>
             </div>
           </div>
         </div>
+
+        <!-- Section 5: Contact -->
+        <div class="accordion-section" data-section="contact">
+          <button class="accordion-trigger" type="button">
+            <span class="accordion-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Contact
+            </span>
+            <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-content">
+            <div class="toggle-row">
+              <span class="toggle-label">Visible</span>
+              <label class="toggle">
+                <input type="checkbox" id="cfg-contactVisible" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-contactHeadingText">Titre</label>
+              <input type="text" id="cfg-contactHeadingText" placeholder="Contact" />
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-contactHeadingColor">Couleur du titre</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-contactHeadingColor" value="#111827" />
+                <input type="text" id="cfg-contactHeadingColorText" placeholder="#111827" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-contactBgColor">Couleur de fond</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-contactBgColor" value="#F5F3EF" />
+                <input type="text" id="cfg-contactBgColorText" placeholder="#F5F3EF" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-contactCardRadius">Arrondi des cartes</label>
+              <select id="cfg-contactCardRadius">
+                <option value="rounded-lg">rounded-lg</option>
+                <option value="rounded-xl">rounded-xl</option>
+                <option value="rounded-2xl" selected>rounded-2xl</option>
+                <option value="rounded-3xl">rounded-3xl</option>
+              </select>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-contactCardBgColor">Fond des cartes</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-contactCardBgColor" value="#ffffff" />
+                <input type="text" id="cfg-contactCardBgColorText" placeholder="#ffffff" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-contactIconBgColor">Fond des icones</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-contactIconBgColor" value="#f3eeff" />
+                <input type="text" id="cfg-contactIconBgColorText" placeholder="#f3eeff" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-contactIconColor">Couleur des icones</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-contactIconColor" value="#5700FF" />
+                <input type="text" id="cfg-contactIconColorText" placeholder="#5700FF" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-contactLinkColor">Couleur des liens</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-contactLinkColor" value="#5700FF" />
+                <input type="text" id="cfg-contactLinkColorText" placeholder="#5700FF" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-contactVerticalPadding">Espacement vertical</label>
+              <select id="cfg-contactVerticalPadding">
+                <option value="py-12">py-12</option>
+                <option value="py-16">py-16</option>
+                <option value="py-20" selected>py-20</option>
+                <option value="py-24">py-24</option>
+                <option value="py-28">py-28</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <div id="templateSections"></div>
+
+        <!-- Section 6: En-tete -->
+        <div class="accordion-section" data-section="header">
+          <button class="accordion-trigger" type="button">
+            <span class="accordion-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              En-tete
+            </span>
+            <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-content">
+            <div class="toggle-row">
+              <span class="toggle-label">Visible</span>
+              <label class="toggle">
+                <input type="checkbox" id="cfg-headerVisible" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-headerScrollBgColor">Fond au scroll</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-headerScrollBgColor" value="#FAFAF8" />
+                <input type="text" id="cfg-headerScrollBgColorText" placeholder="rgba(250,250,248,0.8)" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-headerNameColor">Couleur du nom</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-headerNameColor" value="#111827" />
+                <input type="text" id="cfg-headerNameColorText" placeholder="#111827" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-headerLinkColor">Couleur des liens</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-headerLinkColor" value="#4B5563" />
+                <input type="text" id="cfg-headerLinkColorText" placeholder="#4B5563" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-headerLinkHoverColor">Couleur liens hover</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-headerLinkHoverColor" value="#111827" />
+                <input type="text" id="cfg-headerLinkHoverColorText" placeholder="#111827" class="color-text-input" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 7: Pied de page -->
+        <div class="accordion-section" data-section="footer">
+          <button class="accordion-trigger" type="button">
+            <span class="accordion-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+              Pied de page
+            </span>
+            <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-content">
+            <div class="toggle-row">
+              <span class="toggle-label">Visible</span>
+              <label class="toggle">
+                <input type="checkbox" id="cfg-footerVisible" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-footerBgColor">Couleur de fond</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-footerBgColor" value="#5700FF" />
+                <input type="text" id="cfg-footerBgColorText" placeholder="#5700FF" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-footerTextColor">Couleur du texte</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-footerTextColor" value="#ffffff" />
+                <input type="text" id="cfg-footerTextColorText" placeholder="#ffffff" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-footerLinkColor">Couleur des liens</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-footerLinkColor" value="#9999ff" />
+                <input type="text" id="cfg-footerLinkColorText" placeholder="rgba(255,255,255,0.6)" class="color-text-input" />
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label for="cfg-footerCopyrightColor">Couleur du copyright</label>
+              <div class="color-input-wrap">
+                <input type="color" id="cfg-footerCopyrightColor" value="#666699" />
+                <input type="text" id="cfg-footerCopyrightColorText" placeholder="rgba(255,255,255,0.4)" class="color-text-input" />
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <footer class="builder-controls-footer">
@@ -183,20 +599,11 @@ if (!(await verifySession(token))) {
         </div>
         <a href="/" target="_blank" class="toolbar-link">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          Voir la page
+          Voir le site
         </a>
       </div>
       <div class="builder-preview-frame" id="previewFrame">
-        <iframe id="lpPreview" title="Apercu de la landing page"></iframe>
-      </div>
-      <div class="ai-prompt-bar" id="aiPromptBar" style="display:none;">
-        <div class="ai-prompt-wrap">
-          <svg class="ai-prompt-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3V6a4 4 0 0 1 4-4z"/><path d="M8 15v1a4 4 0 0 0 8 0v-1"/><line x1="8" y1="9" x2="8" y2="9"/><line x1="16" y1="9" x2="16" y2="9"/></svg>
-          <textarea id="aiPromptInput" placeholder="Decrivez votre site ou les modifications souhaitees..." rows="1"></textarea>
-          <button id="aiPromptSend" class="ai-prompt-send" title="Envoyer">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
-          </button>
-        </div>
+        <iframe id="landingPreview" title="Apercu de la landing page"></iframe>
       </div>
     </div>
   </div>
@@ -214,7 +621,7 @@ if (!(await verifySession(token))) {
     .admin-main { overflow: hidden; }
     .admin-content { display: none; }
 
-    .lp-builder {
+    .landing-builder {
       display: flex;
       height: 100vh;
       overflow: hidden;
@@ -319,8 +726,8 @@ if (!(await verifySession(token))) {
     .accordion-content {
       padding: 0 1.25rem 1rem;
       overflow: hidden;
-      max-height: 2000px;
-      transition: max-height 0.3s ease, padding 0.25s ease, opacity 0.2s ease;
+      max-height: 1200px;
+      transition: max-height 0.25s ease, padding 0.25s ease, opacity 0.2s ease;
       opacity: 1;
     }
     .accordion-section.collapsed .accordion-content {
@@ -343,7 +750,6 @@ if (!(await verifySession(token))) {
       margin-bottom: 0.25rem;
     }
     .ctrl-group input[type="text"],
-    .ctrl-group input[type="url"],
     .ctrl-group textarea,
     .ctrl-group select {
       width: 100%;
@@ -366,261 +772,85 @@ if (!(await verifySession(token))) {
       line-height: 1.4;
     }
     .ctrl-group input:focus,
-    .ctrl-group textarea:focus {
+    .ctrl-group textarea:focus,
+    .ctrl-group select:focus {
       border-color: #0f172a;
       box-shadow: 0 0 0 2px rgba(15,23,42,0.06);
     }
+    .ctrl-group select { cursor: pointer; }
     .ctrl-group input::placeholder,
     .ctrl-group textarea::placeholder { color: #94a3b8; }
 
-    /* ── Feature items in controls ── */
-    .feature-item {
-      border: 1px solid #e2e8f0;
-      border-radius: 0.5rem;
-      padding: 0.75rem;
-      margin-bottom: 0.5rem;
-      background: #fafafa;
-    }
-    .feature-item-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.5rem;
-    }
-    .feature-item-number {
-      font-size: 0.6875rem;
-      font-weight: 500;
-      color: #94a3b8;
-    }
-    .remove-feature-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #ef4444;
-      font-size: 0.6875rem;
-      font-weight: 500;
-      font-family: inherit;
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      padding: 0.125rem 0.375rem;
-      border-radius: 0.25rem;
-      transition: background 0.15s;
-    }
-    .remove-feature-btn:hover { background: #fef2f2; }
-    .feature-row {
-      display: grid;
-      grid-template-columns: 60px 1fr;
-      gap: 0.375rem;
-      margin-bottom: 0.375rem;
-    }
-    .feature-row input,
-    .feature-item textarea {
+    /* ── Range inputs ── */
+    .ctrl-group input[type="range"] {
       width: 100%;
-      height: 1.75rem;
-      padding: 0.125rem 0.5rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 0.25rem;
-      font-size: 0.75rem;
-      font-family: inherit;
-      color: #0f172a;
-      background: white;
+      height: 6px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: #e2e8f0;
+      border-radius: 3px;
       outline: none;
-    }
-    .feature-item textarea {
-      height: auto;
-      min-height: 2.5rem;
-      padding: 0.25rem 0.5rem;
-      resize: vertical;
-      line-height: 1.4;
-    }
-    .feature-row input:focus,
-    .feature-item textarea:focus {
-      border-color: #0f172a;
-      box-shadow: 0 0 0 2px rgba(15,23,42,0.06);
-    }
-    .add-feature-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.375rem;
-      width: 100%;
-      padding: 0.375rem;
-      border: 1px dashed #cbd5e1;
-      border-radius: 0.375rem;
-      background: none;
-      cursor: pointer;
-      font-size: 0.75rem;
-      font-weight: 500;
-      font-family: inherit;
-      color: #64748b;
-      margin-top: 0.5rem;
-      transition: all 0.15s;
-    }
-    .add-feature-btn:hover { border-color: #94a3b8; color: #0f172a; background: #f8fafc; }
-
-    /* ── Template grid ── */
-    .tpl-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.5rem;
-    }
-    .tpl-card {
-      border: 2px solid #e2e8f0;
-      border-radius: 0.5rem;
-      padding: 0.5rem;
-      cursor: pointer;
-      transition: all 0.15s;
-      text-align: center;
-      background: white;
-    }
-    .tpl-card:hover { border-color: #94a3b8; }
-    .tpl-card.selected { border-color: #171717; background: #f8fafc; }
-    .tpl-card input[type="radio"] { display: none; }
-    .tpl-card-preview {
-      height: 56px;
-      border-radius: 4px;
-      margin-bottom: 0.375rem;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.625rem;
-      color: #94a3b8;
-    }
-    .tpl-card-name {
-      font-weight: 600;
-      font-size: 0.6875rem;
-      color: #0f172a;
-      line-height: 1.2;
-    }
-    .tpl-card-desc {
-      font-size: 0.5625rem;
-      color: #94a3b8;
-      margin-top: 0.125rem;
-    }
-
-
-    /* ── Template editing ── */
-    .edit-tag {
-      display: inline-block;
-      font-size: 0.5625rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      color: #64748b;
-      background: #f1f5f9;
-      padding: 0.0625rem 0.3125rem;
-      border-radius: 0.1875rem;
-      margin-right: 0.25rem;
-      vertical-align: middle;
-    }
-    .section-vis-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-bottom: 0.625rem;
-      margin-bottom: 0.625rem;
-      border-bottom: 1px solid #f1f5f9;
-    }
-    .section-vis-label {
-      font-size: 0.75rem;
-      color: #64748b;
-    }
-    .toggle-switch {
-      position: relative;
-      display: inline-block;
-      cursor: pointer;
-    }
-    .toggle-switch input { display: none; }
-    .toggle-track {
-      display: block;
-      width: 2rem;
-      height: 1.125rem;
-      background: #cbd5e1;
-      border-radius: 999px;
-      transition: background 0.2s;
-    }
-    .toggle-switch input:checked + .toggle-track { background: #171717; }
-    .toggle-thumb {
-      position: absolute;
-      top: 0.125rem;
-      left: 0.125rem;
-      width: 0.875rem;
-      height: 0.875rem;
-      background: white;
-      border-radius: 50%;
-      transition: transform 0.2s;
-    }
-    .toggle-switch input:checked + .toggle-track .toggle-thumb {
-      transform: translateX(0.875rem);
-    }
-    .img-thumb {
-      display: block;
-      max-height: 3rem;
-      border-radius: 0.25rem;
       margin-top: 0.25rem;
-      object-fit: cover;
     }
-    #templateSections:empty { display: none; }
-
-    /* ── AI Prompt bar ── */
-    .ai-prompt-bar {
-      padding: 0.75rem 1.5rem;
-      background: white;
-      border-top: 1px solid #e2e8f0;
-      flex-shrink: 0;
+    .ctrl-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #171717;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
-    .ai-prompt-wrap {
-      display: flex;
-      align-items: flex-end;
-      gap: 0.5rem;
-      max-width: 640px;
-      margin: 0 auto;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 0.75rem;
-      padding: 0.375rem 0.5rem;
-      transition: border-color 0.15s;
-    }
-    .ai-prompt-wrap:focus-within {
-      border-color: #94a3b8;
-    }
-    .ai-prompt-icon {
-      color: #94a3b8;
-      flex-shrink: 0;
-      margin-bottom: 0.25rem;
-    }
-    .ai-prompt-wrap textarea {
-      flex: 1;
+    .ctrl-group input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #171717;
+      cursor: pointer;
       border: none;
-      background: none;
-      resize: none;
-      font-family: inherit;
-      font-size: 0.8125rem;
-      color: #0f172a;
-      outline: none;
-      min-height: 1.375rem;
-      max-height: 5rem;
-      line-height: 1.375rem;
-      padding: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
-    .ai-prompt-wrap textarea::placeholder { color: #94a3b8; }
-    .ai-prompt-send {
+    .range-value {
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    /* ── Toggle rows (controls) ── */
+    .builder-controls .toggle-row {
       display: flex;
       align-items: center;
-      justify-content: center;
-      width: 1.75rem;
-      height: 1.75rem;
-      border-radius: 0.375rem;
-      border: none;
-      background: #171717;
-      color: white;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: opacity 0.15s;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f8fafc;
     }
-    .ai-prompt-send:hover { opacity: 0.8; }
-    .ai-prompt-send:disabled { opacity: 0.3; cursor: not-allowed; }
+    .builder-controls .toggle-row:last-of-type { border-bottom: none; }
+    .toggle-label {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: #334155;
+    }
+
+    /* ── Color input ── */
+    .color-input-wrap {
+      display: flex;
+      gap: 0.375rem;
+      align-items: center;
+    }
+    .color-input-wrap input[type="color"] {
+      width: 2rem;
+      height: 2rem;
+      padding: 2px;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      background: transparent;
+    }
+    .color-text-input {
+      flex: 1;
+      height: 2rem !important;
+      padding: 0.25rem 0.625rem !important;
+    }
 
     /* ── Resize handle ── */
     .resize-handle {
@@ -787,33 +1017,10 @@ if (!(await verifySession(token))) {
   </style>
 
   <script>
-    interface FeatureItem {
-      title: string;
-      description: string;
-      icon: string;
-    }
-
-    let currentConfig: Record<string, any> | null = null;
     let previewUpdateTimer: ReturnType<typeof setTimeout> | null = null;
-    let featuresItems: FeatureItem[] = [];
-    let selectedTemplate = "custom";
-    let templateCache: Record<string, string> = {};
-    let templateSchema: any[] = [];
-    let templateOverrides: Record<string, any> = {};
-
-    const templates = [
-      { id: "custom", name: "Personnalise", desc: "Vos sections", color: "linear-gradient(135deg,#f0f9ff,#fff)", icon: "✎" },
-      { id: "template-1", name: "BrandAppart", desc: "Apple-style SaaS", color: "linear-gradient(135deg,#f5f5f7,#E8E8ED)", icon: "" },
-      { id: "template-2", name: "Ledger", desc: "SaaS, corail", color: "linear-gradient(135deg,#fff5f0,#ffe0d6)", icon: "" },
-      { id: "template-3", name: "LearnAI", desc: "EdTech, indigo", color: "linear-gradient(135deg,#eef2ff,#e0e7ff)", icon: "" },
-      { id: "template-4", name: "Aethereal", desc: "Sombre, brutalist", color: "linear-gradient(135deg,#1a1a1a,#374336)", icon: "" },
-      { id: "template-5", name: "Digital Dark", desc: "Design tool", color: "linear-gradient(135deg,#0f0f0f,#1a1a1a)", icon: "" },
-      { id: "template-6", name: "Digital Light", desc: "Design tool v2", color: "linear-gradient(135deg,#050505,#1a1a1a)", icon: "" },
-      { id: "template-7", name: "Orion", desc: "Spatial, gradients", color: "linear-gradient(135deg,#0a0a2e,#1a0a3e)", icon: "" },
-    ];
 
     function $(id: string) {
-      return document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement;
+      return document.getElementById(id) as HTMLInputElement;
     }
 
     function showMessage(text: string, type: "success" | "error") {
@@ -825,553 +1032,383 @@ if (!(await verifySession(token))) {
       setTimeout(() => { el.innerHTML = ""; }, 5000);
     }
 
-    // ── Escape HTML ──
-    function esc(str: string) {
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-    }
+    // ── Mock data ──
+    const mockCompany = {
+      nom: "Mon Entreprise",
+      slogan: "Votre slogan accrocheur ici",
+      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
+      email: "contact@monentreprise.fr",
+      telephone: "+33 1 23 45 67 89",
+      adresse: "123 Rue de la Paix, 75001 Paris"
+    };
 
-    // ── Template selector ──
-    function renderTemplates() {
-      const container = document.getElementById("templateContainer")!;
-      container.innerHTML = templates.map(t => {
-        const isDark = t.id === "template-4" || t.id === "template-5" || t.id === "template-6" || t.id === "template-7";
-        const iconColor = isDark ? "rgba(255,255,255,0.5)" : "#94a3b8";
-        return `
-        <label class="tpl-card${t.id === selectedTemplate ? " selected" : ""}">
-          <input type="radio" name="landingTemplate" value="${t.id}" ${t.id === selectedTemplate ? "checked" : ""} />
-          <div class="tpl-card-preview" style="background:${t.color};color:${iconColor};font-size:1.25rem;">${t.icon}</div>
-          <div class="tpl-card-name">${t.name}</div>
-          <div class="tpl-card-desc">${t.desc}</div>
-        </label>`;
-      }).join("");
-
-      container.querySelectorAll(".tpl-card").forEach(card => {
-        card.addEventListener("click", () => {
-          container.querySelectorAll(".tpl-card").forEach(c => c.classList.remove("selected"));
-          card.classList.add("selected");
-          const radio = card.querySelector("input") as HTMLInputElement;
-          radio.checked = true;
-          selectedTemplate = radio.value;
-          toggleSectionsMode(selectedTemplate !== "custom");
-          updatePreview();
-        });
-      });
-    }
-
-    async function loadTemplateHTML(templateId: string): Promise<string> {
-      if (templateCache[templateId]) return templateCache[templateId];
-      try {
-        const res = await fetch(`/templates/${templateId}.html`);
-        if (!res.ok) throw new Error("Fetch failed");
-        const html = await res.text();
-        templateCache[templateId] = html;
-        return html;
-      } catch {
-        return `<html><body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#94a3b8;">Erreur de chargement du template</body></html>`;
+    const mockPosts = [
+      {
+        title: "Comment creer un site web performant",
+        excerpt: "Decouvrez les meilleures pratiques pour concevoir un site web rapide et optimise.",
+        coverImage: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop",
+        date: "2025-01-15",
+        category: "Technologie"
+      },
+      {
+        title: "Les tendances du design UI/UX",
+        excerpt: "Tour d'horizon des tendances qui faconnent les interfaces utilisateur modernes.",
+        coverImage: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&h=400&fit=crop",
+        date: "2025-01-10",
+        category: "Design"
+      },
+      {
+        title: "Guide complet du marketing de contenu",
+        excerpt: "Apprenez a creer une strategie de contenu efficace pour votre audience.",
+        coverImage: "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=600&h=400&fit=crop",
+        date: "2025-01-05",
+        category: "Marketing"
       }
-    }
+    ];
 
-    // ── Template DOM introspection & editing ──
-    function getCurrentOverrides(): any {
-      if (!templateOverrides[selectedTemplate]) {
-        templateOverrides[selectedTemplate] = { texts: {}, images: {}, hrefs: {}, hiddenSections: [] };
-      }
-      const ov = templateOverrides[selectedTemplate];
-      if (!ov.texts) ov.texts = {};
-      if (!ov.images) ov.images = {};
-      if (!ov.hrefs) ov.hrefs = {};
-      if (!ov.hiddenSections) ov.hiddenSections = [];
-      return ov;
-    }
-
-    // ── Scan script injected into iframe (runs inside template) ──
-    const IFRAME_SCAN_SCRIPT = `<script>
-(function(){
-  var TAGS="h1,h2,h3,h4,h5,h6,p,a,button,span,li";
-  var sent=false;
-  function scan(){
-    try{
-      if(sent)return;
-      var sectionEls=document.querySelectorAll("section,header,footer,nav");
-      var elements=sectionEls.length>0?Array.from(sectionEls):Array.from(document.body.children).filter(function(el){
-        return["SCRIPT","STYLE","LINK","META","BR","HR"].indexOf(el.tagName)===-1;
-      });
-      var sections=[],idx=0;
-      elements.forEach(function(sec){
-        if(["SCRIPT","STYLE","LINK","META"].indexOf(sec.tagName)!==-1)return;
-        var sid="section-"+idx;
-        sec.setAttribute("data-section-id",sid);
-        var label="Section "+(idx+1);
-        var texts=[],images=[],ti=0;
-        sec.querySelectorAll(TAGS).forEach(function(el){
-          var t=(el.textContent||"").trim();
-          if(t.length<2)return;
-          var isH=/^H[1-6]$/.test(el.tagName);
-          if(!isH&&el.closest("h1,h2,h3,h4,h5,h6"))return;
-          if(!isH){var ch=el.querySelectorAll(TAGS),skip=false;ch.forEach(function(c){if((c.textContent||"").trim().length>2)skip=true;});if(skip)return;}
-          var key=sid+"-text-"+ti;
-          el.setAttribute("data-edit-id",key);
-          texts.push({key:key,tag:el.tagName.toLowerCase(),text:t.substring(0,500),href:el.tagName==="A"?el.getAttribute("href"):undefined});
-          ti++;
-        });
-        sec.querySelectorAll("img").forEach(function(img,m){
-          var key=sid+"-img-"+m;
-          img.setAttribute("data-edit-id",key);
-          images.push({key:key,src:img.getAttribute("src")||"",alt:img.getAttribute("alt")||""});
-        });
-        if(texts.length>0||images.length>0){
-          sections.push({id:sid,tag:sec.tagName.toLowerCase(),label:label,texts:texts,images:images});
-        }
-        idx++;
-      });
-      // Force nav fixed full-width
-      var nav=document.querySelector("nav");
-      if(nav){
-        var t=nav;
-        if(nav.parentElement&&nav.parentElement!==document.body&&nav.parentElement.parentElement===document.body&&nav.parentElement.tagName==="DIV")t=nav.parentElement;
-        [t,nav].forEach(function(el){
-          var c=(el.getAttribute("class")||"").replace(/\\b-?translate-x-1\\/2\\b/g,"").replace(/\\bleft-1\\/2\\b/g,"").replace(/\\btop-\\S+/g,"").replace(/\\bmax-w-\\S+/g,"").replace(/\\bp[xlr]-\\S+/g,"").replace(/\\brounded-\\S+/g,"").replace(/\\s{2,}/g," ").trim();
-          el.setAttribute("class",c);
-        });
-        var tc=t.getAttribute("class")||"";
-        ["fixed","top-0","left-0","w-full","z-50"].forEach(function(fc){if(tc.indexOf(fc)===-1)tc+=" "+fc;});
-        t.setAttribute("class",tc.trim());
-        t.style.cssText="position:fixed;top:0;left:0;width:100%;z-index:50;border-radius:0;padding-left:0;padding-right:0;max-width:none;"+t.style.cssText;
-        var inner=nav.querySelector(":scope > div");
-        if(inner){
-          var ic=(inner.getAttribute("class")||"").replace(/\\brounded-\\S+/g,"").replace(/\\bmax-w-\\S+/g,"").replace(/\\bm[xlr]-\\S+/g,"").replace(/\\s{2,}/g," ").trim();
-          inner.setAttribute("class",ic);
-          inner.style.cssText="border-radius:0;max-width:none;"+inner.style.cssText;
-        }
-      }
-      sent=true;
-      window.parent.postMessage({type:"template-schema",sections:sections},"*");
-    }catch(err){
-      window.parent.postMessage({type:"scan-error",error:err.message},"*");
-    }
-  }
-  window.addEventListener("message",function(e){
-    if(!e.data||!e.data.type)return;
-    if(e.data.type==="request-rescan"){scan();return;}
-    if(e.data.type==="update-element"){
-      var el=document.querySelector('[data-edit-id="'+e.data.key+'"]');
-      if(!el)return;
-      if(e.data.editType==="text")el.textContent=e.data.value;
-      else if(e.data.editType==="image")el.src=e.data.value;
-      else if(e.data.editType==="href")el.href=e.data.value;
-    }
-    if(e.data.type==="toggle-section"){
-      var sec=document.querySelector('[data-section-id="'+e.data.sectionId+'"]');
-      if(sec)sec.style.display=e.data.visible?"":"none";
-    }
-    if(e.data.type==="apply-overrides"){
-      var ov=e.data.overrides;
-      Object.keys(ov.texts||{}).forEach(function(k){var el=document.querySelector('[data-edit-id="'+k+'"]');if(el)el.textContent=ov.texts[k];});
-      Object.keys(ov.images||{}).forEach(function(k){var el=document.querySelector('[data-edit-id="'+k+'"]');if(el)el.src=ov.images[k];});
-      Object.keys(ov.hrefs||{}).forEach(function(k){var el=document.querySelector('[data-edit-id="'+k+'"]');if(el)el.href=ov.hrefs[k];});
-      (ov.hiddenSections||[]).forEach(function(sid){var el=document.querySelector('[data-section-id="'+sid+'"]');if(el)el.style.display="none";});
-    }
-  });
-  // Multiple trigger points to ensure scan runs even if external scripts block DOMContentLoaded
-  if(document.readyState==="complete"||document.readyState==="interactive"){setTimeout(scan,300);}
-  else{document.addEventListener("DOMContentLoaded",function(){setTimeout(scan,300);});}
-  // Fallback: window.onload fires after all resources (including external scripts) are loaded
-  window.addEventListener("load",function(){setTimeout(scan,100);});
-  // Ultimate fallback: try after 3 seconds regardless
-  setTimeout(scan,3000);
-})();
-<\/script>`;
-
-    // ── Listen for schema from iframe ──
-    window.addEventListener("message", (e: MessageEvent) => {
-      if (e.data?.type === "template-schema") {
-        templateSchema = e.data.sections;
-        buildTemplateSections(templateSchema);
-        // Apply stored overrides
-        const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
-        const ov = getCurrentOverrides();
-        if (iframe?.contentWindow) {
-          iframe.contentWindow.postMessage({ type: "apply-overrides", overrides: ov }, "*");
-        }
-      }
-      if (e.data?.type === "scan-error") {
-        console.warn("[landing] Scan error in iframe:", e.data.error);
-      }
-    });
-
-    // Fallback: if iframe loads but scan message never arrived, request a re-scan
-    const lpIframe = document.getElementById("lpPreview") as HTMLIFrameElement;
-    if (lpIframe) {
-      lpIframe.addEventListener("load", () => {
-        // Give the scan script time to run first (it has 300ms delay)
-        setTimeout(() => {
-          if (selectedTemplate !== "custom" && templateSchema.length === 0 && lpIframe.contentWindow) {
-            lpIframe.contentWindow.postMessage({ type: "request-rescan" }, "*");
-          }
-        }, 1000);
-      });
-    }
-
-    function buildTemplateSections(schema: any[]) {
-      const container = document.getElementById("templateSections")!;
-      const overrides = getCurrentOverrides();
-      let html = "";
-      schema.forEach((section: any) => {
-        const isHidden = (overrides.hiddenSections || []).includes(section.id);
-        html += `<div class="accordion-section" data-template-section="${section.id}">
-          <button class="accordion-trigger" type="button">
-            <span class="accordion-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
-              ${esc(section.label)}
-            </span>
-            <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="accordion-content">
-            <div class="section-vis-row">
-              <span class="section-vis-label">Afficher cette section</span>
-              <label class="toggle-switch"><input type="checkbox" ${isHidden ? "" : "checked"} data-section-vis="${section.id}" /><span class="toggle-track"><span class="toggle-thumb"></span></span></label>
-            </div>`;
-        section.texts.forEach((t: any) => {
-          const val = overrides.texts?.[t.key] ?? t.text;
-          const escaped = esc(val);
-          const tag = t.tag;
-          const lbl = esc(t.text.substring(0, 40)) + (t.text.length > 40 ? "..." : "");
-          if (t.text.length > 80 || tag === "p") {
-            html += `<div class="ctrl-group"><label><span class="edit-tag">${tag}</span> ${lbl}</label>
-              <textarea data-tpl-edit="${t.key}" data-tpl-type="text" rows="2">${escaped}</textarea></div>`;
-          } else {
-            html += `<div class="ctrl-group"><label><span class="edit-tag">${tag}</span> ${lbl}</label>
-              <input type="text" data-tpl-edit="${t.key}" data-tpl-type="text" value="${escaped}" /></div>`;
-          }
-          if (t.href !== undefined) {
-            const hrefVal = overrides.hrefs?.[t.key] ?? t.href ?? "";
-            html += `<div class="ctrl-group"><label><span class="edit-tag">url</span> Lien</label>
-              <input type="url" data-tpl-edit="${t.key}" data-tpl-type="href" value="${esc(hrefVal)}" placeholder="https://..." /></div>`;
-          }
-        });
-        section.images.forEach((img: any) => {
-          const src = overrides.images?.[img.key] ?? img.src;
-          html += `<div class="ctrl-group"><label><span class="edit-tag">img</span> ${esc(img.alt || "Image")}</label>
-            <input type="url" data-tpl-edit="${img.key}" data-tpl-type="image" value="${esc(src)}" placeholder="URL de l'image" />
-            <img class="img-thumb" src="${esc(src)}" onerror="this.style.display='none'" onload="this.style.display='block'" /></div>`;
-        });
-        html += `</div></div>`;
-      });
-      container.innerHTML = html;
-      setupTemplateSectionListeners();
-    }
-
-    function setupTemplateSectionListeners() {
-      const container = document.getElementById("templateSections")!;
-      container.querySelectorAll<HTMLElement>(".accordion-trigger").forEach(btn => {
-        btn.addEventListener("click", () => { btn.closest(".accordion-section")!.classList.toggle("collapsed"); });
-      });
-      container.querySelectorAll<HTMLInputElement>("[data-section-vis]").forEach(cb => {
-        cb.addEventListener("change", () => {
-          const sectionId = cb.dataset.sectionVis!;
-          toggleSectionVisibility(sectionId, cb.checked);
-        });
-      });
-      container.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("[data-tpl-edit]").forEach(input => {
-        input.addEventListener("input", () => {
-          const key = input.dataset.tplEdit!;
-          const type = input.dataset.tplType!;
-          updateTemplateElement(key, input.value, type);
-          const ov = getCurrentOverrides();
-          if (type === "text") ov.texts[key] = input.value;
-          else if (type === "image") {
-            ov.images[key] = input.value;
-            const thumb = input.nextElementSibling as HTMLImageElement | null;
-            if (thumb?.classList.contains("img-thumb")) thumb.src = input.value;
-          }
-          else if (type === "href") {
-            if (!ov.hrefs) ov.hrefs = {};
-            ov.hrefs[key] = input.value;
-          }
-        });
-      });
-    }
-
-    function updateTemplateElement(key: string, value: string, type: string) {
-      const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
-      if (iframe?.contentWindow) {
-        iframe.contentWindow.postMessage({ type: "update-element", key, editType: type, value }, "*");
-      }
-    }
-
-    function toggleSectionVisibility(sectionId: string, visible: boolean) {
-      const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
-      if (iframe?.contentWindow) {
-        iframe.contentWindow.postMessage({ type: "toggle-section", sectionId, visible }, "*");
-      }
-      const ov = getCurrentOverrides();
-      if (visible) {
-        ov.hiddenSections = (ov.hiddenSections || []).filter((s: string) => s !== sectionId);
-      } else {
-        if (!(ov.hiddenSections || []).includes(sectionId)) {
-          if (!ov.hiddenSections) ov.hiddenSections = [];
-          ov.hiddenSections.push(sectionId);
-        }
-      }
-    }
-
-    function toggleSectionsMode(isTemplate: boolean) {
-      const custom = document.getElementById("customSections");
-      const template = document.getElementById("templateSections");
-      const aiBar = document.getElementById("aiPromptBar");
-      if (custom) custom.style.display = isTemplate ? "none" : "";
-      if (template) template.style.display = isTemplate ? "" : "none";
-      if (aiBar) aiBar.style.display = isTemplate ? "" : "none";
-    }
-
-    // ── AI Prompt ──
-    function setupAiPrompt() {
-      const input = document.getElementById("aiPromptInput") as HTMLTextAreaElement;
-      const sendBtn = document.getElementById("aiPromptSend") as HTMLButtonElement;
-
-      input.addEventListener("input", () => {
-        input.style.height = "auto";
-        input.style.height = Math.min(input.scrollHeight, 80) + "px";
-      });
-
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          sendAiPrompt();
-        }
-      });
-
-      sendBtn.addEventListener("click", sendAiPrompt);
-    }
-
-    async function sendAiPrompt() {
-      const input = document.getElementById("aiPromptInput") as HTMLTextAreaElement;
-      const sendBtn = document.getElementById("aiPromptSend") as HTMLButtonElement;
-      const prompt = input.value.trim();
-      if (!prompt) return;
-      if (selectedTemplate === "custom" || templateSchema.length === 0) {
-        showMessage("Selectionnez un template et attendez son chargement", "error");
-        return;
-      }
-
-      sendBtn.disabled = true;
-      sendBtn.innerHTML = '<div class="spinner" style="width:12px;height:12px;border-width:2px;"></div>';
-
-      try {
-        const res = await fetch("/api/admin/ai-edit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            prompt,
-            schema: templateSchema,
-            currentOverrides: getCurrentOverrides(),
-          }),
-        });
-
-        if (res.status === 401) { window.location.href = "/admin/login"; return; }
-
-        const data = await res.json();
-        if (data.success && data.changes) {
-          applyAiChanges(data.changes);
-          input.value = "";
-          input.style.height = "auto";
-          showMessage("Modifications appliquees par l'IA", "success");
-        } else {
-          showMessage(data.error || "Erreur IA", "error");
-        }
-      } catch {
-        showMessage("Erreur reseau", "error");
-      } finally {
-        sendBtn.disabled = false;
-        sendBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>';
-      }
-    }
-
-    function applyAiChanges(changes: any) {
-      const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
-      const ov = getCurrentOverrides();
-
-      if (changes.texts) {
-        Object.entries(changes.texts).forEach(([key, value]) => {
-          ov.texts[key] = value as string;
-          updateTemplateElement(key, value as string, "text");
-        });
-      }
-      if (changes.images) {
-        if (!ov.images) ov.images = {};
-        Object.entries(changes.images).forEach(([key, value]) => {
-          ov.images[key] = value as string;
-          updateTemplateElement(key, value as string, "image");
-        });
-      }
-      if (changes.hrefs) {
-        if (!ov.hrefs) ov.hrefs = {};
-        Object.entries(changes.hrefs).forEach(([key, value]) => {
-          ov.hrefs[key] = value as string;
-          updateTemplateElement(key, value as string, "href");
-        });
-      }
-      if (changes.hiddenSections) {
-        changes.hiddenSections.forEach((id: string) => toggleSectionVisibility(id, false));
-      }
-      if (changes.visibleSections) {
-        changes.visibleSections.forEach((id: string) => toggleSectionVisibility(id, true));
-      }
-
-      // Rebuild controls to reflect AI changes
-      buildTemplateSections(templateSchema);
-    }
-
-    // ── Gather config from controls ──
-    function gatherConfig(): Record<string, any> {
+    // ── Gather config from all controls ──
+    function gatherConfig() {
       return {
-        ...currentConfig,
-        name: $("cfg-name").value,
-        description: $("cfg-description").value,
-        url: $("cfg-url").value,
-        defaultLanguage: currentConfig?.defaultLanguage || "fr",
-        landingTemplate: selectedTemplate,
-        templateOverrides: templateOverrides,
+        global: {
+          accentColor: $("cfg-accentColor").value,
+          pageBgColor: $("cfg-pageBgColor").value,
+          headingFont: ($("cfg-headingFont") as HTMLSelectElement).value,
+          bodyFont: ($("cfg-bodyFont") as HTMLSelectElement).value,
+        },
         hero: {
-          title: $("cfg-hero-title").value,
-          subtitle: $("cfg-hero-subtitle").value,
-          ctaText: $("cfg-hero-ctaText").value,
-          ctaLink: $("cfg-hero-ctaLink").value,
+          visible: $("cfg-heroVisible").checked,
+          minHeight: ($("cfg-heroMinHeight") as HTMLSelectElement).value,
+          overlayOpacity: parseInt($("cfg-heroOverlayOpacity").value, 10),
+          overlayColor: $("cfg-heroOverlayColor").value,
+          fallbackGradientFrom: $("cfg-heroGradientFrom").value,
+          fallbackGradientTo: $("cfg-heroGradientTo").value,
+          showLogo: $("cfg-heroShowLogo").checked,
+          logoHeight: ($("cfg-heroLogoHeight") as HTMLSelectElement).value,
+          logoRadius: ($("cfg-heroLogoRadius") as HTMLSelectElement).value,
+          logoBgOpacity: parseInt($("cfg-heroLogoBgOpacity").value, 10),
+          titleFontSize: ($("cfg-heroTitleFontSize") as HTMLSelectElement).value,
+          titleColor: $("cfg-heroTitleColor").value,
+          showSlogan: $("cfg-heroShowSlogan").checked,
+          sloganFontSize: ($("cfg-heroSloganFontSize") as HTMLSelectElement).value,
+          sloganColor: $("cfg-heroSloganColorText").value || $("cfg-heroSloganColor").value,
+          verticalPadding: ($("cfg-heroVerticalPadding") as HTMLSelectElement).value,
         },
-        features: {
-          title: $("cfg-features-title").value,
-          items: featuresItems,
+        description: {
+          visible: $("cfg-descVisible").checked,
+          maxWidth: ($("cfg-descMaxWidth") as HTMLSelectElement).value,
+          verticalPadding: ($("cfg-descVerticalPadding") as HTMLSelectElement).value,
+          textColor: $("cfg-descTextColor").value,
+          fontSize: ($("cfg-descFontSize") as HTMLSelectElement).value,
+          textAlign: ($("cfg-descTextAlign") as HTMLSelectElement).value,
+          bgColor: $("cfg-descBgColor").value,
         },
-        cta: {
-          title: $("cfg-cta-title").value,
-          description: $("cfg-cta-description").value,
-          ctaText: $("cfg-cta-ctaText").value,
-          ctaLink: $("cfg-cta-ctaLink").value,
+        blogPreview: {
+          visible: $("cfg-blogVisible").checked,
+          postCount: parseInt(($("cfg-blogPostCount") as HTMLSelectElement).value, 10),
+          verticalPadding: ($("cfg-blogVerticalPadding") as HTMLSelectElement).value,
+          bgColor: $("cfg-blogBgColor").value,
+          cardRadius: ($("cfg-blogCardRadius") as HTMLSelectElement).value,
+          cardShadow: ($("cfg-blogCardShadow") as HTMLSelectElement).value,
+          showCoverImage: $("cfg-blogShowCoverImage").checked,
+          showCategory: $("cfg-blogShowCategory").checked,
+          showDate: $("cfg-blogShowDate").checked,
+          showExcerpt: $("cfg-blogShowExcerpt").checked,
+          sectionTitle: $("cfg-blogSectionTitle").value,
+          sectionSubtitle: ($("cfg-blogSectionSubtitle") as HTMLTextAreaElement).value,
+          ctaText: $("cfg-blogCtaText").value,
+          badgeText: $("cfg-blogBadgeText").value,
+        },
+        contact: {
+          visible: $("cfg-contactVisible").checked,
+          verticalPadding: ($("cfg-contactVerticalPadding") as HTMLSelectElement).value,
+          bgColor: $("cfg-contactBgColor").value,
+          cardRadius: ($("cfg-contactCardRadius") as HTMLSelectElement).value,
+          cardBgColor: $("cfg-contactCardBgColor").value,
+          headingText: $("cfg-contactHeadingText").value,
+          headingColor: $("cfg-contactHeadingColor").value,
+          iconBgColor: $("cfg-contactIconBgColor").value,
+          iconColor: $("cfg-contactIconColor").value,
+          linkColor: $("cfg-contactLinkColor").value,
+        },
+        header: {
+          visible: $("cfg-headerVisible").checked,
+          scrollBgColor: $("cfg-headerScrollBgColorText").value || $("cfg-headerScrollBgColor").value,
+          nameColor: $("cfg-headerNameColor").value,
+          linkColor: $("cfg-headerLinkColor").value,
+          linkHoverColor: $("cfg-headerLinkHoverColor").value,
+        },
+        footer: {
+          visible: $("cfg-footerVisible").checked,
+          bgColor: $("cfg-footerBgColor").value,
+          textColor: $("cfg-footerTextColor").value,
+          linkColor: $("cfg-footerLinkColorText").value || $("cfg-footerLinkColor").value,
+          copyrightColor: $("cfg-footerCopyrightColorText").value || $("cfg-footerCopyrightColor").value,
         },
       };
     }
 
-    // ── Preview HTML generators ──
-    function headerHTML(cfg: Record<string, any>) {
-      const name = esc(cfg.name || "Mon Site");
-      return `<header style="background:white;border-bottom:1px solid #f3f4f6;">
-        <nav style="max-width:72rem;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;">
-          <a href="#" style="font-size:1.25rem;font-weight:700;color:#111827;text-decoration:none;">${name}</a>
-          <div style="display:flex;align-items:center;gap:2rem;">
-            <a href="#" style="color:#4b5563;text-decoration:none;font-size:0.875rem;font-weight:500;">Accueil</a>
-            <a href="#" style="color:#4b5563;text-decoration:none;font-size:0.875rem;font-weight:500;">Blog</a>
-            <a href="#" style="background:#0284c7;color:white;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.875rem;font-weight:500;text-decoration:none;">Acceder a l'app</a>
-          </div>
-        </nav>
-      </header>`;
+    // ── Tailwind class → CSS value maps ──
+    const twPaddingMap: Record<string, string> = {
+      "py-12": "3rem", "py-16": "4rem", "py-20": "5rem", "py-24": "6rem", "py-28": "7rem", "py-32": "8rem"
+    };
+    const twMaxWidthMap: Record<string, string> = {
+      "max-w-2xl": "42rem", "max-w-3xl": "48rem", "max-w-4xl": "56rem", "max-w-5xl": "64rem"
+    };
+    const twFontSizeMap: Record<string, string> = {
+      "text-lg": "1.125rem", "text-xl": "1.25rem", "text-2xl": "1.5rem",
+      "text-3xl": "1.875rem", "text-4xl": "2.25rem", "text-5xl": "3rem", "text-6xl": "3.75rem"
+    };
+    const twProseMap: Record<string, string> = {
+      "prose-base": "1rem", "prose-lg": "1.125rem", "prose-xl": "1.25rem"
+    };
+    const twHeightMap: Record<string, string> = {
+      "h-12": "3rem", "h-16": "4rem", "h-20": "5rem", "h-24": "6rem", "h-32": "8rem"
+    };
+    const twRadiusMap: Record<string, string> = {
+      "rounded-none": "0", "rounded-lg": "0.5rem", "rounded-xl": "0.75rem",
+      "rounded-2xl": "1rem", "rounded-3xl": "1.5rem", "rounded-full": "9999px"
+    };
+    const twShadowMap: Record<string, string> = {
+      "none": "none", "shadow-sm": "0 1px 2px rgba(0,0,0,0.05)",
+      "shadow-md": "0 4px 6px -1px rgba(0,0,0,0.1)", "shadow-lg": "0 10px 15px -3px rgba(0,0,0,0.1)"
+    };
+    const twTextAlignMap: Record<string, string> = {
+      "text-left": "left", "text-center": "center", "text-justify": "justify"
+    };
+
+    function formatDate(dateStr: string) {
+      return new Date(dateStr).toLocaleDateString("fr-FR", {
+        year: "numeric", month: "long", day: "numeric"
+      });
     }
 
-    function heroSectionHTML(cfg: Record<string, any>) {
-      const hero = cfg.hero || {};
-      const title = esc(hero.title || "Votre titre principal ici");
-      const subtitle = esc(hero.subtitle || "Une description convaincante de votre produit ou service.");
-      const ctaText = esc(hero.ctaText || "Commencer");
-      return `<section style="position:relative;overflow:hidden;background:linear-gradient(to bottom,#f0f9ff,white);">
-        <div style="max-width:72rem;margin:0 auto;padding:6rem 1.5rem;text-align:center;">
-          <h1 style="font-size:3rem;font-weight:700;letter-spacing:-0.025em;color:#111827;line-height:1.1;">${title}</h1>
-          <p style="margin-top:1.5rem;font-size:1.25rem;color:#4b5563;max-width:42rem;margin-left:auto;margin-right:auto;line-height:1.6;">${subtitle}</p>
-          <div style="margin-top:2.5rem;display:flex;justify-content:center;gap:1rem;">
-            <a href="#" style="border-radius:0.5rem;background:#0284c7;padding:0.75rem 1.5rem;font-size:1rem;font-weight:600;color:white;text-decoration:none;box-shadow:0 1px 2px rgba(0,0,0,0.05);">${ctaText}</a>
-            <a href="#" style="border-radius:0.5rem;border:1px solid #d1d5db;background:white;padding:0.75rem 1.5rem;font-size:1rem;font-weight:600;color:#374151;text-decoration:none;box-shadow:0 1px 2px rgba(0,0,0,0.05);">Lire le blog</a>
+    // ── Generate full preview HTML ──
+    function generatePreviewHTML(cfg: ReturnType<typeof gatherConfig>) {
+      const g = cfg.global;
+      const fontsParam = encodeURIComponent(g.headingFont) + ":wght@400;500;600;700&family=" + encodeURIComponent(g.bodyFont) + ":wght@400;500;600;700";
+
+      // Header section
+      let headerHTML = "";
+      if (cfg.header.visible) {
+        headerHTML = `
+        <header style="position:fixed;top:0;left:0;right:0;z-index:50;background:${cfg.header.scrollBgColor};backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,0.05);transition:background 0.3s;">
+          <nav style="max-width:72rem;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;">
+            <a href="#" style="font-size:1.25rem;font-weight:700;color:${cfg.header.nameColor};text-decoration:none;font-family:'${g.headingFont}',sans-serif;">${mockCompany.nom}</a>
+            <div style="display:flex;align-items:center;gap:2rem;">
+              <a href="#" style="color:${cfg.header.linkColor};text-decoration:none;font-size:0.875rem;font-weight:500;transition:color 0.2s;"
+                 onmouseover="this.style.color='${cfg.header.linkHoverColor}'"
+                 onmouseout="this.style.color='${cfg.header.linkColor}'"
+              >Accueil</a>
+              <a href="#" style="color:${cfg.header.linkColor};text-decoration:none;font-size:0.875rem;font-weight:500;transition:color 0.2s;"
+                 onmouseover="this.style.color='${cfg.header.linkHoverColor}'"
+                 onmouseout="this.style.color='${cfg.header.linkColor}'"
+              >Blog</a>
+              <a href="#" style="color:${cfg.header.linkColor};text-decoration:none;font-size:0.875rem;font-weight:500;transition:color 0.2s;"
+                 onmouseover="this.style.color='${cfg.header.linkHoverColor}'"
+                 onmouseout="this.style.color='${cfg.header.linkColor}'"
+              >Contact</a>
+            </div>
+          </nav>
+        </header>`;
+      }
+
+      // Hero section
+      let heroHTML = "";
+      if (cfg.hero.visible) {
+        const h = cfg.hero;
+        const padY = twPaddingMap[h.verticalPadding] || "6rem";
+        const titleSize = twFontSizeMap[h.titleFontSize] || "2.25rem";
+        const sloganSize = twFontSizeMap[h.sloganFontSize] || "1.25rem";
+        const logoH = twHeightMap[h.logoHeight] || "5rem";
+        const logoR = twRadiusMap[h.logoRadius] || "1rem";
+        const overlayAlpha = (h.overlayOpacity / 100).toFixed(2);
+
+        const logoHTML = h.showLogo ? `
+          <div style="width:${logoH};height:${logoH};border-radius:${logoR};background:rgba(255,255,255,${(h.logoBgOpacity / 100).toFixed(2)});display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;font-size:2rem;font-weight:700;color:white;font-family:'${g.headingFont}',sans-serif;">
+            ${mockCompany.nom.charAt(0)}
+          </div>` : "";
+
+        const sloganHTML = h.showSlogan ? `
+          <p style="font-size:${sloganSize};color:${h.sloganColor};max-width:36rem;font-family:'${g.bodyFont}',sans-serif;">
+            ${mockCompany.slogan}
+          </p>` : "";
+
+        heroHTML = `
+        <section style="position:relative;min-height:${h.minHeight};display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg, ${h.fallbackGradientFrom}, ${h.fallbackGradientTo});overflow:hidden;">
+          <div style="position:absolute;inset:0;background:${h.overlayColor};opacity:${overlayAlpha};"></div>
+          <div style="position:relative;z-index:1;text-align:center;padding:${padY} 1.5rem;max-width:72rem;margin:0 auto;">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              ${logoHTML}
+              <h1 style="font-size:${titleSize};font-weight:700;color:${h.titleColor};margin-bottom:1rem;font-family:'${g.headingFont}',sans-serif;line-height:1.2;">
+                ${mockCompany.nom}
+              </h1>
+              ${sloganHTML}
+            </div>
           </div>
-        </div>
-      </section>`;
-    }
+        </section>`;
+      }
 
-    function featuresSectionHTML(cfg: Record<string, any>) {
-      const features = cfg.features || {};
-      const title = esc(features.title || "Pourquoi nous choisir");
-      const items: FeatureItem[] = features.items || [];
+      // Description section
+      let descHTML = "";
+      if (cfg.description.visible) {
+        const d = cfg.description;
+        const padY = twPaddingMap[d.verticalPadding] || "5rem";
+        const maxW = twMaxWidthMap[d.maxWidth] || "48rem";
+        const fontSize = twProseMap[d.fontSize] || "1.125rem";
+        const textAlign = twTextAlignMap[d.textAlign] || "left";
 
-      if (items.length === 0) return "";
-
-      const cardsHTML = items.map(f => `
-        <div style="border-radius:0.75rem;border:1px solid #f3f4f6;background:white;padding:2rem;box-shadow:0 1px 2px rgba(0,0,0,0.05);transition:box-shadow 0.2s;">
-          <div style="display:flex;width:3rem;height:3rem;align-items:center;justify-content:center;border-radius:0.5rem;background:#e0f2fe;color:#0369a1;font-weight:700;font-size:1.125rem;margin-bottom:1rem;">${esc(f.icon)}</div>
-          <h3 style="font-size:1.125rem;font-weight:600;color:#111827;margin-bottom:0.5rem;">${esc(f.title)}</h3>
-          <p style="color:#4b5563;line-height:1.6;">${esc(f.description)}</p>
-        </div>
-      `).join("");
-
-      return `<section style="padding:5rem 0;">
-        <div style="max-width:72rem;margin:0 auto;padding:0 1.5rem;">
-          <h2 style="font-size:1.875rem;font-weight:700;text-align:center;color:#111827;margin-bottom:3rem;">${title}</h2>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;">
-            ${cardsHTML}
+        descHTML = `
+        <section style="background:${d.bgColor};padding:${padY} 1.5rem;">
+          <div style="max-width:${maxW};margin:0 auto;text-align:${textAlign};">
+            <p style="color:${d.textColor};font-size:${fontSize};line-height:1.8;font-family:'${g.bodyFont}',sans-serif;">
+              ${mockCompany.description}
+            </p>
           </div>
-        </div>
-      </section>`;
-    }
+        </section>`;
+      }
 
-    function ctaSectionHTML(cfg: Record<string, any>) {
-      const cta = cfg.cta || {};
-      const title = esc(cta.title || "Pret a commencer ?");
-      const description = esc(cta.description || "Rejoignez-nous et decouvrez comment notre solution peut vous aider.");
-      const ctaText = esc(cta.ctaText || "Essayer gratuitement");
+      // Blog preview section
+      let blogHTML = "";
+      if (cfg.blogPreview.visible) {
+        const b = cfg.blogPreview;
+        const padY = twPaddingMap[b.verticalPadding] || "6rem";
+        const cardR = twRadiusMap[b.cardRadius] || "1rem";
+        const cardS = twShadowMap[b.cardShadow] || "none";
+        const visiblePosts = mockPosts.slice(0, b.postCount);
+        const cols = b.postCount <= 2 ? 2 : (b.postCount === 4 ? 2 : 3);
 
-      return `<section style="padding:5rem 0;">
-        <div style="max-width:56rem;margin:0 auto;padding:0 1.5rem;">
-          <div style="border-radius:1rem;background:#0284c7;padding:2rem 2rem 4rem;text-align:center;">
-            <h2 style="font-size:1.875rem;font-weight:700;color:white;margin-bottom:1rem;">${title}</h2>
-            <p style="color:#e0f2fe;font-size:1.125rem;margin-bottom:2rem;max-width:36rem;margin-left:auto;margin-right:auto;">${description}</p>
-            <a href="#" style="display:inline-block;border-radius:0.5rem;background:white;padding:0.75rem 2rem;font-size:1rem;font-weight:600;color:#0369a1;text-decoration:none;box-shadow:0 1px 2px rgba(0,0,0,0.05);">${ctaText}</a>
+        const cardsHTML = visiblePosts.map(post => `
+          <article style="background:white;border-radius:${cardR};overflow:hidden;box-shadow:${cardS};border:1px solid rgba(0,0,0,0.05);transition:transform 0.2s,box-shadow 0.2s;">
+            ${b.showCoverImage ? `<img src="${post.coverImage}" alt="${post.title}" style="width:100%;height:200px;object-fit:cover;" loading="lazy" />` : ""}
+            <div style="padding:1.5rem;">
+              <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;">
+                ${b.showCategory ? `<span style="font-size:0.75rem;font-weight:500;color:${g.accentColor};background:${g.accentColor}12;padding:0.25rem 0.625rem;border-radius:9999px;">${post.category}</span>` : ""}
+                ${b.showDate ? `<time style="font-size:0.75rem;color:#9ca3af;">${formatDate(post.date)}</time>` : ""}
+              </div>
+              <h3 style="font-size:1.125rem;font-weight:600;color:#111827;margin-bottom:0.5rem;line-height:1.4;font-family:'${g.headingFont}',sans-serif;">${post.title}</h3>
+              ${b.showExcerpt ? `<p style="color:#6b7280;font-size:0.875rem;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-family:'${g.bodyFont}',sans-serif;">${post.excerpt}</p>` : ""}
+            </div>
+          </article>
+        `).join("");
+
+        blogHTML = `
+        <section style="background:${b.bgColor};padding:${padY} 1.5rem;">
+          <div style="max-width:72rem;margin:0 auto;">
+            <div style="text-align:center;margin-bottom:3rem;">
+              ${b.badgeText ? `<span style="display:inline-block;font-size:0.75rem;font-weight:600;color:${g.accentColor};background:${g.accentColor}12;padding:0.375rem 1rem;border-radius:9999px;margin-bottom:1rem;letter-spacing:0.05em;text-transform:uppercase;">${b.badgeText}</span>` : ""}
+              ${b.sectionTitle ? `<h2 style="font-size:2rem;font-weight:700;color:#111827;margin-bottom:0.75rem;font-family:'${g.headingFont}',sans-serif;">${b.sectionTitle}</h2>` : ""}
+              ${b.sectionSubtitle ? `<p style="font-size:1.125rem;color:#6b7280;max-width:36rem;margin:0 auto;font-family:'${g.bodyFont}',sans-serif;">${b.sectionSubtitle}</p>` : ""}
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:2rem;">
+              ${cardsHTML}
+            </div>
+            ${b.ctaText ? `
+              <div style="text-align:center;margin-top:3rem;">
+                <a href="#" style="display:inline-flex;align-items:center;gap:0.5rem;background:${g.accentColor};color:white;padding:0.75rem 2rem;border-radius:0.5rem;font-weight:600;font-size:0.9375rem;text-decoration:none;font-family:'${g.bodyFont}',sans-serif;transition:opacity 0.2s;">${b.ctaText} &rarr;</a>
+              </div>` : ""}
           </div>
-        </div>
-      </section>`;
-    }
+        </section>`;
+      }
 
-    function generatePreviewHTML(cfg: Record<string, any>) {
+      // Contact section
+      let contactHTML = "";
+      if (cfg.contact.visible) {
+        const c = cfg.contact;
+        const padY = twPaddingMap[c.verticalPadding] || "5rem";
+        const cardR = twRadiusMap[c.cardRadius] || "1rem";
+
+        contactHTML = `
+        <section style="background:${c.bgColor};padding:${padY} 1.5rem;">
+          <div style="max-width:72rem;margin:0 auto;">
+            <h2 style="font-size:2rem;font-weight:700;color:${c.headingColor};margin-bottom:2.5rem;text-align:center;font-family:'${g.headingFont}',sans-serif;">${c.headingText || "Contact"}</h2>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;max-width:56rem;margin:0 auto;">
+              <!-- Email card -->
+              <div style="background:${c.cardBgColor};border-radius:${cardR};padding:2rem;text-align:center;">
+                <div style="width:3rem;height:3rem;background:${c.iconBgColor};border-radius:0.75rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${c.iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                </div>
+                <p style="font-size:0.875rem;font-weight:500;color:#6b7280;margin-bottom:0.5rem;font-family:'${g.bodyFont}',sans-serif;">Email</p>
+                <a href="#" style="color:${c.linkColor};font-size:0.9375rem;font-weight:500;text-decoration:none;font-family:'${g.bodyFont}',sans-serif;">${mockCompany.email}</a>
+              </div>
+              <!-- Phone card -->
+              <div style="background:${c.cardBgColor};border-radius:${cardR};padding:2rem;text-align:center;">
+                <div style="width:3rem;height:3rem;background:${c.iconBgColor};border-radius:0.75rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${c.iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                </div>
+                <p style="font-size:0.875rem;font-weight:500;color:#6b7280;margin-bottom:0.5rem;font-family:'${g.bodyFont}',sans-serif;">Telephone</p>
+                <a href="#" style="color:${c.linkColor};font-size:0.9375rem;font-weight:500;text-decoration:none;font-family:'${g.bodyFont}',sans-serif;">${mockCompany.telephone}</a>
+              </div>
+              <!-- Address card -->
+              <div style="background:${c.cardBgColor};border-radius:${cardR};padding:2rem;text-align:center;">
+                <div style="width:3rem;height:3rem;background:${c.iconBgColor};border-radius:0.75rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${c.iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
+                <p style="font-size:0.875rem;font-weight:500;color:#6b7280;margin-bottom:0.5rem;font-family:'${g.bodyFont}',sans-serif;">Adresse</p>
+                <p style="color:#374151;font-size:0.9375rem;font-family:'${g.bodyFont}',sans-serif;">${mockCompany.adresse}</p>
+              </div>
+            </div>
+          </div>
+        </section>`;
+      }
+
+      // Footer section
+      let footerHTML = "";
+      if (cfg.footer.visible) {
+        const f = cfg.footer;
+        footerHTML = `
+        <footer style="background:${f.bgColor};padding:3rem 1.5rem 2rem;">
+          <div style="max-width:72rem;margin:0 auto;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
+              <span style="font-size:1.125rem;font-weight:700;color:${f.textColor};font-family:'${g.headingFont}',sans-serif;">${mockCompany.nom}</span>
+              <div style="display:flex;gap:1.5rem;">
+                <a href="#" style="color:${f.linkColor};text-decoration:none;font-size:0.875rem;font-family:'${g.bodyFont}',sans-serif;">Accueil</a>
+                <a href="#" style="color:${f.linkColor};text-decoration:none;font-size:0.875rem;font-family:'${g.bodyFont}',sans-serif;">Blog</a>
+                <a href="#" style="color:${f.linkColor};text-decoration:none;font-size:0.875rem;font-family:'${g.bodyFont}',sans-serif;">Contact</a>
+              </div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:1.5rem;">
+              <p style="font-size:0.8125rem;color:${f.copyrightColor};font-family:'${g.bodyFont}',sans-serif;">&copy; ${new Date().getFullYear()} ${mockCompany.nom}. Tous droits reserves.</p>
+            </div>
+          </div>
+        </footer>`;
+      }
+
+      const headerTopPad = cfg.header.visible ? "padding-top:4rem;" : "";
+
       return `<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<script src="https://cdn.tailwindcss.com"><\/script>
-<script>
-tailwind.config={theme:{extend:{colors:{primary:{50:"#f0f9ff",100:"#e0f2fe",200:"#bae6fd",300:"#7dd3fc",400:"#38bdf8",500:"#0ea5e9",600:"#0284c7",700:"#0369a1",800:"#075985",900:"#0c4a6e",950:"#082f49"}}}}}
-<\/script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=${fontsParam}&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Inter',sans-serif;background:white;color:#111827;-webkit-font-smoothing:antialiased;}
+body{font-family:'${g.bodyFont}',sans-serif;background:${g.pageBgColor};color:#111827;-webkit-font-smoothing:antialiased;${headerTopPad}}
+img{display:block;}
+a{text-decoration:none;}
 @media(max-width:768px){
-  .features-grid{grid-template-columns:1fr !important;}
-  .hero-title{font-size:2rem !important;}
-  .hero-buttons{flex-direction:column !important;align-items:center !important;}
+  .grid-3{grid-template-columns:1fr !important;}
+  .grid-2{grid-template-columns:1fr !important;}
 }
 </style>
 </head>
 <body>
-${headerHTML(cfg)}
-${heroSectionHTML(cfg)}
-${featuresSectionHTML(cfg)}
-${ctaSectionHTML(cfg)}
+${headerHTML}
+${heroHTML}
+${descHTML}
+${blogHTML}
+${contactHTML}
+${footerHTML}
 </body>
 </html>`;
     }
 
     // ── Preview update with debounce ──
-    async function updatePreview() {
-      const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
-      if (!iframe) return;
-
-      if (selectedTemplate === "custom") {
-        const cfg = gatherConfig();
+    function updatePreview() {
+      const cfg = gatherConfig();
+      const iframe = document.getElementById("landingPreview") as HTMLIFrameElement;
+      if (iframe) {
         iframe.srcdoc = generatePreviewHTML(cfg);
-      } else {
-        let html = await loadTemplateHTML(selectedTemplate);
-        // Inject scan + communication script into the template
-        if (html.includes("</body>")) {
-          html = html.replace("</body>", IFRAME_SCAN_SCRIPT + "</body>");
-        } else {
-          html += IFRAME_SCAN_SCRIPT;
-        }
-        iframe.srcdoc = html;
       }
     }
 
@@ -1388,66 +1425,119 @@ ${ctaSectionHTML(cfg)}
           section.classList.toggle("collapsed");
         });
       });
+      // Collapse all except first by default
+      const sections = document.querySelectorAll<HTMLElement>(".accordion-section");
+      sections.forEach((s, i) => {
+        if (i > 0) s.classList.add("collapsed");
+      });
     }
 
-    // ── Features management ──
-    function renderFeatures() {
-      const container = document.getElementById("features-list")!;
-      container.innerHTML = "";
+    // ── Color sync helper ──
+    function syncColorPair(pickerId: string, textId: string, onChange?: () => void) {
+      const picker = $(pickerId);
+      const text = $(textId);
+      if (!picker || !text) return;
 
-      featuresItems.forEach((item, i) => {
-        const div = document.createElement("div");
-        div.className = "feature-item";
-        div.innerHTML = `
-          <div class="feature-item-header">
-            <span class="feature-item-number">Fonctionnalite ${i + 1}</span>
-            <button type="button" class="remove-feature-btn" data-index="${i}">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-              Suppr.
-            </button>
-          </div>
-          <div class="feature-row">
-            <input type="text" class="feature-icon" data-index="${i}" value="${item.icon}" placeholder="Ic." />
-            <input type="text" class="feature-title" data-index="${i}" value="${item.title}" placeholder="Titre" />
-          </div>
-          <textarea class="feature-desc" data-index="${i}" placeholder="Description..." style="font-size:0.75rem;">${item.description}</textarea>
-        `;
-        container.appendChild(div);
+      picker.addEventListener("input", () => {
+        text.value = picker.value;
+        if (onChange) onChange();
+        schedulePreviewUpdate(100);
       });
-
-      // Remove buttons
-      container.querySelectorAll(".remove-feature-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          const idx = parseInt((e.currentTarget as HTMLElement).dataset.index!);
-          featuresItems.splice(idx, 1);
-          renderFeatures();
-          schedulePreviewUpdate(0);
-        });
+      text.addEventListener("input", () => {
+        const val = text.value.trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+          picker.value = val;
+        }
+        // Allow rgba and other non-hex values in text field
+        if (onChange) onChange();
+        schedulePreviewUpdate(250);
       });
+    }
 
-      // Input sync
-      container.querySelectorAll(".feature-icon, .feature-title, .feature-desc").forEach(input => {
-        input.addEventListener("input", (e) => {
-          const el = e.target as HTMLInputElement | HTMLTextAreaElement;
-          const idx = parseInt(el.dataset.index!);
-          if (el.classList.contains("feature-icon")) featuresItems[idx].icon = el.value;
-          if (el.classList.contains("feature-title")) featuresItems[idx].title = el.value;
-          if (el.classList.contains("feature-desc")) featuresItems[idx].description = el.value;
-          schedulePreviewUpdate();
+    // ── Setup all color syncs ──
+    function setupColorSyncs() {
+      const colorPairs = [
+        ["cfg-accentColor", "cfg-accentColorText"],
+        ["cfg-pageBgColor", "cfg-pageBgColorText"],
+        ["cfg-heroOverlayColor", "cfg-heroOverlayColorText"],
+        ["cfg-heroGradientFrom", "cfg-heroGradientFromText"],
+        ["cfg-heroGradientTo", "cfg-heroGradientToText"],
+        ["cfg-heroTitleColor", "cfg-heroTitleColorText"],
+        ["cfg-heroSloganColor", "cfg-heroSloganColorText"],
+        ["cfg-descTextColor", "cfg-descTextColorText"],
+        ["cfg-descBgColor", "cfg-descBgColorText"],
+        ["cfg-blogBgColor", "cfg-blogBgColorText"],
+        ["cfg-contactHeadingColor", "cfg-contactHeadingColorText"],
+        ["cfg-contactBgColor", "cfg-contactBgColorText"],
+        ["cfg-contactCardBgColor", "cfg-contactCardBgColorText"],
+        ["cfg-contactIconBgColor", "cfg-contactIconBgColorText"],
+        ["cfg-contactIconColor", "cfg-contactIconColorText"],
+        ["cfg-contactLinkColor", "cfg-contactLinkColorText"],
+        ["cfg-headerScrollBgColor", "cfg-headerScrollBgColorText"],
+        ["cfg-headerNameColor", "cfg-headerNameColorText"],
+        ["cfg-headerLinkColor", "cfg-headerLinkColorText"],
+        ["cfg-headerLinkHoverColor", "cfg-headerLinkHoverColorText"],
+        ["cfg-footerBgColor", "cfg-footerBgColorText"],
+        ["cfg-footerTextColor", "cfg-footerTextColorText"],
+        ["cfg-footerLinkColor", "cfg-footerLinkColorText"],
+        ["cfg-footerCopyrightColor", "cfg-footerCopyrightColorText"],
+      ];
+      colorPairs.forEach(([p, t]) => syncColorPair(p, t));
+    }
+
+    // ── Range inputs value display ──
+    function setupRangeInputs() {
+      const ranges = [
+        ["cfg-heroOverlayOpacity", "heroOverlayVal"],
+        ["cfg-heroLogoBgOpacity", "heroLogoBgOpacityVal"],
+      ];
+      ranges.forEach(([inputId, labelId]) => {
+        const input = $(inputId);
+        const label = document.getElementById(labelId);
+        if (!input || !label) return;
+        input.addEventListener("input", () => {
+          label.textContent = input.value;
+          schedulePreviewUpdate(50);
         });
       });
     }
 
     // ── Reactive binding ──
     function setupReactiveInputs() {
-      const textIds = [
-        "cfg-name", "cfg-description", "cfg-url",
-        "cfg-hero-title", "cfg-hero-subtitle", "cfg-hero-ctaText", "cfg-hero-ctaLink",
-        "cfg-features-title",
-        "cfg-cta-title", "cfg-cta-description", "cfg-cta-ctaText", "cfg-cta-ctaLink"
+      // Text inputs with debounce
+      const textInputs = [
+        "cfg-blogBadgeText", "cfg-blogSectionTitle", "cfg-blogSectionSubtitle",
+        "cfg-blogCtaText", "cfg-contactHeadingText"
       ];
-      textIds.forEach(id => {
+      textInputs.forEach(id => {
         $(id)?.addEventListener("input", () => schedulePreviewUpdate());
+      });
+
+      // Selects — immediate
+      const selects = [
+        "cfg-headingFont", "cfg-bodyFont",
+        "cfg-heroMinHeight", "cfg-heroLogoHeight", "cfg-heroLogoRadius",
+        "cfg-heroTitleFontSize", "cfg-heroSloganFontSize", "cfg-heroVerticalPadding",
+        "cfg-descMaxWidth", "cfg-descFontSize", "cfg-descTextAlign", "cfg-descVerticalPadding",
+        "cfg-blogPostCount", "cfg-blogCardRadius", "cfg-blogCardShadow", "cfg-blogVerticalPadding",
+        "cfg-contactCardRadius", "cfg-contactVerticalPadding"
+      ];
+      selects.forEach(id => {
+        $(id)?.addEventListener("change", () => schedulePreviewUpdate(0));
+      });
+
+      // Toggles — immediate
+      const toggles = [
+        "cfg-heroVisible", "cfg-heroShowLogo", "cfg-heroShowSlogan",
+        "cfg-descVisible",
+        "cfg-blogVisible", "cfg-blogShowCoverImage", "cfg-blogShowCategory",
+        "cfg-blogShowDate", "cfg-blogShowExcerpt",
+        "cfg-contactVisible",
+        "cfg-headerVisible",
+        "cfg-footerVisible"
+      ];
+      toggles.forEach(id => {
+        $(id)?.addEventListener("change", () => schedulePreviewUpdate(0));
       });
     }
 
@@ -1458,13 +1548,12 @@ ${ctaSectionHTML(cfg)}
         tablet: "768px",
         mobile: "375px"
       };
-
       document.querySelectorAll<HTMLButtonElement>(".device-btn").forEach(btn => {
         btn.addEventListener("click", () => {
           document.querySelectorAll(".device-btn").forEach(b => b.classList.remove("active"));
           btn.classList.add("active");
           const device = btn.dataset.device || "desktop";
-          const iframe = document.getElementById("lpPreview") as HTMLIFrameElement;
+          const iframe = document.getElementById("landingPreview") as HTMLIFrameElement;
           iframe.style.maxWidth = deviceSizes[device];
         });
       });
@@ -1509,62 +1598,161 @@ ${ctaSectionHTML(cfg)}
       const openBtn = document.getElementById("openControls")!;
       const closeBtn = document.getElementById("closeControls")!;
 
-      openBtn.addEventListener("click", () => controls.classList.add("open"));
-      closeBtn.addEventListener("click", () => controls.classList.remove("open"));
+      openBtn.addEventListener("click", () => {
+        controls.classList.add("open");
+      });
+      closeBtn.addEventListener("click", () => {
+        controls.classList.remove("open");
+      });
+    }
+
+    // ── Populate controls from config ──
+    function populateControls(cfg: any) {
+      // Global
+      const g = cfg.global || {};
+      $("cfg-accentColor").value = g.accentColor || "#5700FF";
+      $("cfg-accentColorText").value = g.accentColor || "#5700FF";
+      $("cfg-pageBgColor").value = g.pageBgColor || "#FAFAF8";
+      $("cfg-pageBgColorText").value = g.pageBgColor || "#FAFAF8";
+      ($("cfg-headingFont") as HTMLSelectElement).value = g.headingFont || "Plus Jakarta Sans";
+      ($("cfg-bodyFont") as HTMLSelectElement).value = g.bodyFont || "Inter";
+
+      // Hero
+      const h = cfg.hero || {};
+      $("cfg-heroVisible").checked = h.visible ?? true;
+      ($("cfg-heroMinHeight") as HTMLSelectElement).value = h.minHeight || "70vh";
+      $("cfg-heroOverlayOpacity").value = String(h.overlayOpacity ?? 50);
+      document.getElementById("heroOverlayVal")!.textContent = String(h.overlayOpacity ?? 50);
+      $("cfg-heroOverlayColor").value = h.overlayColor || "#000000";
+      $("cfg-heroOverlayColorText").value = h.overlayColor || "#000000";
+      $("cfg-heroGradientFrom").value = h.fallbackGradientFrom || "#5700FF";
+      $("cfg-heroGradientFromText").value = h.fallbackGradientFrom || "#5700FF";
+      $("cfg-heroGradientTo").value = h.fallbackGradientTo || "#350099";
+      $("cfg-heroGradientToText").value = h.fallbackGradientTo || "#350099";
+      $("cfg-heroShowLogo").checked = h.showLogo ?? true;
+      ($("cfg-heroLogoHeight") as HTMLSelectElement).value = h.logoHeight || "h-20";
+      ($("cfg-heroLogoRadius") as HTMLSelectElement).value = h.logoRadius || "rounded-2xl";
+      $("cfg-heroLogoBgOpacity").value = String(h.logoBgOpacity ?? 10);
+      document.getElementById("heroLogoBgOpacityVal")!.textContent = String(h.logoBgOpacity ?? 10);
+      ($("cfg-heroTitleFontSize") as HTMLSelectElement).value = h.titleFontSize || "text-4xl";
+      $("cfg-heroTitleColor").value = h.titleColor || "#ffffff";
+      $("cfg-heroTitleColorText").value = h.titleColor || "#ffffff";
+      $("cfg-heroShowSlogan").checked = h.showSlogan ?? true;
+      ($("cfg-heroSloganFontSize") as HTMLSelectElement).value = h.sloganFontSize || "text-xl";
+      // Slogan color may be rgba, only set hex picker if it's hex
+      const sloganC = h.sloganColor || "rgba(255,255,255,0.9)";
+      if (/^#[0-9a-fA-F]{6}$/.test(sloganC)) {
+        $("cfg-heroSloganColor").value = sloganC;
+      }
+      $("cfg-heroSloganColorText").value = sloganC;
+      ($("cfg-heroVerticalPadding") as HTMLSelectElement).value = h.verticalPadding || "py-24";
+
+      // Description
+      const d = cfg.description || {};
+      $("cfg-descVisible").checked = d.visible ?? true;
+      ($("cfg-descMaxWidth") as HTMLSelectElement).value = d.maxWidth || "max-w-3xl";
+      ($("cfg-descFontSize") as HTMLSelectElement).value = d.fontSize || "prose-lg";
+      $("cfg-descTextColor").value = d.textColor || "#4B5563";
+      $("cfg-descTextColorText").value = d.textColor || "#4B5563";
+      ($("cfg-descTextAlign") as HTMLSelectElement).value = d.textAlign || "text-left";
+      $("cfg-descBgColor").value = d.bgColor || "#FAFAF8";
+      $("cfg-descBgColorText").value = d.bgColor || "#FAFAF8";
+      ($("cfg-descVerticalPadding") as HTMLSelectElement).value = d.verticalPadding || "py-20";
+
+      // Blog Preview
+      const b = cfg.blogPreview || {};
+      $("cfg-blogVisible").checked = b.visible ?? true;
+      $("cfg-blogBadgeText").value = b.badgeText ?? "Blog";
+      $("cfg-blogSectionTitle").value = b.sectionTitle ?? "Derniers articles";
+      ($("cfg-blogSectionSubtitle") as HTMLTextAreaElement).value = b.sectionSubtitle ?? "Actualites, articles, interviews...";
+      $("cfg-blogCtaText").value = b.ctaText ?? "Voir tous les articles";
+      ($("cfg-blogPostCount") as HTMLSelectElement).value = String(b.postCount ?? 3);
+      $("cfg-blogBgColor").value = b.bgColor || "#F5F3EF";
+      $("cfg-blogBgColorText").value = b.bgColor || "#F5F3EF";
+      ($("cfg-blogCardRadius") as HTMLSelectElement).value = b.cardRadius || "rounded-2xl";
+      ($("cfg-blogCardShadow") as HTMLSelectElement).value = b.cardShadow || "none";
+      $("cfg-blogShowCoverImage").checked = b.showCoverImage ?? true;
+      $("cfg-blogShowCategory").checked = b.showCategory ?? true;
+      $("cfg-blogShowDate").checked = b.showDate ?? true;
+      $("cfg-blogShowExcerpt").checked = b.showExcerpt ?? true;
+      ($("cfg-blogVerticalPadding") as HTMLSelectElement).value = b.verticalPadding || "py-24";
+
+      // Contact
+      const c = cfg.contact || {};
+      $("cfg-contactVisible").checked = c.visible ?? true;
+      $("cfg-contactHeadingText").value = c.headingText ?? "Contact";
+      $("cfg-contactHeadingColor").value = c.headingColor || "#111827";
+      $("cfg-contactHeadingColorText").value = c.headingColor || "#111827";
+      $("cfg-contactBgColor").value = c.bgColor || "#F5F3EF";
+      $("cfg-contactBgColorText").value = c.bgColor || "#F5F3EF";
+      ($("cfg-contactCardRadius") as HTMLSelectElement).value = c.cardRadius || "rounded-2xl";
+      $("cfg-contactCardBgColor").value = c.cardBgColor || "#ffffff";
+      $("cfg-contactCardBgColorText").value = c.cardBgColor || "#ffffff";
+      $("cfg-contactIconBgColor").value = c.iconBgColor || "#f3eeff";
+      $("cfg-contactIconBgColorText").value = c.iconBgColor || "#f3eeff";
+      $("cfg-contactIconColor").value = c.iconColor || "#5700FF";
+      $("cfg-contactIconColorText").value = c.iconColor || "#5700FF";
+      $("cfg-contactLinkColor").value = c.linkColor || "#5700FF";
+      $("cfg-contactLinkColorText").value = c.linkColor || "#5700FF";
+      ($("cfg-contactVerticalPadding") as HTMLSelectElement).value = c.verticalPadding || "py-20";
+
+      // Header
+      const hd = cfg.header || {};
+      $("cfg-headerVisible").checked = hd.visible ?? true;
+      const scrollBg = hd.scrollBgColor || "rgba(250,250,248,0.8)";
+      if (/^#[0-9a-fA-F]{6}$/.test(scrollBg)) {
+        $("cfg-headerScrollBgColor").value = scrollBg;
+      }
+      $("cfg-headerScrollBgColorText").value = scrollBg;
+      $("cfg-headerNameColor").value = hd.nameColor || "#111827";
+      $("cfg-headerNameColorText").value = hd.nameColor || "#111827";
+      $("cfg-headerLinkColor").value = hd.linkColor || "#4B5563";
+      $("cfg-headerLinkColorText").value = hd.linkColor || "#4B5563";
+      $("cfg-headerLinkHoverColor").value = hd.linkHoverColor || "#111827";
+      $("cfg-headerLinkHoverColorText").value = hd.linkHoverColor || "#111827";
+
+      // Footer
+      const f = cfg.footer || {};
+      $("cfg-footerVisible").checked = f.visible ?? true;
+      $("cfg-footerBgColor").value = f.bgColor || "#5700FF";
+      $("cfg-footerBgColorText").value = f.bgColor || "#5700FF";
+      $("cfg-footerTextColor").value = f.textColor || "#ffffff";
+      $("cfg-footerTextColorText").value = f.textColor || "#ffffff";
+      const linkC = f.linkColor || "rgba(255,255,255,0.6)";
+      if (/^#[0-9a-fA-F]{6}$/.test(linkC)) {
+        $("cfg-footerLinkColor").value = linkC;
+      }
+      $("cfg-footerLinkColorText").value = linkC;
+      const copyrightC = f.copyrightColor || "rgba(255,255,255,0.4)";
+      if (/^#[0-9a-fA-F]{6}$/.test(copyrightC)) {
+        $("cfg-footerCopyrightColor").value = copyrightC;
+      }
+      $("cfg-footerCopyrightColorText").value = copyrightC;
     }
 
     // ── Load config ──
     async function loadConfig() {
       try {
-        const res = await fetch("/api/admin/config");
+        const res = await fetch("/api/admin/landing-config");
         if (res.status === 401) { window.location.href = "/admin/login"; return; }
         const data = await res.json();
 
-        if (!data.config) {
-          showMessage("Aucune configuration trouvee.", "error");
-          document.getElementById("loadingOverlay")!.classList.add("hidden");
-          return;
-        }
+        const cfg = data.config || {};
+        populateControls(cfg);
 
-        currentConfig = data.config;
-        const c = currentConfig!;
-
-        $("cfg-name").value = c.name || "";
-        $("cfg-description").value = c.description || "";
-        $("cfg-url").value = c.url || "";
-
-        $("cfg-hero-title").value = c.hero?.title || "";
-        $("cfg-hero-subtitle").value = c.hero?.subtitle || "";
-        $("cfg-hero-ctaText").value = c.hero?.ctaText || "";
-        $("cfg-hero-ctaLink").value = c.hero?.ctaLink || "";
-
-        $("cfg-features-title").value = c.features?.title || "";
-        featuresItems = c.features?.items || [];
-        renderFeatures();
-
-        $("cfg-cta-title").value = c.cta?.title || "";
-        $("cfg-cta-description").value = c.cta?.description || "";
-        $("cfg-cta-ctaText").value = c.cta?.ctaText || "";
-        $("cfg-cta-ctaLink").value = c.cta?.ctaLink || "";
-
-        // Template
-        selectedTemplate = c.landingTemplate || "custom";
-        templateOverrides = c.templateOverrides || {};
-        renderTemplates();
-        toggleSectionsMode(selectedTemplate !== "custom");
-
-        setupAccordions();
+        setupColorSyncs();
+        setupRangeInputs();
         setupReactiveInputs();
         setupDeviceToggle();
         setupMobileControls();
         setupResizeHandle();
-        setupAiPrompt();
+        setupAccordions();
 
         updatePreview();
 
         document.getElementById("loadingOverlay")!.classList.add("hidden");
       } catch {
-        showMessage("Erreur de chargement de la configuration", "error");
+        showMessage("Erreur de chargement", "error");
         document.getElementById("loadingOverlay")!.classList.add("hidden");
       }
     }
@@ -1579,7 +1767,8 @@ ${ctaSectionHTML(cfg)}
 
       try {
         const config = gatherConfig();
-        const res = await fetch("/api/admin/deploy", {
+
+        const res = await fetch("/api/admin/landing-config", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ config }),
@@ -1591,7 +1780,6 @@ ${ctaSectionHTML(cfg)}
         if (data.success) {
           showMessage(data.message || "Configuration sauvegardee !", "success");
           status.textContent = "Publie avec succes";
-          currentConfig = config;
         } else {
           showMessage(data.error || "Erreur lors de la sauvegarde", "error");
           status.textContent = "Erreur de publication";
@@ -1604,17 +1792,6 @@ ${ctaSectionHTML(cfg)}
         btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Enregistrer & Publier';
         setTimeout(() => { status.textContent = "Pret a publier"; }, 4000);
       }
-    });
-
-    // ── Add feature ──
-    document.getElementById("addFeatureBtn")!.addEventListener("click", () => {
-      featuresItems.push({
-        title: "Nouvelle fonctionnalite",
-        description: "Description de la fonctionnalite",
-        icon: String(featuresItems.length + 1),
-      });
-      renderFeatures();
-      schedulePreviewUpdate(0);
     });
 
     // Init

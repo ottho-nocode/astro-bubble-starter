@@ -6,7 +6,7 @@ import mdx from "@astrojs/mdx";
 import vercel from "@astrojs/vercel";
 
 export default defineConfig({
-  site: "https://example.com", // REMPLACER par le domaine du client
+  site: "https://ottho.co",
   output: "static",
   adapter: vercel(),
   integrations: [tailwind(), sitemap(), mdx()],

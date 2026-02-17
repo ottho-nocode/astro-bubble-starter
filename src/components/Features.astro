@@ -1,60 +1,135 @@
 ---
-import { loadSiteConfig } from "../config";
+const badges = [
+  { text: "Financable a 100%" },
+  { text: "Format flexible" },
+  { text: "Depuis chez vous" },
+  { text: "Accompagne par des experts" },
+];
 
-const config = await loadSiteConfig();
-
-interface Feature {
-  title: string;
-  description: string;
-  icon: string;
-}
-
-interface Props {
-  title?: string;
-  features?: Feature[];
-}
-
-const {
-  title = config.features?.title || "Pourquoi nous choisir",
-  features = config.features?.items || [
-    {
-      title: "Fonctionnalité 1",
-      description: "Description courte de cette fonctionnalité et de sa valeur ajoutée.",
-      icon: "1",
-    },
-    {
-      title: "Fonctionnalité 2",
-      description: "Description courte de cette fonctionnalité et de sa valeur ajoutée.",
-      icon: "2",
-    },
-    {
-      title: "Fonctionnalité 3",
-      description: "Description courte de cette fonctionnalité et de sa valeur ajoutée.",
-      icon: "3",
-    },
-  ],
-} = Astro.props;
+const formations = [
+  {
+    title: "Bootcamp Bubble Developer",
+    description: "En 10 semaines, passez de zero a developpeur Bubble operationnel. Vous construisez 3 apps completes, accompagne par des mentors en poste.",
+    duration: "10 semaines",
+    format: "Intensif",
+    href: "/formations/bootcamp-bubble",
+    featured: true,
+    img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=400&fit=crop&q=80",
+  },
+  {
+    title: "Formation Product Launcher",
+    description: "Lancez votre MVP en 6 semaines sans ecrire une ligne de code. De la validation d'idee au premier utilisateur payant.",
+    duration: "6 semaines",
+    format: "Hybride",
+    href: "/formations/product-launcher",
+    featured: false,
+    img: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=200&fit=crop&q=80",
+  },
+  {
+    title: "E-learning Bubble",
+    description: "Progressez a votre rythme avec des modules courts et pratiques. Ideal pour tester Bubble avant de vous engager sur un bootcamp.",
+    duration: "A votre rythme",
+    format: "E-learning",
+    href: "/formations/elearning-bubble",
+    featured: false,
+    img: "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=400&h=200&fit=crop&q=80",
+  },
+  {
+    title: "Coaching No Code",
+    description: "Un expert Bubble dedie pour debloquer votre projet. Sessions individuelles adaptees a vos objectifs et votre planning.",
+    duration: "Sur mesure",
+    format: "1-to-1",
+    href: "/formations/coaching",
+    featured: false,
+    img: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&h=200&fit=crop&q=80",
+  },
+];
 ---
 
-<section class="py-20">
-  <div class="mx-auto max-w-6xl px-6">
-    <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">
-      {title}
-    </h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      {features.map((feature) => (
-        <div class="rounded-xl border border-gray-100 bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
-          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-100 text-primary-700 font-bold text-lg mb-4">
-            {feature.icon}
-          </div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">
-            {feature.title}
-          </h3>
-          <p class="text-gray-600 leading-relaxed">
-            {feature.description}
-          </p>
+<section id="formations" class="py-24 lg:py-32 relative">
+  <div class="relative z-10 mx-auto max-w-6xl px-6">
+    <!-- Header -->
+    <div class="reveal text-center max-w-2xl mx-auto mb-8">
+      <div class="inline-flex items-center gap-2 rounded-full bg-primary-50 border border-primary-200/60 px-4 py-1.5 mb-6">
+        <span class="text-xs font-semibold text-primary-600 uppercase tracking-wider">Formations</span>
+      </div>
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-gray-900 leading-tight">
+        La formation <span class="bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">No Code</span> qui correspond a votre ambition
+      </h2>
+      <p class="mt-5 text-lg text-gray-500 font-body">
+        4 formats, 1 objectif : vous rendre autonome sur Bubble en quelques semaines
+      </p>
+    </div>
+
+    <!-- Badges -->
+    <div class="reveal reveal-delay-1 flex flex-wrap justify-center gap-3 mb-16">
+      {badges.map((badge) => (
+        <div class="flex items-center gap-2 rounded-full bg-white border border-gray-200/60 px-4 py-2 shadow-sm">
+          <svg class="w-4 h-4 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+          <span class="text-sm font-medium text-gray-600">{badge.text}</span>
         </div>
       ))}
+    </div>
+
+    <!-- Formation Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {formations.map((f, i) => (
+        <a
+          href={f.href}
+          class={`reveal reveal-delay-${(i % 4) + 1} group relative rounded-2xl border border-gray-200/60 bg-white overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-gray-900/8 hover:scale-[1.01] hover:border-gray-300 ${f.featured ? "md:col-span-2" : ""} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#FAFAF8]`}
+        >
+          {/* Image */}
+          <div class={`relative overflow-hidden ${f.featured ? "aspect-[3/1]" : "aspect-[2/1]"}`}>
+            <img
+              src={f.img}
+              alt={f.title}
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              loading="lazy"
+              width={f.featured ? 800 : 400}
+              height={f.featured ? 267 : 200}
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+            <div class="absolute top-4 left-4 flex items-center gap-3">
+              <span class="inline-block rounded-full bg-white/90 backdrop-blur-sm px-3.5 py-1 text-xs font-semibold text-gray-700">
+                {f.format}
+              </span>
+              <span class="text-xs text-white/90 font-medium">{f.duration}</span>
+            </div>
+          </div>
+
+          <div class="relative z-10 p-6 lg:p-8">
+            <h3 class="text-xl lg:text-2xl font-heading font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors duration-200">
+              {f.title}
+            </h3>
+            <p class="text-gray-500 font-body leading-relaxed group-hover:text-gray-600 transition-colors duration-200">
+              {f.description}
+            </p>
+            <div class="inline-flex items-center gap-2 mt-5 text-sm font-semibold text-primary-600 group-hover:gap-3 transition-all duration-300">
+              En savoir plus
+              <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <!-- Bottom CTA -->
+    <div class="reveal flex flex-col items-center gap-3 mt-14">
+      <span class="text-lg text-gray-400 font-body">Pas encore sur du format qui vous convient ?</span>
+      <a
+        href="/prendre-rdv"
+        class="btn-press group inline-flex items-center gap-2 rounded-full bg-white border border-gray-300 px-6 py-3 text-base font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#FAFAF8]"
+      >
+        <svg class="w-4 h-4 text-primary-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Parler a un conseiller formation
+      </a>
+      <p class="text-xs text-gray-400">Appel gratuit de 15 min &middot; Sans engagement</p>
     </div>
   </div>
 </section>

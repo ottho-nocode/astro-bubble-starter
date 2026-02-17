@@ -5,8 +5,6 @@ import BlogCardList from "../../components/BlogCardList.astro";
 import BlogHeroCard from "../../components/BlogHeroCard.astro";
 import { getPosts } from "../../lib/bubble";
 import { loadSiteConfig } from "../../config";
-import { getTemplateParts } from "../../lib/template-parts";
-
 let posts: Awaited<ReturnType<typeof getPosts>> = [];
 try {
   const all = await getPosts();
@@ -23,8 +21,7 @@ const template = bc.template || config.blogTemplate || "grid";
 const heroTitle = bc.heroTitle || "Blog";
 const heroSubtitle = bc.heroSubtitle || "Decouvrez nos derniers articles et actualites.";
 const heroBg = bc.heroBackground || "white";
-const tpl = await getTemplateParts(config);
-const accentColor = tpl?.accentColor || bc.accentColor || "#0284c7";
+const accentColor = bc.accentColor || "#5700FF";
 const showSearch = bc.showSearch ?? false;
 const showCategoryFilter = bc.showCategoryFilter ?? false;
 const showCoverImage = bc.showCoverImage ?? true;

@@ -1,0 +1,81 @@
+---
+const videos = [
+  { name: "William", caption: "Photographe et fondateur de Pixi.live", vimeoId: "1003994043" },
+  { name: "Pierre", caption: "De paysagiste a Product Builder en CDI chez theTribe", vimeoId: "1005415156" },
+  { name: "Simon", caption: "De boulanger a developpeur Bubble en freelance", vimeoId: "1005480292" },
+  { name: "Syamak", caption: "D'ingenieur travaux a co-fondateur de Konform", vimeoId: "1009119885" },
+];
+---
+
+<section class="py-24 lg:py-32 relative bg-[#F5F3EF]">
+  <div class="relative z-10 mx-auto max-w-6xl px-6">
+    <!-- Header -->
+    <div class="reveal max-w-xl mb-14">
+      <div class="inline-flex items-center gap-2 rounded-full bg-white border border-gray-200/60 px-4 py-1.5 mb-5 shadow-sm">
+        <svg class="w-3.5 h-3.5 text-primary-500" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Temoignages</span>
+      </div>
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-gray-900 leading-tight">
+        De reconversion a <span class="bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">carriere No Code</span> en quelques mois
+      </h2>
+      <p class="mt-4 text-lg text-gray-500 font-body">
+        Boulanger, paysagiste, chef de projet&hellip; ils ont change de vie grace a nos bootcamps.
+      </p>
+    </div>
+
+    <!-- Video Cards -->
+    <div class="relative">
+      <div class="flex gap-5 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 -mx-6 px-6" id="video-carousel" style="scroll-snap-type: x mandatory; overscroll-behavior-x: contain">
+        {videos.map((video, i) => (
+          <div class={`reveal reveal-delay-${i + 1} flex-shrink-0 w-[320px] sm:w-[380px] snap-start`}>
+            <div class="group rounded-2xl border border-gray-200/60 bg-white overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300">
+              <!-- Video -->
+              <div class="relative aspect-video bg-gray-100">
+                <iframe
+                  src={`https://player.vimeo.com/video/${video.vimeoId}?title=0&byline=0&portrait=0`}
+                  class="absolute inset-0 w-full h-full"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowfullscreen
+                  loading="lazy"
+                  title={`Temoignage de ${video.name}`}
+                ></iframe>
+              </div>
+              <!-- Caption -->
+              <div class="p-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-100 to-purple-100 flex items-center justify-center">
+                    <span class="text-sm font-bold text-primary-600">{video.name[0]}</span>
+                  </div>
+                  <div>
+                    <p class="font-heading font-bold text-gray-900 text-sm">{video.name}</p>
+                    <p class="text-xs text-gray-500 mt-0.5">{video.caption}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="reveal text-center mt-12">
+      <a
+        href="/formations"
+        class="btn-press inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F5F3EF]"
+      >
+        Ecrire ma propre success story
+        <svg class="w-4 h-4" viewBox="0 0 16 16" fill="none">
+          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+</style>

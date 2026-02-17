@@ -1,19 +1,49 @@
 ---
-import { loadSiteConfig } from "../config";
+import { getLandingConfig } from "../lib/landing-config";
 
-const config = await loadSiteConfig();
+interface Props {
+  name: string;
+}
+
+const { name } = Astro.props;
+const cfg = getLandingConfig();
+const f = cfg.footer;
+
+if (!f.visible) return;
+
+const links = [
+  { label: "Accueil", href: "/" },
+  { label: "Blog", href: "/blog" },
+];
 ---
 
-<footer class="bg-gray-50 border-t border-gray-100 mt-20">
-  <div class="mx-auto max-w-6xl px-6 py-12">
-    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-      <p class="text-sm text-gray-500">
-        &copy; {new Date().getFullYear()} {config.name}. Tous droits réservés.
-      </p>
-      <div class="flex gap-6">
-        <a href="/blog" class="text-sm text-gray-500 hover:text-gray-700">Blog</a>
-        <a href={config.bubbleAppUrl} class="text-sm text-gray-500 hover:text-gray-700">Application</a>
+<footer style={`background:${f.bgColor};`}>
+  <div class="mx-auto max-w-6xl px-6 pt-12 pb-8">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
+      <a href="/" class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(255,255,255,0.2);">
+          <span class="font-heading font-extrabold text-sm" style={`color:${f.textColor};`}>{name.charAt(0).toUpperCase()}</span>
+        </div>
+        <span class="text-lg font-heading font-bold" style={`color:${f.textColor};`}>{name}</span>
+      </a>
+
+      <div class="flex items-center gap-6">
+        {links.map((link) => (
+          <a
+            href={link.href}
+            class="text-sm hover:opacity-100 transition-colors duration-200"
+            style={`color:${f.linkColor};`}
+          >
+            {link.label}
+          </a>
+        ))}
       </div>
+    </div>
+
+    <div class="border-t pt-8 text-center" style="border-color:rgba(255,255,255,0.15);">
+      <p class="text-xs" style={`color:${f.copyrightColor};`}>
+        &copy; {new Date().getFullYear()} {name}. Tous droits réservés.
+      </p>
     </div>
   </div>
 </footer>

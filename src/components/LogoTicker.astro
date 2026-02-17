@@ -1,0 +1,56 @@
+---
+const logos = [
+  "BPI France",
+  "France Travail",
+  "Techstars",
+  "Station F",
+  "La French Tech",
+  "Le Wagon",
+  "Bubble",
+  "Make",
+  "Xano",
+];
+---
+
+<section class="py-16 relative overflow-hidden">
+  <div class="mx-auto max-w-6xl px-6 mb-10">
+    <p class="reveal text-center text-sm font-medium text-gray-400 uppercase tracking-[0.2em]">
+      Ils creent ou rejoignent de belles entreprises
+    </p>
+  </div>
+
+  <div class="relative">
+    <!-- Fade edges -->
+    <div class="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#FAFAF8] to-transparent z-10"></div>
+    <div class="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#FAFAF8] to-transparent z-10"></div>
+
+    <div class="flex animate-ticker">
+      {[...logos, ...logos].map((name) => (
+        <div class="flex-shrink-0 mx-6">
+          <div class="px-8 py-3 rounded-full border border-gray-200/60 bg-white hover:bg-gray-50 hover:border-gray-300 transition-colors duration-200">
+            <span class="text-sm font-medium text-gray-400 whitespace-nowrap">{name}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-ticker {
+    animation: ticker 35s linear infinite;
+    width: max-content;
+  }
+  .animate-ticker:hover {
+    animation-play-state: paused;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-ticker {
+      animation: none;
+    }
+  }
+</style>

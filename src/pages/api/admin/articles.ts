@@ -5,7 +5,7 @@ import {
   verifySession,
   getSessionFromRequest,
 } from "../../../lib/admin-auth";
-import { getAllPosts, getContentConfig } from "../../../lib/bubble";
+import { getPosts, getContentConfig } from "../../../lib/bubble";
 
 export const GET: APIRoute = async ({ request }) => {
   const token = getSessionFromRequest(request);
@@ -19,12 +19,12 @@ export const GET: APIRoute = async ({ request }) => {
 
   try {
     const { mapping } = await getContentConfig();
-    const articles = await getAllPosts();
+    const articles = await getPosts();
 
     return new Response(
       JSON.stringify({
         articles,
-        publishedField: mapping.published || null,
+        publishedField: "Os-article_status",
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
