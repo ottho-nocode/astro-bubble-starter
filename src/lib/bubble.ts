@@ -564,14 +564,27 @@ export interface CompanyInfo {
 
 let _companyInfoCache: CompanyInfo | null = null;
 
-export async function getCompanyInfo(): Promise<CompanyInfo | null> {
+export async function getCompanyInfo(id?: string): Promise<CompanyInfo | null> {
   if (_companyInfoCache) return _companyInfoCache;
 
   try {
-    const results = await bubbleFetch<Record<string, any>>("company-vitrine", {
-      limit: 1,
-    });
-    const raw = results[0];
+    let raw: Record<string, any> | undefined;
+
+    if (id) {
+      // Fetch by Bubble unique ID
+      const creds = getBubbleCredentials();
+      const res = await fetch(`${creds.url}/obj/company-vitrine/${id}`, {
+        headers: { Authorization: `Bearer ${creds.token}` },
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      raw = data.response;
+    } else {
+      const results = await bubbleFetch<Record<string, any>>("company-vitrine", {
+        limit: 1,
+      });
+      raw = results[0];
+    }
     if (!raw) return null;
 
     _companyInfoCache = {
@@ -609,6 +622,19 @@ export async function getCompanyInfo(): Promise<CompanyInfo | null> {
 
 export function clearCompanyInfoCache(): void {
   _companyInfoCache = null;
+}
+
+export async function bubbleFetchById(
+  typeName: string,
+  id: string
+): Promise<Record<string, any> | undefined> {
+  const creds = getBubbleCredentials();
+  const res = await fetch(`${creds.url}/obj/${typeName}/${id}`, {
+    headers: { Authorization: `Bearer ${creds.token}` },
+  });
+  if (!res.ok) return undefined;
+  const data = await res.json();
+  return data.response;
 }
 
 export { bubbleFetch, bubbleFetchAll };

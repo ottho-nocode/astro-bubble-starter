@@ -15,8 +15,9 @@ interface Props {
 }
 
 const props = Astro.props;
+const agenceId = Astro.url.searchParams.get("id") || undefined;
 clearCompanyInfoCache();
-const company = await getCompanyInfo();
+const company = await getCompanyInfo(agenceId);
 if (company) setLandingConfigFromCompany(company);
 const cfg = getLandingConfig();
 const companyName = company?.nom || "Mon site";
@@ -113,7 +114,9 @@ const companyLogo = company?.logo || "";
 
         async function checkForUpdate() {
           try {
-            const res = await fetch("/api/check-update", { cache: "no-store" });
+            const params = new URLSearchParams(window.location.search);
+            const idParam = params.get("id") ? `?id=${params.get("id")}` : "";
+            const res = await fetch(`/api/check-update${idParam}`, { cache: "no-store" });
             if (!res.ok) return;
             const data = await res.json();
             if (!data.modified) return;

@@ -9,7 +9,8 @@ import ContactSection from "../components/ContactSection.astro";
 import { getCompanyInfo } from "../lib/bubble";
 import { setLandingConfigFromCompany } from "../lib/landing-config";
 
-const company = await getCompanyInfo();
+const agenceId = Astro.url.searchParams.get("id") || undefined;
+const company = await getCompanyInfo(agenceId);
 if (company) setLandingConfigFromCompany(company);
 const title = company ? `${company.nom} — ${company.slogan || "Accueil"}` : "Accueil";
 const description = company?.description?.slice(0, 160) || "";

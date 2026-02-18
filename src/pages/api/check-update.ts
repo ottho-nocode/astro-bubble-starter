@@ -3,12 +3,20 @@ export const prerender = false;
 import type { APIRoute } from "astro";
 import { bubbleFetch } from "../../lib/bubble";
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ url }) => {
   try {
-    const results = await bubbleFetch<Record<string, any>>("company-vitrine", {
-      limit: 1,
-    });
-    const raw = results[0];
+    const id = url.searchParams.get("id");
+    let raw: Record<string, any> | undefined;
+
+    if (id) {
+      const { bubbleFetchById } = await import("../../lib/bubble");
+      raw = await bubbleFetchById("company-vitrine", id);
+    } else {
+      const results = await bubbleFetch<Record<string, any>>("company-vitrine", {
+        limit: 1,
+      });
+      raw = results[0];
+    }
     return new Response(
       JSON.stringify({ modified: raw?.["Modified Date"] || "" }),
       {
