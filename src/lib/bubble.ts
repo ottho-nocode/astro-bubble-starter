@@ -557,6 +557,10 @@ export interface CompanyInfo {
   desc_visible?: boolean;
   desc_text_color?: string;
   desc_font_size?: string;
+  contact_visible?: boolean;
+  contact_show_email?: boolean;
+  contact_show_phone?: boolean;
+  contact_show_address?: boolean;
   footer_visible?: boolean;
   footer_bg_color?: string;
   footer_text_color?: string;
@@ -610,6 +614,10 @@ export async function getCompanyInfo(id?: string): Promise<CompanyInfo | null> {
       desc_visible: raw["desc_visible"] ?? undefined,
       desc_text_color: raw["desc_text_color"] || undefined,
       desc_font_size: raw["desc_font_size"] != null ? String(raw["desc_font_size"]) : undefined,
+      contact_visible: raw["contact_visible"] ?? undefined,
+      contact_show_email: raw["contact_show_email"] ?? undefined,
+      contact_show_phone: raw["contact_show_phone"] ?? undefined,
+      contact_show_address: raw["contact_show_address"] ?? undefined,
       footer_visible: raw["footer_visible"] ?? undefined,
       footer_bg_color: raw["footer_bg_color"] || undefined,
       footer_text_color: raw["footer_text_color"] || undefined,

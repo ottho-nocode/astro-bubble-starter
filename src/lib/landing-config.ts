@@ -59,6 +59,9 @@ export interface LandingBlogPreviewConfig {
 
 export interface LandingContactConfig {
   visible: boolean;
+  showEmail: boolean;
+  showPhone: boolean;
+  showAddress: boolean;
   verticalPadding: string;
   bgColor: string;
   cardRadius: string;
@@ -152,8 +155,11 @@ export const DEFAULT_LANDING_CONFIG: LandingConfig = {
   },
   contact: {
     visible: true,
+    showEmail: true,
+    showPhone: true,
+    showAddress: true,
     verticalPadding: "py-20",
-    bgColor: "#F5F3EF",
+    bgColor: "#ffffff",
     cardRadius: "rounded-2xl",
     cardBgColor: "#ffffff",
     headingText: "Contact",
@@ -246,6 +252,14 @@ export function setLandingConfigFromCompany(company: CompanyInfo): void {
   if (company.desc_font_size) descPart.fontSize = company.desc_font_size;
   if (Object.keys(descPart).length > 0) partial.description = descPart;
 
+  // Contact
+  const contactPart: Record<string, any> = {};
+  if (company.contact_visible !== undefined) contactPart.visible = company.contact_visible;
+  if (company.contact_show_email !== undefined) contactPart.showEmail = company.contact_show_email;
+  if (company.contact_show_phone !== undefined) contactPart.showPhone = company.contact_show_phone;
+  if (company.contact_show_address !== undefined) contactPart.showAddress = company.contact_show_address;
+  if (Object.keys(contactPart).length > 0) partial.contact = contactPart;
+
   // Footer
   const footerPart: Record<string, any> = {};
   if (company.footer_visible !== undefined) footerPart.visible = company.footer_visible;
@@ -281,6 +295,10 @@ export const BUBBLE_CONFIG_FIELDS: Record<string, string> = {
   "description.visible": "desc_visible",
   "description.textColor": "desc_text_color",
   "description.fontSize": "desc_font_size",
+  "contact.visible": "contact_visible",
+  "contact.showEmail": "contact_show_email",
+  "contact.showPhone": "contact_show_phone",
+  "contact.showAddress": "contact_show_address",
   "footer.visible": "footer_visible",
   "footer.bgColor": "footer_bg_color",
   "footer.textColor": "footer_text_color",
