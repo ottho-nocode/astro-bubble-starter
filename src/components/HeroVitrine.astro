@@ -31,7 +31,7 @@ const sloganSize = resolveFontSize(h.sloganFontSize);
 
 <section
   class:list={["relative flex items-center justify-center overflow-hidden", h.verticalPadding]}
-  style={`min-height:${h.minHeight};`}
+  style={`height:${(h.showLogo && logoUrl && h.showSlogan && company.slogan) ? "500px" : "400px"};`}
 >
   {coverUrl ? (
     <div class="absolute inset-0">
