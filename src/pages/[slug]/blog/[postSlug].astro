@@ -8,7 +8,7 @@ const { slug: agenceSlug, postSlug } = Astro.params;
 const company = await getCompanyInfo(agenceSlug);
 if (!company) return Astro.redirect("/404", 404);
 
-const post = await getPostBySlug(postSlug!);
+const post = await getPostBySlug(postSlug!, company._id);
 if (!post) return Astro.redirect(`/${agenceSlug}/blog`, 302);
 ---
 

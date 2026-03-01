@@ -4,16 +4,17 @@ import { getLandingConfig } from "../lib/landing-config";
 
 interface Props {
   blogBasePath?: string;
+  vitrineId?: string;
 }
 
-const { blogBasePath = "/blog" } = Astro.props;
+const { blogBasePath = "/blog", vitrineId } = Astro.props;
 const cfg = getLandingConfig();
 const bp = cfg.blogPreview;
 
 let latestPosts: Awaited<ReturnType<typeof getPosts>> = [];
 if (bp.visible) {
   try {
-    const allPosts = await getPosts();
+    const allPosts = await getPosts(vitrineId);
     latestPosts = allPosts.slice(0, bp.postCount);
   } catch {
     // En mode dev sans API Bubble configuree, on continue sans articles

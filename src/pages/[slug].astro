@@ -24,7 +24,7 @@ const description = company.description?.slice(0, 160) || "";
     <>
       <HeroVitrine company={company} />
       <DescriptionSection description={company.description} />
-      <BlogPreview blogBasePath={`/${slug}/blog`} />
+      <BlogPreview blogBasePath={`/${slug}/blog`} vitrineId={company._id} />
       <ContactSection company={company} />
     </>
   ) : (

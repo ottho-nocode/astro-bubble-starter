@@ -16,7 +16,7 @@ const blogBasePath = `/${agenceSlug}/blog`;
 
 let posts: Awaited<ReturnType<typeof getPosts>> = [];
 try {
-  const all = await getPosts();
+  const all = await getPosts(company._id);
   posts = all.filter((p) => p.slug);
 } catch {
   // API non configuree

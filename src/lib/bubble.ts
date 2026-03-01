@@ -491,13 +491,16 @@ export async function bubblePatch(
   }
 }
 
-export async function getPosts(): Promise<BubblePost[]> {
+export async function getPosts(vitrineId?: string): Promise<BubblePost[]> {
   const { table, mapping } = await getContentConfig();
   const { refInfos, lookup } = await getRefResolutionData(table);
 
   const constraints: FetchOptions["constraints"] = [
     { key: STATUS_FIELD, constraint_type: "equals", value: STATUS_PUBLISHED },
   ];
+  if (vitrineId) {
+    constraints.push({ key: "Vitrine", constraint_type: "equals", value: vitrineId });
+  }
 
   const sortField = mapping.date || "Created_Date";
 
@@ -511,23 +514,28 @@ export async function getPosts(): Promise<BubblePost[]> {
 }
 
 export async function getPostBySlug(
-  slug: string
+  slug: string,
+  vitrineId?: string
 ): Promise<BubblePost | undefined> {
   const { table, mapping } = await getContentConfig();
   const { refInfos, lookup } = await getRefResolutionData(table);
 
   const constraints: FetchOptions["constraints"] = [
-    { key: mapping.slug, constraint_type: "equals", value: slug },
     { key: STATUS_FIELD, constraint_type: "equals", value: STATUS_PUBLISHED },
   ];
+  if (vitrineId) {
+    constraints.push({ key: "Vitrine", constraint_type: "equals", value: vitrineId });
+  }
 
-  const rawResults = await bubbleFetch<Record<string, any>>(table, {
-    constraints,
-    limit: 1,
+  // Slug field might be empty in Bubble — fetch all published posts and match by generated slug
+  const rawResults = await bubbleFetchAll<Record<string, any>>(table, { constraints });
+  const match = rawResults.find((raw) => {
+    const postSlug = raw[mapping.slug] || raw.Slug || slugify(raw[mapping.title] || raw._id || "");
+    return postSlug === slug;
   });
 
-  if (!rawResults[0]) return undefined;
-  return mapBubbleRecord(rawResults[0], mapping, refInfos, lookup);
+  if (!match) return undefined;
+  return mapBubbleRecord(match, mapping, refInfos, lookup);
 }
 
 // ============================================================
