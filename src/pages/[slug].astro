@@ -11,9 +11,12 @@ import { setLandingConfigFromCompany } from "../lib/landing-config";
 
 const { slug } = Astro.params;
 const company = await getCompanyInfo(slug);
-if (company) setLandingConfigFromCompany(company);
-const title = company ? `${company.nom} — ${company.slogan || "Accueil"}` : "Accueil";
-const description = company?.description?.slice(0, 160) || "";
+
+if (!company) return Astro.redirect("/404", 404);
+
+setLandingConfigFromCompany(company);
+const title = `${company.nom} — ${company.slogan || "Accueil"}`;
+const description = company.description?.slice(0, 160) || "";
 ---
 
 <Base title={title} description={description}>
