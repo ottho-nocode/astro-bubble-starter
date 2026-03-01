@@ -1,7 +1,11 @@
 export const prerender = false;
 
 import type { APIRoute } from "astro";
-import { bubbleFetch } from "../../lib/bubble";
+import { bubbleFetch, bubbleFetchAll } from "../../lib/bubble";
+
+function trimName(name: string): string {
+  return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
 
 export const GET: APIRoute = async ({ url }) => {
   try {
@@ -9,11 +13,8 @@ export const GET: APIRoute = async ({ url }) => {
     let raw: Record<string, any> | undefined;
 
     if (slug) {
-      const results = await bubbleFetch<Record<string, any>>("company-vitrine", {
-        constraints: [{ key: "Slug", constraint_type: "equals", value: slug }],
-        limit: 1,
-      });
-      raw = results[0];
+      const results = await bubbleFetchAll<Record<string, any>>("company-vitrine");
+      raw = results.find((r) => trimName(r["Nom"] || r["nom"] || "") === slug.toLowerCase());
     } else {
       const results = await bubbleFetch<Record<string, any>>("company-vitrine", {
         limit: 1,

@@ -568,6 +568,13 @@ export interface CompanyInfo {
 
 let _companyInfoCache: CompanyInfo | null = null;
 
+function trimName(name: string): string {
+  return name
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
 export async function getCompanyInfo(slug?: string): Promise<CompanyInfo | null> {
   if (_companyInfoCache) return _companyInfoCache;
 
@@ -575,11 +582,8 @@ export async function getCompanyInfo(slug?: string): Promise<CompanyInfo | null>
     let raw: Record<string, any> | undefined;
 
     if (slug) {
-      const results = await bubbleFetch<Record<string, any>>("company-vitrine", {
-        constraints: [{ key: "Slug", constraint_type: "equals", value: slug }],
-        limit: 1,
-      });
-      raw = results[0];
+      const results = await bubbleFetchAll<Record<string, any>>("company-vitrine");
+      raw = results.find((r) => trimName(r["Nom"] || r["nom"] || "") === slug.toLowerCase());
     } else {
       const results = await bubbleFetch<Record<string, any>>("company-vitrine", {
         limit: 1,
