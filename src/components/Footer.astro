@@ -3,24 +3,25 @@ import { getLandingConfig } from "../lib/landing-config";
 
 interface Props {
   name: string;
+  basePath?: string;
 }
 
-const { name } = Astro.props;
+const { name, basePath = "" } = Astro.props;
 const cfg = getLandingConfig();
 const f = cfg.footer;
 
 if (!f.visible) return;
 
 const links = [
-  { label: "Accueil", href: "/" },
-  { label: "Blog", href: "/blog" },
+  { label: "Accueil", href: basePath || "/" },
+  { label: "Blog", href: `${basePath}/blog` },
 ];
 ---
 
 <footer style={`background:${f.bgColor};`}>
   <div class="mx-auto max-w-6xl px-6 pt-12 pb-8">
     <div class="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
-      <a href="/" class="flex items-center gap-2">
+      <a href={basePath || "/"} class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(255,255,255,0.2);">
           <span class="font-heading font-extrabold text-sm" style={`color:${f.textColor};`}>{name.charAt(0).toUpperCase()}</span>
         </div>

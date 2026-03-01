@@ -16,8 +16,9 @@ interface Props {
 
 const props = Astro.props;
 const segments = Astro.url.pathname.replace(/\/$/, "").split("/").filter(Boolean);
-const knownRoots = ["blog", "admin", "api", "robots.txt"];
-const agenceSlug = segments.length === 1 && !knownRoots.includes(segments[0]) ? segments[0] : undefined;
+const knownRoots = ["blog", "admin", "api", "robots.txt", "404"];
+const agenceSlug = segments.length >= 1 && !knownRoots.includes(segments[0]) ? segments[0] : undefined;
+const basePath = agenceSlug ? `/${agenceSlug}` : "";
 clearCompanyInfoCache();
 const company = await getCompanyInfo(agenceSlug);
 if (company) setLandingConfigFromCompany(company);
@@ -44,11 +45,11 @@ const companyLogo = company?.logo || "";
       Aller au contenu principal
     </a>
 
-    <Header name={companyName} logo={companyLogo} />
+    <Header name={companyName} logo={companyLogo} basePath={basePath} />
     <main id="main-content" class="flex-1">
       <slot />
     </main>
-    <Footer name={companyName} />
+    <Footer name={companyName} basePath={basePath} />
 
     <!-- Scroll reveal animations -->
     <style>

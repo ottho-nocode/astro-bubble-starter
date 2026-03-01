@@ -11,6 +11,7 @@ interface Props {
   showDate?: boolean;
   showExcerpt?: boolean;
   readMoreText?: string;
+  blogBasePath?: string;
 }
 
 const {
@@ -25,6 +26,7 @@ const {
   showDate = true,
   showExcerpt = true,
   readMoreText = "Lire la suite",
+  blogBasePath = "/blog",
 } = Astro.props;
 
 const formattedDate = new Date(date).toLocaleDateString("fr-FR", {
@@ -34,7 +36,7 @@ const formattedDate = new Date(date).toLocaleDateString("fr-FR", {
 });
 ---
 
-<a href={`/blog/${slug}`} class="blog-card block group flex rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow no-underline">
+<a href={`${blogBasePath}/${slug}`} class="blog-card block group flex rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow no-underline">
   {showCoverImage && coverImage && (
     <div class="flex-shrink-0">
       <img

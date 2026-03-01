@@ -1,0 +1,24 @@
+---
+export const prerender = false;
+
+import Post from "../../../layouts/Post.astro";
+import { getCompanyInfo, getPostBySlug } from "../../../lib/bubble";
+
+const { slug: agenceSlug, postSlug } = Astro.params;
+const company = await getCompanyInfo(agenceSlug);
+if (!company) return Astro.redirect("/404", 404);
+
+const post = await getPostBySlug(postSlug!);
+if (!post) return Astro.redirect(`/${agenceSlug}/blog`, 302);
+---
+
+<Post
+  title={post.title}
+  description={post.excerpt}
+  coverImage={post.cover_image}
+  date={post.date}
+  author={post.author}
+  category={post.category}
+>
+  <Fragment set:html={post.content} />
+</Post>

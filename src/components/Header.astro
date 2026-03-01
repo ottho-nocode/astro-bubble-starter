@@ -4,9 +4,10 @@ import { getLandingConfig } from "../lib/landing-config";
 interface Props {
   name: string;
   logo?: string;
+  basePath?: string;
 }
 
-const { name, logo } = Astro.props;
+const { name, logo, basePath = "" } = Astro.props;
 const cfg = getLandingConfig();
 const hdr = cfg.header;
 
@@ -19,8 +20,8 @@ const logoUrl = logo
   : "";
 
 const navLinks = [
-  { label: "Accueil", href: "/" },
-  { label: "Blog", href: "/blog" },
+  { label: "Accueil", href: basePath || "/" },
+  { label: "Blog", href: `${basePath}/blog` },
 ];
 
 const firstLetter = name.charAt(0).toUpperCase();
