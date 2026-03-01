@@ -15,9 +15,11 @@ interface Props {
 }
 
 const props = Astro.props;
-const agenceId = Astro.url.searchParams.get("id") || undefined;
+const segments = Astro.url.pathname.replace(/\/$/, "").split("/").filter(Boolean);
+const knownRoots = ["blog", "admin", "api", "robots.txt"];
+const agenceSlug = segments.length === 1 && !knownRoots.includes(segments[0]) ? segments[0] : undefined;
 clearCompanyInfoCache();
-const company = await getCompanyInfo(agenceId);
+const company = await getCompanyInfo(agenceSlug);
 if (company) setLandingConfigFromCompany(company);
 const cfg = getLandingConfig();
 const companyName = company?.nom || "Mon site";
@@ -114,9 +116,11 @@ const companyLogo = company?.logo || "";
 
         async function checkForUpdate() {
           try {
-            const params = new URLSearchParams(window.location.search);
-            const idParam = params.get("id") ? `?id=${params.get("id")}` : "";
-            const res = await fetch(`/api/check-update${idParam}`, { cache: "no-store" });
+            const pathParts = window.location.pathname.replace(/\/$/, "").split("/").filter(Boolean);
+            const known = ["blog", "admin", "api", "robots.txt"];
+            const slug = pathParts.length === 1 && !known.includes(pathParts[0]) ? pathParts[0] : "";
+            const slugParam = slug ? `?slug=${slug}` : "";
+            const res = await fetch(`/api/check-update${slugParam}`, { cache: "no-store" });
             if (!res.ok) return;
             const data = await res.json();
             if (!data.modified) return;

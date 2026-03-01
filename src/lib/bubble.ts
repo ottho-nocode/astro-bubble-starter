@@ -568,21 +568,18 @@ export interface CompanyInfo {
 
 let _companyInfoCache: CompanyInfo | null = null;
 
-export async function getCompanyInfo(id?: string): Promise<CompanyInfo | null> {
+export async function getCompanyInfo(slug?: string): Promise<CompanyInfo | null> {
   if (_companyInfoCache) return _companyInfoCache;
 
   try {
     let raw: Record<string, any> | undefined;
 
-    if (id) {
-      // Fetch by Bubble unique ID
-      const creds = getBubbleCredentials();
-      const res = await fetch(`${creds.url}/obj/company-vitrine/${id}`, {
-        headers: { Authorization: `Bearer ${creds.token}` },
+    if (slug) {
+      const results = await bubbleFetch<Record<string, any>>("company-vitrine", {
+        constraints: [{ key: "Slug", constraint_type: "equals", value: slug }],
+        limit: 1,
       });
-      if (!res.ok) return null;
-      const data = await res.json();
-      raw = data.response;
+      raw = results[0];
     } else {
       const results = await bubbleFetch<Record<string, any>>("company-vitrine", {
         limit: 1,

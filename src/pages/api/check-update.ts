@@ -5,12 +5,15 @@ import { bubbleFetch } from "../../lib/bubble";
 
 export const GET: APIRoute = async ({ url }) => {
   try {
-    const id = url.searchParams.get("id");
+    const slug = url.searchParams.get("slug");
     let raw: Record<string, any> | undefined;
 
-    if (id) {
-      const { bubbleFetchById } = await import("../../lib/bubble");
-      raw = await bubbleFetchById("company-vitrine", id);
+    if (slug) {
+      const results = await bubbleFetch<Record<string, any>>("company-vitrine", {
+        constraints: [{ key: "Slug", constraint_type: "equals", value: slug }],
+        limit: 1,
+      });
+      raw = results[0];
     } else {
       const results = await bubbleFetch<Record<string, any>>("company-vitrine", {
         limit: 1,
